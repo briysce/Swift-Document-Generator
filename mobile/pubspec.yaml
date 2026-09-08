@@ -1,7 +1,7 @@
 ﻿name: swift_shipping_label
 description: Swift Oilfield Supply - Document Generator (Shipping, Receiving, Bill of Lading, Bulk Labels).
 publish_to: "none"
-version: 1.1.93+120
+version: 1.1.94+121
 
 environment:
   sdk: ^3.12.2
