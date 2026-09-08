@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -327,8 +326,8 @@ void main() {
     final arjaeInk = LogoInkFit.prepare(arjae).ink;
     final propakInk = LogoInkFit.prepare(propak).ink;
     expect(
-      arcInk.isSquareOrCircle,
-      isFalse,
+      arjaeInk.isSquareOrCircle,
+      isTrue,
       reason: 'ARJAE should be square/circle',
     );
     expect(

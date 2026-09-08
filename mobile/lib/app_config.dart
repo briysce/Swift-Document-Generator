@@ -68,10 +68,11 @@ class AppConfig {
     defaultValue: '308655478522',
   );
 
-  /// Multimodal model id (default flash).
+  /// Multimodal model id (default flash). gemini-2.0-flash was retired by
+  /// Google — keep this current or JSON-based Gemini calls 404 silently.
   static const geminiModel = String.fromEnvironment(
     'GEMINI_MODEL',
-    defaultValue: 'gemini-2.0-flash',
+    defaultValue: 'gemini-3.6-flash',
   );
 
   /// Image-generation model for logo restore.

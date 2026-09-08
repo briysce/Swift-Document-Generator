@@ -21,7 +21,10 @@ class GeminiClient {
 
   final http.Client _client;
 
-  static const _defaultModel = 'gemini-2.0-flash';
+  // gemini-2.0-flash was retired by Google (404s as of this writing) — keep
+  // this current or every JSON-based call (validate/rank/critique/etc.)
+  // silently returns null.
+  static const _defaultModel = 'gemini-3.6-flash';
   static const _maxRetries = 3;
 
   static String? _cachedKey;
@@ -72,6 +75,8 @@ class GeminiClient {
     _ensureEnvLoaded();
     final fromEnv = Platform.environment['GEMINI_MODEL']?.trim() ?? '';
     if (fromEnv.isNotEmpty) return fromEnv;
+    final fromDotEnv = (_envOverlay['GEMINI_MODEL'] ?? '').trim();
+    if (fromDotEnv.isNotEmpty) return fromDotEnv;
     return AppConfig.geminiModel.trim().isEmpty
         ? _defaultModel
         : AppConfig.geminiModel.trim();
@@ -440,6 +445,7 @@ Return JSON only:
   Future<Uint8List> restoreLogoPng(
     Uint8List bytes, {
     List<String> addenda = const [],
+    String? promptOverride,
   }) async {
     final key = resolveApiKey();
     if (key.isEmpty) {
@@ -470,6 +476,7 @@ Return JSON only:
           modelId: id,
           bytes: bytes,
           addenda: addenda,
+          promptOverride: promptOverride,
         );
         if (png != null && png.isNotEmpty) return png;
       } catch (e) {
@@ -533,6 +540,7 @@ $extra''';
     required String modelId,
     required Uint8List bytes,
     List<String> addenda = const [],
+    String? promptOverride,
   }) async {
     final uri = Uri.parse(
       'https://generativelanguage.googleapis.com/v1beta/models/'
@@ -545,11 +553,12 @@ $extra''';
         : '\nKeep the dark RGB(${outline.r},${outline.g},${outline.b}) '
             'border around the letters. It is not background.\n';
     final brandNote = LogoImageProcessor.brandColorPromptNote(bytes);
-    final prompt = restorePrompt(
-      brandNote: brandNote,
-      outlineNote: outlineNote,
-      addenda: addenda,
-    );
+    final prompt = promptOverride ??
+        restorePrompt(
+          brandNote: brandNote,
+          outlineNote: outlineNote,
+          addenda: addenda,
+        );
     final aspect = (src != null && src.height > 0)
         ? src.width / src.height
         : 1.0;
@@ -611,6 +620,65 @@ $extra''';
     return _extractInlineImage(body);
   }
 
+  /// Self-critique step: asks Gemini to grade [candidate] against [original]
+  /// so a restore loop can retry instead of accepting a drifted redraw
+  /// on the first try. Returns null on any request/parse failure — callers
+  /// should treat that as "not verified," not "passed."
+  Future<LogoMatchVerdict?> critiqueRestoreMatch(
+    Uint8List original,
+    Uint8List candidate,
+  ) async {
+    final key = resolveApiKey();
+    if (key.isEmpty || isTemporarilyUnavailable) return null;
+    const prompt = '''
+Compare IMAGE_A (the original source) and IMAGE_B (a cleaned-up candidate
+meant to be the same logo, just higher resolution and crisper). You are
+checking fidelity, not aesthetics — a beautiful redraw that changed the
+design is a FAIL.
+
+Score 0-100 on how closely IMAGE_B preserves IMAGE_A's exact: letterforms and
+their proportions, icon shape and geometry, layout/spacing between elements,
+and colors (hue, not just "similar family"). Deduct heavily for anything
+IMAGE_B added that is not in IMAGE_A (extra shading, bevels, glow, drop
+shadows, chrome/gloss, changed background) or removed/altered from IMAGE_A.
+
+Respond with strict JSON only:
+{"score": <0-100 integer>, "pass": <bool, true only if score >= 90>,
+ "issues": [<short strings, empty array if none>]}
+''';
+    final result = await _generateJson(
+      key: key,
+      prompt: prompt,
+      partsOverride: [
+        {
+          'inline_data': {
+            'mime_type': _guessMime(original),
+            'data': base64Encode(_maybeDownscale(original)),
+          },
+        },
+        {'text': 'IMAGE_A (original) above.'},
+        {
+          'inline_data': {
+            'mime_type': _guessMime(candidate),
+            'data': base64Encode(_maybeDownscale(candidate)),
+          },
+        },
+        {'text': 'IMAGE_B (candidate) above.\n$prompt'},
+      ],
+    );
+    if (result == null) return null;
+    final score = result['score'];
+    final pass = result['pass'];
+    final issuesRaw = result['issues'];
+    return LogoMatchVerdict(
+      score: score is num ? score.toInt() : -1,
+      pass: pass == true,
+      issues: issuesRaw is List
+          ? issuesRaw.map((e) => '$e').where((e) => e.isNotEmpty).toList()
+          : const [],
+    );
+  }
+
   static Uint8List? _extractInlineImage(Map body) {
     try {
       final candidates = body['candidates'];
@@ -658,7 +726,7 @@ $extra''';
   }) async {
     final uri = Uri.parse(
       'https://generativelanguage.googleapis.com/v1beta/models/'
-      '${model}:generateContent?key=$key',
+      '$model:generateContent?key=$key',
     );
 
     final parts = partsOverride ??
@@ -792,6 +860,20 @@ $extra''';
     // and let the API reject if huge. Callers download picker-sized images.
     return bytes;
   }
+}
+
+/// Verdict from [GeminiClient.critiqueRestoreMatch].
+class LogoMatchVerdict {
+  const LogoMatchVerdict({
+    required this.score,
+    required this.pass,
+    this.issues = const [],
+  });
+
+  /// 0-100, or -1 if the model didn't return a usable number.
+  final int score;
+  final bool pass;
+  final List<String> issues;
 }
 
 class GeminiLogoValidation {

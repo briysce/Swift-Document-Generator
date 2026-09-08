@@ -434,13 +434,19 @@ class CustomerPreset {
     required this.fields,
     this.kind = LabelKind.shipping,
     this.logoFileNames = const [],
-  });
+    DateTime? updatedAt,
+  }) : updatedAt = updatedAt ?? DateTime.now().toUtc();
 
   final String name;
   final Map<String, String> fields;
   final LabelKind kind;
   /// Up to [maxCustomerLogos] filenames under app logo storage.
   final List<String> logoFileNames;
+
+  /// Last local edit, used to decide sync direction per-preset (not the
+  /// whole presets file's mtime, which would treat every preset as "newer"
+  /// whenever any one of them is saved).
+  final DateTime updatedAt;
 
   /// First logo (legacy helpers / single-logo callers).
   String get logoFileName =>
@@ -452,6 +458,7 @@ class CustomerPreset {
         'logos': logoFileNames,
         // Keep legacy key for older app versions
         if (logoFileNames.isNotEmpty) 'logo': logoFileNames.first,
+        'updated_at': updatedAt.toIso8601String(),
       };
 
   factory CustomerPreset.fromJson(
@@ -499,11 +506,18 @@ class CustomerPreset {
       final legacy = '${json['logo'] ?? ''}'.trim();
       if (legacy.isNotEmpty) logos.add(legacy);
     }
+    // Missing on presets saved before per-entity timestamps existed — treat
+    // as "old" (not "now") so a fresh install doesn't look newer than every
+    // remote preset and mass-push on first sync.
+    final updatedAt =
+        DateTime.tryParse('${json['updated_at'] ?? ''}')?.toUtc() ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
     return CustomerPreset(
       name: name,
       fields: fields,
       kind: kind,
       logoFileNames: logos.take(maxCustomerLogos).toList(),
+      updatedAt: updatedAt,
     );
   }
 }

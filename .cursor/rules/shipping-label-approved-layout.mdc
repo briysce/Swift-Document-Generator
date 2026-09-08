@@ -25,15 +25,15 @@ Receiving may still use `showRule: true` for SO→PM. That is separate from Ship
 Receiving has its own improve loop: `qa_receiving/synthetic/` /
 `scripts/receiving_label_improve_loop.py` / `.cursor/rules/receiving-label-improve-loop.mdc`.
 
-## Locked customer logo sizing (red / green / pink)
+## Locked customer logo sizing (red / green / pink) — updated 2026-09-05
 
 Logos must **fill** their target height every time (scale up or down to match).
 The only shrink exception is the pink limit (customer row would collide with Swift).
 
 | Guide | Constant | PDF pt | px @ 72 dpi (1:1) | px @ 96 dpi | px @ 2× QA render |
 |---|---|---|---|---|---|
-| **Red** — square / square-ish / circular (aspect ≤ 1.4) | `squareLogoTargetH` | **62.24** | **62** | **83** | **125** |
-| **Green** — rectangular / long (aspect > 1.4) | `rectLogoTargetH` | **46.0** | **46** | **61** | **92** |
+| **Red** — square / circular (aspect **0.8–1.3**, see `LogoInkMetrics.isSquareOrCircle`) | `squareLogoTargetH` | **74.0** | **74** | **99** | **148** |
+| **Green** — rectangular / tall / wide (aspect **&lt; 0.8 or &gt; 1.3**) | `rectLogoTargetH` | **58.0** | **58** | **77** | **116** |
 | **Pink** — gap before Swift (never overlap) | `customerLogoToSwiftGap` | **12.0** | **12** | **16** | **24** |
 
 Conversion: `px = pt × (dpi / 72)`. QA label previews use ~2 px per PDF pt.
@@ -41,6 +41,18 @@ Conversion: `px = pt × (dpi / 72)`. QA label previews use ~2 px per PDF pt.
 Dual / mixed logos: each uses its own height class; if total ink width + gaps
 would reach the pink edge, **uniform** height shrink. Never overlap the fixed
 Swift logo.
+
+**Red is intentionally taller than the Swift-fixed `customerLogoTargetH`
+(62.24)** — a square/circular mark at Swift's height reads as smaller than a
+wide rectangular one because it has far less ink width, so it washed out.
+`_drawHeader`'s customer-logo band now grows **upward only** to fit
+`squareLogoTargetH`, reaching into margin that was already empty above the
+old band and stopping ~12pt clear of the real top bumper bar (`_bumper`) —
+it never touches that bar and never moves `logoBottom` / the thin rule below
+it (user-verified via the regression matrix: `pillToLabel`/`nameClear`/
+Receiving `pill`/`rule` are byte-identical to pre-change values). Green
+stays shorter than red on purpose — a wide mark at the red height would run
+very wide and hit the pink limit sooner in dual-logo rows.
 
 ## QA guard
 

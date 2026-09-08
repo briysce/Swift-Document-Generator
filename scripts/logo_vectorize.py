@@ -153,7 +153,9 @@ def _is_flat_enough(arr: np.ndarray, max_colors: int = 80, coverage: float = 0.7
     return covered >= coverage or len(uniq) <= max_colors
 
 
-def convert(src: Path, dest: Path, min_height: int = 3000) -> Path:
+def convert(
+    src: Path, dest: Path, min_height: int = 3000, svg_out: Path | None = None
+) -> Path:
     if not src.is_file():
         raise FileNotFoundError(src)
 
@@ -189,6 +191,10 @@ def convert(src: Path, dest: Path, min_height: int = 3000) -> Path:
         # can mush strokes while still locking washed fills).
         max_drift = 0.14 if thin else 0.35
         min_iou = 0.55 if thin else None
+        # Only ever hand back the traced SVG when vtracer's own output is the
+        # thing we actually shipped — never the Lanczos fallback, which has
+        # no vector path behind it at all.
+        vtrace_accepted = False
         try:
             finished = finalize_restore(
                 restored,
@@ -214,6 +220,7 @@ def convert(src: Path, dest: Path, min_height: int = 3000) -> Path:
                 raise RuntimeError(
                     f"oversmooth (edge_ratio={ve / pe:.3f}, iou={iou_v:.3f})"
                 )
+            vtrace_accepted = True
         except RuntimeError as e:
             print(f"vectorize fidelity reject ({e}); Lanczos fallback", file=sys.stderr)
             finished = finalize_restore(
@@ -222,6 +229,8 @@ def convert(src: Path, dest: Path, min_height: int = 3000) -> Path:
                 min_palette=0.05,
             )
         save_rgba(dest, finished)
+        if vtrace_accepted and svg_out is not None:
+            svg_out.write_bytes(svg.read_bytes())
     return dest
 
 
@@ -230,9 +239,20 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("input")
     p.add_argument("output")
     p.add_argument("--min-height", type=int, default=3000)
+    p.add_argument(
+        "--svg-out",
+        type=str,
+        default=None,
+        help="Also write the accepted vtracer SVG here (skipped on Lanczos fallback).",
+    )
     args = p.parse_args(argv)
     try:
-        out = convert(Path(args.input), Path(args.output), args.min_height)
+        out = convert(
+            Path(args.input),
+            Path(args.output),
+            args.min_height,
+            Path(args.svg_out) if args.svg_out else None,
+        )
         print(out)
         return 0
     except Exception as e:

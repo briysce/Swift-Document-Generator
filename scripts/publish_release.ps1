@@ -47,14 +47,15 @@ function Invoke-Flutter([string]$Flutter, [string[]]$CmdArgs) {
 }
 
 function Sync-AppDataMobile {
+    # There is exactly one Android app (applicationId com.swiftoilfield.swift_shipping_label).
+    # swift-shipping-label-mobile was a leftover folder name from before the project was
+    # renamed to swift_document_generator; do not resurrect a second synced copy.
     $src = Join-Path $root "mobile"
-    foreach ($name in @("swift-document-generator-mobile", "swift-shipping-label-mobile")) {
-        $dest = Join-Path $env:LOCALAPPDATA $name
-        if (-not (Test-Path (Join-Path $dest "pubspec.yaml"))) { continue }
-        Write-Host "Syncing $src -> $dest"
-        robocopy $src $dest /MIR /XD build .dart_tool .idea /XF *.iml /NFL /NDL /NJH /NJS /NC /NS | Out-Null
-        if ($LASTEXITCODE -ge 8) { throw "robocopy sync to $dest failed ($LASTEXITCODE)" }
-    }
+    $dest = Join-Path $env:LOCALAPPDATA "swift-document-generator-mobile"
+    if (-not (Test-Path (Join-Path $dest "pubspec.yaml"))) { return }
+    Write-Host "Syncing $src -> $dest"
+    robocopy $src $dest /MIR /XD build .dart_tool .idea /XF *.iml /NFL /NDL /NJH /NJS /NC /NS | Out-Null
+    if ($LASTEXITCODE -ge 8) { throw "robocopy sync to $dest failed ($LASTEXITCODE)" }
 }
 
 function Set-VersionEverywhere([string]$ver) {
@@ -77,15 +78,13 @@ function Set-VersionEverywhere([string]$ver) {
         throw "Could not parse mobile/pubspec.yaml version"
     }
 
-    foreach ($name in @("swift-document-generator-mobile", "swift-shipping-label-mobile")) {
-        $appDataPub = Join-Path $env:LOCALAPPDATA "$name\pubspec.yaml"
-        if (Test-Path $appDataPub) {
-            $ad = Get-Content $appDataPub -Raw
-            if ($ad -match 'version:\s*([\d.]+)\+(\d+)') {
-                $b = [int]$Matches[2] + 1
-                $ad = $ad -replace 'version:\s*[\d.]+\+\d+', "version: $ver+$b"
-                Set-Content -Path $appDataPub -Value $ad -Encoding UTF8 -NoNewline
-            }
+    $appDataPub = Join-Path $env:LOCALAPPDATA "swift-document-generator-mobile\pubspec.yaml"
+    if (Test-Path $appDataPub) {
+        $ad = Get-Content $appDataPub -Raw
+        if ($ad -match 'version:\s*([\d.]+)\+(\d+)') {
+            $b = [int]$Matches[2] + 1
+            $ad = $ad -replace 'version:\s*[\d.]+\+\d+', "version: $ver+$b"
+            Set-Content -Path $appDataPub -Value $ad -Encoding UTF8 -NoNewline
         }
     }
 }
@@ -146,9 +145,6 @@ Copy this entire folder to any work PC (Documents / Desktop / USB) and run.
 if (-not $SkipAndroid) {
     Write-Host "`n=== Android APK ==="
     $mobileRoot = Join-Path $env:LOCALAPPDATA "swift-document-generator-mobile"
-    if (-not (Test-Path (Join-Path $mobileRoot "pubspec.yaml"))) {
-        $mobileRoot = Join-Path $env:LOCALAPPDATA "swift-shipping-label-mobile"
-    }
     if (-not (Test-Path (Join-Path $mobileRoot "pubspec.yaml"))) {
         $mobileRoot = Join-Path $root "mobile"
     }

@@ -152,7 +152,7 @@ Future<Map<String, Object?>> runLogoRestoreMarathon({
       LogoImportOptions.standard(
         removeBackground: true,
         cropMode: LogoCropMode.auto,
-        restoreHighRes: false,
+        perfectLogo: false,
       ),
     );
     final koFile = File(p.join(companyDir.path, '01_knockout.png'));

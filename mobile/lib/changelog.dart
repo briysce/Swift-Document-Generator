@@ -14,12 +14,22 @@ import 'theme.dart';
 class AppChangelog {
   AppChangelog._();
 
-  static const campaignId = 'whats_new_1_1_93';
+  static const campaignId = 'whats_new_1_1_94';
   static const maxShows = 3;
-  static const title = "What's new (v1.1.68 – v1.1.93)";
+  static const title = "What's new (v1.1.68 – v1.1.94)";
 
   /// Ordered newest-first sections shown in the dialog.
   static const sections = <ChangelogSection>[
+    ChangelogSection(
+      version: 'v1.1.94',
+      bullets: [
+        'Perfect this logo: Gemini redraw + dual critique (Gemini/Claude); overwrite only when verified; review sidecar when not',
+        'Swift logo: true vector SVG on Shipping, Receiving, and BOL (crisp at any zoom)',
+        'Shipping / Receiving logos: square/circular 74pt, rectangular 58pt; band grows upward only',
+        'BOL: Pallet/Crate default to ft; Box to in; Pipe/Bundle to in×in×ft',
+        'Android portrait dialogs: less cramped wrapping; preset sync uses per-preset timestamps',
+      ],
+    ),
     ChangelogSection(
       version: 'v1.1.93',
       bullets: [

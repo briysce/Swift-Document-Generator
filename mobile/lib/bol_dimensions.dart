@@ -160,9 +160,15 @@ class BolDimensionsValue {
 
 /// L / W / H boxes each with their own unit, bound to the dimensions key.
 class BolDimensionsFields extends StatefulWidget {
-  const BolDimensionsFields({super.key, required this.controller});
+  const BolDimensionsFields({super.key, required this.controller, this.unitDefaults});
 
   final TextEditingController controller;
+
+  /// (length, width, height) units to switch to whenever this changes —
+  /// driven by the paired Item Type field via
+  /// [BolItemTypes.defaultDimensionUnits]. Null leaves units exactly as the
+  /// user set them (e.g. Crate/Other, or no item type chosen yet).
+  final (String, String, String)? unitDefaults;
 
   @override
   State<BolDimensionsFields> createState() => _BolDimensionsFieldsState();
@@ -184,9 +190,15 @@ class _BolDimensionsFieldsState extends State<BolDimensionsFields> {
     _length = TextEditingController(text: parsed.length);
     _width = TextEditingController(text: parsed.width);
     _height = TextEditingController(text: parsed.height);
-    _lengthUnit = _safeUnit(parsed.lengthUnit);
-    _widthUnit = _safeUnit(parsed.widthUnit);
-    _heightUnit = _safeUnit(parsed.heightUnit);
+    // Prefer units already stored on the line (preset / prior edit). Only
+    // apply item-type defaults when the dimensions field is still empty —
+    // otherwise loading a Pallet line with `48 in × …` would silently rewrite
+    // to ft on every mount.
+    final hint = widget.unitDefaults;
+    final useHint = parsed.isEmpty && hint != null;
+    _lengthUnit = useHint ? hint.$1 : _safeUnit(parsed.lengthUnit);
+    _widthUnit = useHint ? hint.$2 : _safeUnit(parsed.widthUnit);
+    _heightUnit = useHint ? hint.$3 : _safeUnit(parsed.heightUnit);
     widget.controller.addListener(_onParent);
     _length.addListener(_push);
     _width.addListener(_push);
@@ -203,6 +215,15 @@ class _BolDimensionsFieldsState extends State<BolDimensionsFields> {
       oldWidget.controller.removeListener(_onParent);
       widget.controller.addListener(_onParent);
       _pullFromParent();
+    }
+    final hint = widget.unitDefaults;
+    if (hint != null && hint != oldWidget.unitDefaults) {
+      setState(() {
+        _lengthUnit = hint.$1;
+        _widthUnit = hint.$2;
+        _heightUnit = hint.$3;
+      });
+      _push();
     }
   }
 
@@ -278,57 +299,59 @@ class _BolDimensionsFieldsState extends State<BolDimensionsFields> {
     );
   }
 
+  /// TextField + unit dropdown pair for one axis. Callers decide how to lay
+  /// multiple of these out (side by side vs. stacked) — this just needs a
+  /// width, so it works either as a `Row` child wrapped in [Expanded] or
+  /// directly inside a stretch-aligned `Column`.
   Widget _axis({
     required String label,
     required TextEditingController controller,
     required String unit,
     required ValueChanged<String> onUnit,
   }) {
-    return Expanded(
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: TextField(
-              controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-              ],
-              decoration: _box(label),
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: TextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
             ),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+            ],
+            decoration: _box(label),
           ),
-          const SizedBox(width: 4),
-          Expanded(
-            flex: 2,
-            child: DropdownButtonFormField<String>(
-              value: unit,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'UNIT',
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 10,
+        ),
+        const SizedBox(width: 4),
+        Expanded(
+          flex: 2,
+          child: DropdownButtonFormField<String>(
+            value: unit,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'UNIT',
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 10,
+              ),
+            ),
+            items: [
+              for (final u in BolDimensionsValue.units)
+                DropdownMenuItem(
+                  value: u,
+                  child: Text(u, overflow: TextOverflow.ellipsis),
                 ),
-              ),
-              items: [
-                for (final u in BolDimensionsValue.units)
-                  DropdownMenuItem(
-                    value: u,
-                    child: Text(u, overflow: TextOverflow.ellipsis),
-                  ),
-              ],
-              onChanged: (v) {
-                if (v == null) return;
-                onUnit(v);
-              },
-            ),
+            ],
+            onChanged: (v) {
+              if (v == null) return;
+              onUnit(v);
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -350,39 +373,61 @@ class _BolDimensionsFieldsState extends State<BolDimensionsFields> {
             ),
           ),
           const SizedBox(height: 6),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _axis(
-                label: 'L',
-                controller: _length,
-                unit: _lengthUnit,
-                onUnit: (v) {
-                  setState(() => _lengthUnit = v);
-                  _push();
-                },
-              ),
-              const SizedBox(width: 6),
-              _axis(
-                label: 'W',
-                controller: _width,
-                unit: _widthUnit,
-                onUnit: (v) {
-                  setState(() => _widthUnit = v);
-                  _push();
-                },
-              ),
-              const SizedBox(width: 6),
-              _axis(
-                label: 'H',
-                controller: _height,
-                unit: _heightUnit,
-                onUnit: (v) {
-                  setState(() => _heightUnit = v);
-                  _push();
-                },
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final axes = [
+                _axis(
+                  label: 'L',
+                  controller: _length,
+                  unit: _lengthUnit,
+                  onUnit: (v) {
+                    setState(() => _lengthUnit = v);
+                    _push();
+                  },
+                ),
+                _axis(
+                  label: 'W',
+                  controller: _width,
+                  unit: _widthUnit,
+                  onUnit: (v) {
+                    setState(() => _widthUnit = v);
+                    _push();
+                  },
+                ),
+                _axis(
+                  label: 'H',
+                  controller: _height,
+                  unit: _heightUnit,
+                  onUnit: (v) {
+                    setState(() => _heightUnit = v);
+                    _push();
+                  },
+                ),
+              ];
+              // Three axes side by side need room for a number field + unit
+              // dropdown each; below that they'd squeeze into unreadable
+              // slivers, so stack them instead.
+              if (constraints.maxWidth < 360) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < axes.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 8),
+                      axes[i],
+                    ],
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var i = 0; i < axes.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 6),
+                    Expanded(child: axes[i]),
+                  ],
+                ],
+              );
+            },
           ),
         ],
       ),

@@ -61,9 +61,8 @@ class DeliveryAddressEntry {
 class AddressBookSync {
   AddressBookSync({
     OsmNominatimClient? osm,
-    Duration osmMinInterval = const Duration(milliseconds: 1100),
-  })  : _osm = osm ?? OsmNominatimClient(),
-        _osmMinInterval = osmMinInterval;
+    this._osmMinInterval = const Duration(milliseconds: 1100),
+  }) : _osm = osm ?? OsmNominatimClient();
 
   final OsmNominatimClient _osm;
   final Duration _osmMinInterval;

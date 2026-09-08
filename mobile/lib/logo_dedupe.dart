@@ -271,8 +271,7 @@ class LogoDedupe {
           p.basename(items[i].file.path),
           p.basename(items[j].file.path),
         );
-        if (!related && !isVisualMatch(items[i].fp, items[j].fp)) continue;
-        if (isVisualMatch(items[i].fp, items[j].fp)) {
+        if (related || isVisualMatch(items[i].fp, items[j].fp)) {
           union(i, j);
         }
       }

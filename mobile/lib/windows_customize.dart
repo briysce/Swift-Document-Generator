@@ -130,21 +130,6 @@ class _CustomizeDialogState extends State<_CustomizeDialog> {
                         ),
                         CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
-                          value: _draft.restoreLowResLogos,
-                          onChanged: (v) => _set(
-                            _draft.copyWith(restoreLowResLogos: v ?? false),
-                          ),
-                          title: const Text(
-                            'Restore low-resolution logos for print',
-                          ),
-                          subtitle: const Text(
-                            'Logo restore: vectorize → Real-ESRGAN → cubic '
-                            '(Windows). Gemini opt-in only; else cubic.',
-                          ),
-                          controlAffinity: ListTileControlAffinity.leading,
-                        ),
-                        CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
                           value: _draft.denseForms,
                           onChanged: (v) =>
                               _set(_draft.copyWith(denseForms: v ?? false)),

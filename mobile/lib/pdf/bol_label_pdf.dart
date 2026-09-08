@@ -2,7 +2,11 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:pdf/pdf.dart';
+import 'package:pdf/src/svg/painter.dart';
+import 'package:pdf/src/svg/parser.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:vector_math/vector_math_64.dart';
+import 'package:xml/xml.dart';
 
 import '../bol_item_type.dart';
 import '../label_data.dart';
@@ -62,7 +66,15 @@ class BolLabelPdf {
   /// field labels (`_fieldRow` uses 3pt). Applied across BOL cells.
   static const microToValueGap = 3.0;
   /// Default height for uploaded customer/C/O logos on the BOL header (pt).
+  /// Also the single-logo max and the dual-logo square/circular target —
+  /// matches Swift's own presence on this row.
   static const customerLogoTargetH = 59.0;
+  /// Dual customer logos only: square/circular target height (same as
+  /// [customerLogoTargetH]) vs. rectangular/wide target height — mirrors the
+  /// Shipping/Receiving 74/58 treatment so a wide mark doesn't read as more
+  /// prominent than a square one just because it's wider.
+  static const dualSquareLogoTargetH = customerLogoTargetH;
+  static const dualRectLogoTargetH = 46.0;
   /// Safety gap between customer logo frame and Probill / Swift.
   static const customerToProbillGap = 12.0;
   /// Legacy alias — same clearance used toward Swift when Probill is absent.
@@ -151,7 +163,7 @@ class BolLabelPdf {
       throw ArgumentError('At least one BOL copy must be selected.');
     }
 
-    // BOL layout is fixed to portrait Letter (pageOrientation setting ignored).
+    // BOL layout is fixed to portrait Letter.
     final format = pageFormat;
     shipping.activeFontScale = options.fontScale.clamp(0.8, 1.35);
 
@@ -293,7 +305,8 @@ class BolLabelPdf {
         swiftX = pageW - margin - swiftW;
         if (swiftX < margin) swiftX = margin;
         swiftY = ink.bitmapBottomY(y - swiftH, targetH);
-        c.drawImage(
+        _drawSwiftLogo(
+          c,
           swiftLogo,
           swiftX,
           swiftY,
@@ -313,7 +326,7 @@ class BolLabelPdf {
           swiftX = pageW - margin - swiftW;
           if (swiftX < margin) swiftX = margin;
           swiftY = y - swiftH;
-          c.drawImage(swiftLogo, swiftX, swiftY, swiftW, swiftH);
+          _drawSwiftLogo(c, swiftLogo, swiftX, swiftY, swiftW, swiftH);
         }
       }
     }
@@ -342,6 +355,7 @@ class BolLabelPdf {
       logoTop: y,
       bandH: math.max(swiftH, customerLogoTargetH),
       frameRightLimit: staticLeft - customerToProbillGap,
+      dualCenterRightX: staticLeft,
     );
     _paintProbillCutout(c, fonts, d, probill);
     y -= math.max(swiftH, customerLogoTargetH) + 6;
@@ -821,6 +835,56 @@ class BolLabelPdf {
       contentBot: bodyBot - 4,
     );
     _drawFooter(c, fonts);
+  }
+
+  /// Draws the Swift lockup as true vector paths from [shipping]'s loaded
+  /// SVG when available — mathematically lossless at any zoom/print DPI,
+  /// unlike a raster embed. Falls back to the raster [swiftLogo] PNG
+  /// (identical box) if the SVG is missing or fails to render for any
+  /// reason. Same approach as `shipping_label_pdf.dart`'s `_drawSwiftLogo`
+  /// — see its comment for why this drives [SvgPainter] directly instead of
+  /// `pw.Widget.draw`/`SvgImage`.
+  void _drawSwiftLogo(
+    PdfGraphics c,
+    PdfImage swiftLogo,
+    double x,
+    double y,
+    double w,
+    double h,
+  ) {
+    final svg = shipping.swiftLogoSvg;
+    if (svg != null) {
+      var pushed = false;
+      try {
+        final parser = SvgParser(xml: XmlDocument.parse(svg));
+        final vb = parser.viewBox;
+        if (vb.width > 0 && vb.height > 0) {
+          final scale = w / vb.width;
+          c.saveContext();
+          pushed = true;
+          c.setTransform(
+            Matrix4.identity()
+              ..translateByDouble(x, y + h, 0, 1)
+              ..scaleByDouble(scale, -scale, 1, 1),
+          );
+          SvgPainter(
+            parser,
+            c,
+            swiftLogo.pdfDocument,
+            PdfRect(0, 0, pageFormat.width, pageFormat.height),
+          ).paint();
+          c.restoreContext();
+          return;
+        }
+      } catch (_) {
+        if (pushed) {
+          try {
+            c.restoreContext();
+          } catch (_) {}
+        }
+      }
+    }
+    c.drawImage(swiftLogo, x, y, w, h);
   }
 
   void _alignedBottomRow(
@@ -1324,26 +1388,6 @@ class BolLabelPdf {
       ..drawString(fonts.bold, 5.5, text.toUpperCase(), x, y);
   }
 
-  /// Fit [img] inside [maxW]×[maxH] at (x,y) bottom-left, preserving aspect ratio.
-  void _drawImageInBox(
-    PdfGraphics c,
-    PdfImage img,
-    double x,
-    double y,
-    double maxW,
-    double maxH,
-  ) {
-    final iw = img.width.toDouble();
-    final ih = img.height.toDouble();
-    if (iw <= 0 || ih <= 0 || maxW <= 0 || maxH <= 0) return;
-    final scale = maxW / iw < maxH / ih ? maxW / iw : maxH / ih;
-    final w = iw * scale;
-    final h = ih * scale;
-    final dx = x + (maxW - w) / 2;
-    final dy = y + (maxH - h) / 2;
-    c.drawImage(img, dx, dy, w, h);
-  }
-
   /// Scale so visible ink is [targetH] tall. Width follows aspect.
   /// Clip is a safety net; logos are scaled to fit the left frame first.
   ({double w, double h, double y}) _inkDraw(
@@ -1438,6 +1482,7 @@ class BolLabelPdf {
     required double logoTop,
     required double bandH,
     required double frameRightLimit,
+    required double dualCenterRightX,
   }) {
     final logos = <_BolInkLogo>[];
     for (final l in customerLogos.take(maxCustomerLogos)) {
@@ -1483,20 +1528,31 @@ class BolLabelPdf {
     };
     debugLayout?['customer_logo_boxes'] = <Map<String, dynamic>>[];
 
-    // Isolate logo drawing so overflow cannot affect Swift / Probill.
+    // Clip region is the union of the single-logo frame and the wider
+    // wall-to-Probill span the dual-logo row centers within below — a
+    // safety backstop only, never what either path sizes itself to.
+    final clipLeft = math.min(frameLeft, frameX);
+    final clipRight = math.max(frameRight, dualCenterRightX);
     c.saveContext();
     c
-      ..drawRect(frameLeft, frameBot, frameW, frameH)
+      ..drawRect(clipLeft, frameBot, clipRight - clipLeft, frameH)
       ..clipPath();
 
     if (logos.length == 1) {
+      // Sizing keeps the existing Probill safety-gapped frame width (never
+      // grows bigger than before) — but centers within the true wall-to-
+      // Probill span (same as the dual-logo case) instead of the narrower
+      // sizing frame, so a wide mark that fills that whole frame doesn't
+      // end up flush against the left wall with all the slack on the right.
       final targetH = _maxInkHeightInBox(logos.first.ink, frameW, frameH);
+      final centerLeft = frameX;
+      final centerSpanW = math.max(0.0, dualCenterRightX - centerLeft);
       _drawLogoInCell(
         c,
         logos.first,
-        frameLeft,
+        centerLeft,
         frameBot,
-        frameW,
+        centerSpanW,
         frameH,
         targetH,
       );
@@ -1504,37 +1560,97 @@ class BolLabelPdf {
       return;
     }
 
-    // Dual logos: equal-width cells, one shared height that fits both.
-    final cellW = (frameW - customerStackGap) / 2;
-    if (cellW < 4) {
+    // Dual logos: square/circular reads taller than rectangular/wide (same
+    // rule as Shipping/Receiving), each keeps its own aspect-driven width
+    // (not a fixed 50/50 split), and both share one vertical midline so a
+    // taller square mark and a shorter wide mark still read as aligned.
+    //
+    // Sizing keeps the existing Probill safety-gapped frame width (so logos
+    // never grow larger than the single-logo case would allow) — but the
+    // resulting row is then centered between the true page-frame wall and
+    // the Probill cutout's own left edge, not the narrower sizing frame.
+    // That guarantees equal, visible clearance on both sides instead of the
+    // old zero-gap-left / full-gap-right split, even when two wide logos
+    // together need most of the sizing frame's width.
+    if (frameW < 8) {
+      c.restoreContext();
+      return;
+    }
+    final inks = logos.map((l) => l.ink).toList();
+    final centerLeft = frameX;
+    final centerSpanW = math.max(0.0, dualCenterRightX - centerLeft);
+
+    // Two wide/rectangular logos side by side would each get squeezed to a
+    // sliver (both fighting for half the width AND sharing one height cap)
+    // — stacking instead lets each keep the full available width and only
+    // splits the vertical budget, which reads far more legibly for wide
+    // marks. Square/circular logos (alone or paired with a wide mark) keep
+    // the side-by-side treatment below, unaffected.
+    if (inks.every((ink) => !ink.isSquareOrCircle)) {
+      final rowH = (frameH - customerStackGap) / 2;
+      final heights = <double>[];
+      final widths = <double>[];
+      for (final ink in inks) {
+        final h = _maxInkHeightInBox(
+          ink,
+          frameW,
+          math.min(dualRectLogoTargetH, rowH),
+        );
+        heights.add(h);
+        widths.add(ink.inkDrawWidth(h));
+      }
+      final stackTotalH = heights[0] + customerStackGap + heights[1];
+      final bandCenter = (frameTop + frameBot) / 2;
+      var rowTopY = bandCenter + stackTotalH / 2;
+      final stackBoxes = debugLayout?['customer_logo_boxes'];
+      for (var i = 0; i < logos.length; i++) {
+        final h = heights[i];
+        if (h < 1) continue;
+        final w = widths[i];
+        final rowY = rowTopY - h;
+        final rowX = centerLeft + math.max(0.0, (centerSpanW - w) / 2);
+        c.drawImage(logos[i].image, rowX, rowY, w, h);
+        if (stackBoxes is List) {
+          stackBoxes.add({'x': rowX, 'y': rowY, 'w': w, 'h': h});
+        }
+        rowTopY = rowY - customerStackGap;
+      }
       c.restoreContext();
       return;
     }
 
-    final sharedH = math.min(
-      LogoInkMetrics.sharedHeightForCells(
-        logos.map((l) => l.ink),
-        frameH,
-        cellW,
-      ),
-      frameH,
+    final scales = LogoInkMetrics.rowScalesForPinkLimit(
+      inks,
+      math.min(dualSquareLogoTargetH, frameH),
+      math.min(dualRectLogoTargetH, frameH),
+      customerStackGap,
+      frameW,
     );
-    if (sharedH < 1) {
-      c.restoreContext();
-      return;
-    }
-
+    final widths = [
+      for (var i = 0; i < inks.length; i++) inks[i].width * scales[i],
+    ];
+    final rowTotalW =
+        widths.fold(0.0, (a, b) => a + b) + customerStackGap * (logos.length - 1);
+    final bandCenter = (frameTop + frameBot) / 2;
+    var x = centerLeft + math.max(0.0, (centerSpanW - rowTotalW) / 2);
+    debugLayout?['customer_logo_row'] = {
+      'center_left': centerLeft,
+      'center_right': dualCenterRightX,
+      'center_span_w': centerSpanW,
+      'row_total_w': rowTotalW,
+      'start_x': x,
+    };
+    final boxes = debugLayout?['customer_logo_boxes'];
     for (var i = 0; i < logos.length; i++) {
-      final cellX = frameLeft + i * (cellW + customerStackGap);
-      _drawLogoInCell(
-        c,
-        logos[i],
-        cellX,
-        frameBot,
-        cellW,
-        frameH,
-        sharedH,
-      );
+      final h = inks[i].height * scales[i];
+      if (h < 1) continue;
+      final w = widths[i];
+      final inkBottomY = bandCenter - h / 2;
+      c.drawImage(logos[i].image, x, inkBottomY, w, h);
+      if (boxes is List) {
+        boxes.add({'x': x, 'y': inkBottomY, 'w': w, 'h': h});
+      }
+      x += w + customerStackGap;
     }
     c.restoreContext();
   }

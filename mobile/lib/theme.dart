@@ -405,6 +405,13 @@ class SwiftTheme {
         backgroundColor: surface,
         surfaceTintColor: Colors.transparent,
         elevation: desktop ? 8 : 6,
+        // Material's default (40, 24) leaves ~80pt of a narrow Android phone's
+        // width as pure margin, forcing dialog content (side-by-side fields,
+        // etc.) into a much smaller box than it was laid out for. Reclaim
+        // most of that on phones; Windows keeps the original default.
+        insetPadding: desktop
+            ? const EdgeInsets.symmetric(horizontal: 40, vertical: 24)
+            : const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(dialogR),
           side: BorderSide(color: border.withValues(alpha: 0.6)),

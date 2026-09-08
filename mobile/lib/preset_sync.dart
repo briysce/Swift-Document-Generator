@@ -150,6 +150,8 @@ class PresetSync {
             k: remote.fields[k] ?? local?.fields[k] ?? '',
         },
         logoFileNames: logoNames,
+        // Mirrors remote's own timestamp — this write isn't a local edit.
+        updatedAt: remote.updatedAt,
       );
       changed = true;
     }
@@ -173,11 +175,10 @@ class PresetSync {
       for (final r in remoteRows)
         AppStorage.presetStorageKey(r.kind, r.name): r,
     };
-    final localStamp = _localFileUpdatedAt();
     for (final entry in storage.presets.entries) {
       final remote = remoteByKey[entry.key];
       if (remote == null) continue;
-      if (localStamp.isAfter(remote.updatedAt)) {
+      if (entry.value.updatedAt.isAfter(remote.updatedAt)) {
         await pushPreset(entry.value.kind, entry.value.name);
       }
     }
@@ -327,16 +328,11 @@ class PresetSync {
     }
   }
 
-  DateTime _localUpdatedAt(String storageKey) => _localFileUpdatedAt();
-
-  DateTime _localFileUpdatedAt() {
-    try {
-      final stat = storage.presetsFile.statSync();
-      return stat.modified;
-    } catch (_) {
-      return DateTime.fromMillisecondsSinceEpoch(0);
-    }
-  }
+  /// Per-preset local edit time (not the whole `presets.json` file's mtime —
+  /// that would make editing any one preset look like every preset changed).
+  DateTime _localUpdatedAt(String storageKey) =>
+      storage.presets[storageKey]?.updatedAt ??
+      DateTime.fromMillisecondsSinceEpoch(0);
 
   static DateTime _parseTime(Object? raw) {
     if (raw == null) return DateTime.fromMillisecondsSinceEpoch(0);

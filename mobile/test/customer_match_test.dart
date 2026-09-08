@@ -7,7 +7,7 @@ void main() {
         CustomerPreset(
           name: name,
           fields: {
-            if (customerField != null) LabelFields.customer: customerField,
+            LabelFields.customer: ?customerField,
           },
           logoFileNames: const [],
         );

@@ -45,11 +45,15 @@ void main() {
     expect(DocumentHistorySync.isMissingStorageResponse(401, '{}'), isFalse);
   });
 
-  test('historyKinds covers shipping, receiving, BOL — not bulk', () {
+  test('historyKinds covers shipping, receiving, BOL, and bulk', () {
     expect(
       DocumentHistorySync.historyKinds,
-      [LabelKind.shipping, LabelKind.receiving, LabelKind.bol],
+      [
+        LabelKind.shipping,
+        LabelKind.receiving,
+        LabelKind.bol,
+        LabelKind.bulk,
+      ],
     );
-    expect(DocumentHistorySync.historyKinds, isNot(contains(LabelKind.bulk)));
   });
 }

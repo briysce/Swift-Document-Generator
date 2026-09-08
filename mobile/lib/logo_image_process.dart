@@ -808,9 +808,6 @@ class LogoImageProcessor {
         final lum = (r + g + b) / 3.0;
         // Grey/silver letter bodies are ink, not JPEG halo.
         if (sat < 30 && lum >= 48 && lum <= 215) continue;
-        // Near-white letter outlines / counters (e.g. GCM wordmark stroke)
-        // are not compression fringe — only mid-luma grey rims are.
-        if (lum > 230) continue;
         final fringe = (sat < 42 && lum > 88) || (sat < 28 && lum > 70);
         if (!fringe) continue;
         var opaqueN = 0;
@@ -1157,13 +1154,10 @@ class LogoImageProcessor {
         if (isFill(p)) fillN++;
         if (!isDark(p)) continue;
         var nextFill = false;
-        var nextBg = false;
         for (var dy = -1; dy <= 1; dy++) {
           for (var dx = -1; dx <= 1; dx++) {
             if (dx == 0 && dy == 0) continue;
-            final n = image.getPixel(x + dx, y + dy);
-            if (isFill(n)) nextFill = true;
-            if (isBg(n)) nextBg = true;
+            if (isFill(image.getPixel(x + dx, y + dy))) nextFill = true;
           }
         }
         if (nextFill) {
@@ -1394,14 +1388,29 @@ class LogoImageProcessor {
       image = _applyManualCrop(image, options.manualCropRect!);
     }
 
-    if (options.removeBackground && !_hasMeaningfulTransparency(image)) {
+    final removingBackground =
+        options.removeBackground && !_hasMeaningfulTransparency(image);
+    (int, int, int)? plateForHoles;
+    if (removingBackground) {
+      plateForHoles = _estimateBackgroundColor(image);
       _knockOutOuterPlate(image);
+      recoverHueConsistentChroma(image);
+      stripForeignMarks(image);
+      stripHaloFringe(image, protectStrokeFills: true);
     }
 
     if (options.cropMode == LogoCropMode.auto) {
       image = _cropToContentBBox(image, null, minAlpha: 48);
       image = _trimLowCoverageMargins(image);
       image = addSafePad(image);
+      if (removingBackground) {
+        // Cropping/padding can newly enclose plate remnants that were still
+        // edge-connected (and so skipped) before the bounding box tightened
+        // — re-punch once more on the final bitmap, same as
+        // normalizeToVisibleContent, so corners don't come out with an
+        // opaque plate smudge.
+        _punchEnclosedPlateHoles(image, plateForHoles ?? (255, 255, 255));
+      }
       return Uint8List.fromList(img.encodePng(image));
     }
 

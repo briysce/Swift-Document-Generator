@@ -15,7 +15,7 @@ $targets = @(
     (Join-Path $root "mobile\assets\fonts")
 )
 
-$appDataMobile = Join-Path $env:LOCALAPPDATA "swift-shipping-label-mobile\assets\fonts"
+$appDataMobile = Join-Path $env:LOCALAPPDATA "swift-document-generator-mobile\assets\fonts"
 if (Test-Path (Split-Path $appDataMobile -Parent)) {
     $targets += $appDataMobile
 }

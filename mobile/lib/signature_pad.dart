@@ -48,7 +48,7 @@ class SignaturePadState extends State<SignaturePad> {
     var maxX = double.negativeInfinity;
     var maxY = double.negativeInfinity;
     const strokePad = 2.0;
-    for (final stroke in [..._strokes, if (_current != null) _current!]) {
+    for (final stroke in [..._strokes, ?_current]) {
       for (final p in stroke) {
         minX = math.min(minX, p.dx);
         minY = math.min(minY, p.dy);
@@ -84,7 +84,7 @@ class SignaturePadState extends State<SignaturePad> {
       ..strokeWidth = 2.2 * scale
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
-    for (final stroke in [..._strokes, if (_current != null) _current!]) {
+    for (final stroke in [..._strokes, ?_current]) {
       if (stroke.length < 2) continue;
       for (var i = 0; i < stroke.length - 1; i++) {
         canvas.drawLine(scalePt(stroke[i]), scalePt(stroke[i + 1]), paint);
@@ -208,7 +208,7 @@ class _SignaturePainter extends CustomPainter {
       ..strokeWidth = 2.2
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
-    for (final stroke in [...strokes, if (current != null) current!]) {
+    for (final stroke in [...strokes, ?current]) {
       if (stroke.length < 2) continue;
       for (var i = 0; i < stroke.length - 1; i++) {
         canvas.drawLine(stroke[i], stroke[i + 1], paint);

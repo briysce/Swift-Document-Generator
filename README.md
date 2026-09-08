@@ -38,7 +38,7 @@ In-app **Update** downloads from GitHub Releases:
 .\scripts\publish_release.ps1
 ```
 
-Android builds prefer `%LOCALAPPDATA%\swift-document-generator-mobile` (synced from `mobile/`), falling back to `swift-shipping-label-mobile` or the repo `mobile/` tree.
+Android builds use `%LOCALAPPDATA%\swift-document-generator-mobile` (synced from `mobile/`), falling back to the repo `mobile/` tree directly if that folder isn't set up.
 
 ## BOL source
 

@@ -1,10 +1,12 @@
-import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
+import 'package:pdf/src/svg/painter.dart';
+import 'package:pdf/src/svg/parser.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:vector_math/vector_math_64.dart';
+import 'package:xml/xml.dart';
 
 import '../brand_assets.dart';
 import '../label_data.dart';
@@ -29,6 +31,7 @@ class ShippingLabelPdf {
     required this.montserrat,
     required this.montserratBold,
     required this.swiftLogoBytes,
+    required this.swiftLogoSvg,
     required this.swiftInk,
     required this.carrierLogoPngs,
   });
@@ -42,6 +45,10 @@ class ShippingLabelPdf {
   final pw.Font montserrat;
   final pw.Font montserratBold;
   final Uint8List? swiftLogoBytes;
+  /// True vector master (same viewBox coordinate space as [swiftLogoBytes]).
+  /// Embedded directly as PDF vector paths when present — the Swift lockup
+  /// never pixelates at any zoom. Null falls back to the raster PNG.
+  final String? swiftLogoSvg;
   final LogoInkMetrics? swiftInk;
   Map<String, Uint8List> carrierLogoPngs;
 
@@ -111,6 +118,18 @@ class ShippingLabelPdf {
       logoInk = null;
     }
 
+    String? logoSvg;
+    try {
+      final svg = await rootBundle.loadString(SwiftBrandAssets.logoOrangeSvg);
+      // Validate it parses now — never let a bad SVG surface mid-render;
+      // fall back to the raster PNG instead.
+      final vb = SvgParser(xml: XmlDocument.parse(svg)).viewBox;
+      if (vb.width <= 0 || vb.height <= 0) throw StateError('empty viewBox');
+      logoSvg = svg;
+    } catch (_) {
+      logoSvg = null;
+    }
+
     _instance = ShippingLabelPdf._(
       oswald: await font('assets/fonts/Oswald-Regular.ttf'),
       oswaldMedium: await font('assets/fonts/Oswald-Medium.ttf'),
@@ -121,6 +140,7 @@ class ShippingLabelPdf {
       montserrat: await font('assets/fonts/Montserrat-Regular.ttf'),
       montserratBold: await font('assets/fonts/Montserrat-Bold.ttf'),
       swiftLogoBytes: logoBytes,
+      swiftLogoSvg: logoSvg,
       swiftInk: logoInk,
       carrierLogoPngs: const {},
     );
@@ -350,7 +370,6 @@ class ShippingLabelPdf {
     PdfRenderOptions options = PdfRenderOptions.defaults,
   }) async {
     // Shipping / Receiving labels are designed for landscape Letter.
-    // pageOrientation in settings is informational only (layout is fixed).
     final format = pageFormat;
     activeFontScale = options.fontScale.clamp(0.8, 1.35);
 
@@ -631,26 +650,6 @@ class ShippingLabelPdf {
     }
   }
 
-  PdfPoint _drawImageFit(
-    PdfGraphics c,
-    PdfImage image,
-    double x,
-    double y,
-    double maxW,
-    double maxH, {
-    bool right = false,
-  }) {
-    final iw = image.width.toDouble();
-    final ih = image.height.toDouble();
-    if (iw <= 0 || ih <= 0) return const PdfPoint(0, 0);
-    final scale = (maxW / iw < maxH / ih) ? maxW / iw : maxH / ih;
-    final w = iw * scale;
-    final h = ih * scale;
-    final drawX = right ? x - w : x;
-    c.drawImage(image, drawX, y, w, h);
-    return PdfPoint(w, h);
-  }
-
   /// Fit [image] inside a box at (x,y) bottom-left.
   /// Default is centered; [left] keeps vertical center and left-aligns.
   void _drawImageInBox(
@@ -678,17 +677,23 @@ class ShippingLabelPdf {
   static const customerLogoTargetH = 62.24;
 
   /// Red box: ink height for square-ish / circular logos (pt). Fill this height.
-  static const squareLogoTargetH = customerLogoTargetH;
+  ///
+  /// Taller than [customerLogoTargetH] on purpose: a square/circular mark at
+  /// the same height as a wide rectangular one reads as smaller because it
+  /// has far less ink width, so it gets visually washed out next to a wide
+  /// logo. The header band (see `_drawHeader`) grows upward to fit this,
+  /// reaching into margin that was already empty above the old band — it
+  /// never touches the real top bumper bar or moves the rule below.
+  static const squareLogoTargetH = 74.0;
 
   /// Green box: ink height for rectangular / long logos (pt). Fill this height.
-  /// 46 pt ≈ 46 px @72dpi, 61 px @96dpi, 92 px @2× QA render.
-  static const rectLogoTargetH = 46.0;
-
-  /// Red box height (square / circular slot).
-  static const targetH_squareCircle = squareLogoTargetH;
-
-  /// Green box height (rectangular / wide / tall slot).
-  static const targetH_rectangular = rectLogoTargetH;
+  ///
+  /// Raised from the original 46.0 — a wide/long logo at only 46pt still
+  /// reads as bold because of its width, but 46pt looked thin/undersized on
+  /// its own next to the taller [squareLogoTargetH] class. Still shorter than
+  /// square/circular on purpose (a wide mark at the square height would run
+  /// very wide and hit the pink-line width limit sooner in dual-logo rows).
+  static const rectLogoTargetH = 58.0;
 
   /// Keep logos clear of the orange header frames (band edges).
   static const customerLogoBandInset = 2.0;
@@ -719,8 +724,8 @@ class ShippingLabelPdf {
 
   /// Per-logo red/green cell height, pink-limit width clamp, vertical midline center.
   ///
-  /// Square / circular (aspect 0.8–1.3) → [targetH_squareCircle]; else
-  /// [targetH_rectangular]. Ink height strictly equals slot height unless the
+  /// Square / circular (aspect 0.8–1.3) → [squareLogoTargetH]; else
+  /// [rectLogoTargetH]. Ink height strictly equals slot height unless the
   /// row hits the pink horizontal limit ([rightBoundaryX] − [startX]).
   void _drawCustomerLogosMatchingHeight(
     PdfGraphics c,
@@ -729,8 +734,8 @@ class ShippingLabelPdf {
     double rightBoundaryX,
     double bandBottom,
     double bandTop, {
-    double squareH = targetH_squareCircle,
-    double rectH = targetH_rectangular,
+    double squareH = squareLogoTargetH,
+    double rectH = rectLogoTargetH,
   }) {
     final valid = [
       for (final l in logos)
@@ -786,10 +791,17 @@ class ShippingLabelPdf {
     PdfRenderOptions options = PdfRenderOptions.defaults,
   }) {
     final pageH = pageFormat.height;
-    final yTop = pageH - my - 14;
-    // Tall enough that a logo drawn at Swift height is not clipped by the band.
-    final bandH = customerLogoTargetH + 2 * customerLogoBandInset + 6;
-    final logoBottom = yTop - bandH;
+    // Bottom edge is pinned to the original position (same formula as
+    // before squareLogoTargetH grew) — nothing below the header moves.
+    final logoBottom =
+        (pageH - my - 14) - (customerLogoTargetH + 2 * customerLogoBandInset + 6);
+    // Band grows upward only, into margin that was already empty between the
+    // header and the real top bumper bar (~18pt of clearance there before
+    // this — see [_bumper]) — never touches it. squareLogoTargetH sets how
+    // tall this band needs to be; customerLogoBandInset is the small gap
+    // left on each side so the logo doesn't touch the bumper or the rule.
+    final bandH = squareLogoTargetH + 2 * customerLogoBandInset;
+    final yTop = logoBottom + bandH;
     final airUnderLogos = receivingChip ? 0.36 * inch : 0.40 * inch;
     final ruleY = logoBottom - airUnderLogos;
 
@@ -879,7 +891,8 @@ class ShippingLabelPdf {
           place == PdfLogoPlacement.right ? mx : (mx + contentW - swiftW);
       final ink = swiftInk;
       if (ink != null && ink.isValid) {
-        c.drawImage(
+        _drawSwiftLogo(
+          c,
           swiftLogo,
           drawX,
           ink.bitmapBottomY(yLogoBottom, swiftH),
@@ -887,7 +900,7 @@ class ShippingLabelPdf {
           ink.drawHeight(swiftH),
         );
       } else {
-        c.drawImage(swiftLogo, drawX, yLogoBottom, swiftW, swiftH);
+        _drawSwiftLogo(c, swiftLogo, drawX, yLogoBottom, swiftW, swiftH);
       }
     }
 
@@ -932,6 +945,63 @@ class ShippingLabelPdf {
     }
 
     return ruleY - 14;
+  }
+
+  /// Draws the Swift lockup as true vector paths from [swiftLogoSvg] when
+  /// available — mathematically lossless at any zoom/print DPI, unlike a
+  /// raster embed. Falls back to the [swiftLogo] PNG (identical box) if the
+  /// SVG is missing or fails to render for any reason.
+  ///
+  /// Drives [SvgPainter] directly (not `pw.Widget.draw`/`SvgImage`) — those
+  /// need a real `pw.Context` with a `PdfPage`, which isn't available this
+  /// deep inside a raw-canvas page build. Passing a page-less `Context`
+  /// throws partway through `SvgImage.paint()`, *after* it has already
+  /// pushed a `saveContext()` and set a transform on the shared canvas —
+  /// left unbalanced, that silently corrupts every draw call for the rest
+  /// of the page (confirmed by testing: the whole label went blank below
+  /// the header). The transform below is derived and corner-verified
+  /// independently, and every push is guaranteed a matching pop.
+  void _drawSwiftLogo(
+    PdfGraphics c,
+    PdfImage swiftLogo,
+    double x,
+    double y,
+    double w,
+    double h,
+  ) {
+    final svg = swiftLogoSvg;
+    if (svg != null) {
+      var pushed = false;
+      try {
+        final parser = SvgParser(xml: XmlDocument.parse(svg));
+        final vb = parser.viewBox;
+        if (vb.width > 0 && vb.height > 0) {
+          final scale = w / vb.width;
+          c.saveContext();
+          pushed = true;
+          c.setTransform(
+            Matrix4.identity()
+              ..translateByDouble(x, y + h, 0, 1)
+              ..scaleByDouble(scale, -scale, 1, 1),
+          );
+          SvgPainter(
+            parser,
+            c,
+            swiftLogo.pdfDocument,
+            PdfRect(0, 0, pageFormat.width, pageFormat.height),
+          ).paint();
+          c.restoreContext();
+          return;
+        }
+      } catch (_) {
+        if (pushed) {
+          try {
+            c.restoreContext();
+          } catch (_) {}
+        }
+      }
+    }
+    c.drawImage(swiftLogo, x, y, w, h);
   }
 
   double _fieldRow(

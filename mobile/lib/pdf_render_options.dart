@@ -9,7 +9,6 @@ class PdfRenderOptions {
     this.bodyFont = PdfBodyFont.brand,
     this.fontScale = 1.0,
     this.showCustomerLogos = true,
-    this.pageOrientation = PdfPageOrientation.landscape,
     this.isBoxSized = false,
   });
 
@@ -18,7 +17,6 @@ class PdfRenderOptions {
   final PdfBodyFont bodyFont;
   final double fontScale;
   final bool showCustomerLogos;
-  final PdfPageOrientation pageOrientation;
 
   /// When true (Shipping/Receiving only): draw the full label at 50% scale in
   /// the top-left quadrant of landscape Letter (5.5" × 4.25").
@@ -39,9 +37,6 @@ class PdfRenderOptions {
       showCustomerLogos: json['showCustomerLogos'] is bool
           ? json['showCustomerLogos'] as bool
           : true,
-      pageOrientation:
-          PdfPageOrientation.tryParse('${json['pageOrientation']}') ??
-              PdfPageOrientation.landscape,
       // Session-only by default; still parse if present in saved settings.
       isBoxSized: json['isBoxSized'] is bool ? json['isBoxSized'] as bool : false,
     );
@@ -53,7 +48,6 @@ class PdfRenderOptions {
         'bodyFont': bodyFont.name,
         'fontScale': fontScale,
         'showCustomerLogos': showCustomerLogos,
-        'pageOrientation': pageOrientation.name,
         'isBoxSized': isBoxSized,
       };
 
@@ -63,7 +57,6 @@ class PdfRenderOptions {
     PdfBodyFont? bodyFont,
     double? fontScale,
     bool? showCustomerLogos,
-    PdfPageOrientation? pageOrientation,
     bool? isBoxSized,
   }) {
     return PdfRenderOptions(
@@ -72,7 +65,6 @@ class PdfRenderOptions {
       bodyFont: bodyFont ?? this.bodyFont,
       fontScale: fontScale ?? this.fontScale,
       showCustomerLogos: showCustomerLogos ?? this.showCustomerLogos,
-      pageOrientation: pageOrientation ?? this.pageOrientation,
       isBoxSized: isBoxSized ?? this.isBoxSized,
     );
   }
@@ -118,24 +110,6 @@ enum PdfBodyFont {
       };
 
   static PdfBodyFont? tryParse(String raw) {
-    final t = raw.trim().toLowerCase();
-    for (final v in values) {
-      if (v.name == t) return v;
-    }
-    return null;
-  }
-}
-
-enum PdfPageOrientation {
-  landscape,
-  portrait;
-
-  String get label => switch (this) {
-        PdfPageOrientation.landscape => 'Landscape (default)',
-        PdfPageOrientation.portrait => 'Portrait',
-      };
-
-  static PdfPageOrientation? tryParse(String raw) {
     final t = raw.trim().toLowerCase();
     for (final v in values) {
       if (v.name == t) return v;

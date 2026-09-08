@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,7 +9,7 @@ import 'package:swift_shipping_label/label_data.dart';
 import 'package:swift_shipping_label/logo_ink_fit.dart';
 import 'package:swift_shipping_label/pdf/shipping_label_pdf.dart';
 
-/// Rasterized header ink must span ≈ green (46pt) / red (62.24pt) targets.
+/// Rasterized header ink must span ≈ green (46pt) target.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 

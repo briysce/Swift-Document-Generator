@@ -7,6 +7,11 @@ class SwiftBrandAssets {
   /// Document / PDF Swift lockup: orange SWIFT + bars, black SUPPLY + shadow.
   static const logoOrange = 'assets/images/swift_supply_logo_orange.png';
 
+  /// True vector master [logoOrange] was rasterized from (same 2987×910
+  /// viewBox/coordinate space) — PDF embeds this directly as vector paths so
+  /// the Swift lockup never pixelates at any zoom, print size, or DPI.
+  static const logoOrangeSvg = 'assets/images/swift_supply_logo_orange.svg';
+
   /// Older transparent-plate export (seams between fill and outline). Unused
   /// by generated PDFs — kept so existing chrome/tests can still load it.
   static const logoDocument = 'assets/images/swift_supply_logo_document.png';

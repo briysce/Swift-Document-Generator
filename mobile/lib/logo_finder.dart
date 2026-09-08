@@ -364,7 +364,7 @@ class LogoFinder {
               knownDomains: dom.isEmpty ? const [] : [dom],
             )
             .timeout(const Duration(seconds: 4), onTimeout: () => null)
-            .catchError((Object _, StackTrace __) => null)
+            .catchError((Object _, StackTrace _) => null)
         : Future<GeminiLogoSearchPlan?>.value(null);
 
     var domainList = await domainFuture;
@@ -440,7 +440,7 @@ class LogoFinder {
     // Fail-safe aggregation: never let a single rejected future cancel the rest.
     final urlLists = await Future.wait(
       futures.map(
-        (f) => f.catchError((Object _, StackTrace __) => <LogoCandidate>[]),
+        (f) => f.catchError((Object _, StackTrace _) => <LogoCandidate>[]),
       ),
     );
 
@@ -733,7 +733,7 @@ class LogoFinder {
             return null;
           }
         }).map(
-          (f) => f.catchError((Object _, StackTrace __) => null),
+          (f) => f.catchError((Object _, StackTrace _) => null),
         ),
       );
       for (final item in results) {

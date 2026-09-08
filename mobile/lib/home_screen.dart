@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +31,7 @@ import 'form_scroll_text_field.dart';
 import 'label_data.dart';
 import 'logo_finder.dart';
 import 'logo_import_options.dart';
-import 'logo_restorer.dart';
+import 'logo_perfect_restore.dart';
 import 'pdf/bol_label_pdf.dart';
 import 'pdf/bulk_label_docx.dart';
 import 'pdf/bulk_label_pdf.dart';
@@ -507,12 +506,6 @@ class _HomeScreenState extends State<HomeScreen>
     } finally {
       _shakeMenuOpen = false;
     }
-  }
-
-  Future<void> _setRestoreLowResLogos(bool value) async {
-    final next = _uiSettings.copyWith(restoreLowResLogos: value);
-    await widget.storage.saveUiSettings(next);
-    _applyUiSettings(next);
   }
 
   Future<void> _toggleDarkMode() async {
@@ -1105,16 +1098,27 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _rememberDeliveryAddress(ShippingLabelData data) async {
-    if (_kind != LabelKind.shipping && _kind != LabelKind.bol) return;
-    final shipTo = _kind == LabelKind.shipping
-        ? data.get(LabelFields.shipTo)
-        : data.get(BolFields.consigneeName);
-    final address = _kind == LabelKind.shipping
-        ? data.get(LabelFields.location)
-        : data.get(BolFields.consigneeAddress);
-    final carrier = _kind == LabelKind.shipping
-        ? data.get(LabelFields.carrier)
-        : data.get(BolFields.driverCompany);
+    // Applying a saved address works for all three kinds (_applyAddressBookEntry)
+    // — remembering one back should too, or Receiving-only customers never
+    // get learned.
+    if (_kind != LabelKind.shipping &&
+        _kind != LabelKind.bol &&
+        _kind != LabelKind.receiving) {
+      return;
+    }
+    final shipTo = switch (_kind) {
+      LabelKind.receiving => data.get(LabelFields.customer),
+      LabelKind.bol => data.get(BolFields.consigneeName),
+      _ => data.get(LabelFields.shipTo),
+    };
+    final address = switch (_kind) {
+      LabelKind.bol => data.get(BolFields.consigneeAddress),
+      _ => data.get(LabelFields.location),
+    };
+    final carrier = switch (_kind) {
+      LabelKind.bol => data.get(BolFields.driverCompany),
+      _ => data.get(LabelFields.carrier),
+    };
     final accounts = data.get(BolFields.thirdPartyBilling);
     if (address.trim().isEmpty) return;
     try {
@@ -1394,7 +1398,11 @@ class _HomeScreenState extends State<HomeScreen>
     final options = await showLogoImportEditDialog(
       context,
       previewBytes: bytes,
-      initialRestoreHighRes: _uiSettings.restoreLowResLogos,
+      // Always starts unchecked — perfecting a logo is a deliberate, paid,
+      // slow action; it must never carry over as a silent default. Once a
+      // customer's logo has been perfected the improved file is what's
+      // reused going forward, so it should not need checking again.
+      initialPerfectLogo: false,
     );
     if (options == null || !mounted) return;
 
@@ -1417,8 +1425,13 @@ class _HomeScreenState extends State<HomeScreen>
           }
         });
       }
-      if (options.restoreHighRes) {
-        unawaited(_prefetchLogoRestore(file.path));
+      if (options.perfectLogo) {
+        unawaited(
+          _perfectLogoInBackground(
+            file.path,
+            removeBackground: options.removeBackground,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) showAppSnack(context, 'Logo import failed: $e');
@@ -1491,7 +1504,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       width: 44,
                                       height: 44,
                                       fit: BoxFit.contain,
-                                      errorBuilder: (_, __, ___) =>
+                                      errorBuilder: (_, _, _) =>
                                           const Icon(Icons.image_outlined),
                                     ),
                                     title: Text(p.basename(f.path)),
@@ -1833,7 +1846,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         c.bytes,
                                         height: 56,
                                         fit: BoxFit.contain,
-                                        errorBuilder: (_, __, ___) =>
+                                        errorBuilder: (_, _, _) =>
                                             const Icon(
                                           Icons.broken_image_outlined,
                                           size: 40,
@@ -1915,40 +1928,69 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Future<void> _prefetchLogoRestore(String path) async {
-    final started = LogoRestorer.epoch;
-    try {
-      final restored = await _ensureRestoredLogo(File(path));
-      if (!mounted) return;
-      if (started != LogoRestorer.epoch) return;
-      final i = _logoPaths.indexOf(path);
-      if (i >= 0 && restored.path != path) {
-        setState(() => _logoPaths[i] = restored.path);
-      }
-    } catch (e) {
-      debugPrint('[logo_restore] prefetch failed: $e');
-    }
-  }
-
-  Future<File> _ensureRestoredLogo(File source) async {
-    if (!await source.exists()) return source;
+  /// Runs [LogoPerfectRestore] on the just-imported logo.
+  ///
+  /// Only when critics **verify** the result do we overwrite the original
+  /// path in place (+ sibling `.svg` when vectorization produced one). That
+  /// overwrite is what "delete the original, redirect to the new one" means:
+  /// presets and the next Supabase upsert keep the same path.
+  ///
+  /// Unverified / best-effort attempts write a sibling `*_perfect_review.png`
+  /// and leave the original untouched so a failed Perfect cannot destroy the
+  /// user's source logo.
+  Future<void> _perfectLogoInBackground(
+    String path, {
+    required bool removeBackground,
+  }) async {
+    final source = File(path);
+    if (!await source.exists()) return;
+    final startedEpoch = LogoPerfectRestore.epoch;
 
     if (mounted) setState(() => _restoreInFlight++);
     try {
-      return await LogoRestorer.ensureHighRes(
-        source,
-        logosDir: widget.storage.logosDir,
-        onLog: debugPrint,
+      final sourceBytes = await source.readAsBytes();
+      final result = await LogoPerfectRestore.run(
+        sourceBytes,
+        removeBackground: removeBackground,
+        onLog: (line) => debugPrint('[perfect_logo] $line'),
       );
-    } catch (e) {
-      debugPrint('[logo_restore] restore failed: $e');
+      if (startedEpoch != LogoPerfectRestore.epoch || !mounted) return;
+
+      if (result.verified) {
+        await source.writeAsBytes(result.png, flush: true);
+        if (result.svg != null) {
+          await File(p.setExtension(path, '.svg'))
+              .writeAsString(result.svg!, flush: true);
+        }
+        setState(() {}); // repaint the thumbnail with the new bytes
+        if (mounted) {
+          showAppSnack(
+            context,
+            'Logo perfected (verified by ${result.criticsLabel}).',
+          );
+        }
+        return;
+      }
+
+      // Best-effort only — keep the original; save a review sibling.
+      final reviewPath = p.join(
+        p.dirname(path),
+        '${p.basenameWithoutExtension(path)}_perfect_review.png',
+      );
+      await File(reviewPath).writeAsBytes(result.png, flush: true);
       if (mounted) {
         showAppSnack(
           context,
-          'Logo restore failed. Original logo kept.',
+          'Perfect did not pass review after ${result.attempts} tries '
+          '(${result.criticsLabel}). Original kept — review file saved as '
+          '${p.basename(reviewPath)}.',
         );
       }
-      return source;
+    } catch (e) {
+      debugPrint('[perfect_logo] failed: $e');
+      if (mounted) {
+        showAppSnack(context, 'Perfect this logo failed: $e');
+      }
     } finally {
       if (mounted) {
         setState(() => _restoreInFlight = (_restoreInFlight - 1).clamp(0, 99));
@@ -1957,7 +1999,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _abortLogoRestore() {
-    LogoRestorer.cancelAll();
+    LogoPerfectRestore.cancelAll();
     if (mounted) setState(() => _restoreInFlight = 0);
   }
 
@@ -2122,28 +2164,42 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: palletCtrls[so],
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'SKIDS / CRATES',
-                            ),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final pallets = TextField(
+                          controller: palletCtrls[so],
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'SKIDS / CRATES',
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            controller: boxCtrls[so],
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'BOXES',
-                            ),
+                        );
+                        final boxes = TextField(
+                          controller: boxCtrls[so],
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'BOXES',
                           ),
-                        ),
-                      ],
+                        );
+                        // Side by side needs room for the longer label; below
+                        // that, stack so it doesn't wrap into an unreadable mess.
+                        if (constraints.maxWidth < 280) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              pallets,
+                              const SizedBox(height: 10),
+                              boxes,
+                            ],
+                          );
+                        }
+                        return Row(
+                          children: [
+                            Expanded(child: pallets),
+                            const SizedBox(width: 10),
+                            Expanded(child: boxes),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 14),
                   ],
@@ -2971,7 +3027,7 @@ class _HomeScreenState extends State<HomeScreen>
                 piecePlan: piecePlan!,
                 options: _pdfOptionsForGenerate,
               );
-              shippingPages = piecePlan!.totalPages;
+              shippingPages = piecePlan.totalPages;
             }
             lastFile = await saveOne(
               kind: LabelKind.shipping,
@@ -2990,7 +3046,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             forData: data,
           );
-          shippingPages = piecePlan!.totalPages;
+          shippingPages = piecePlan.totalPages;
         case LabelKind.bulk:
           throw StateError('Bulk labels use _generateBulkLabels');
       }
@@ -3002,7 +3058,7 @@ class _HomeScreenState extends State<HomeScreen>
       ]);
       await _rememberDeliveryAddress(data);
 
-      if (_uiSettings.autoOpenPdf && lastFile != null) {
+      if (_uiSettings.autoOpenPdf) {
         await shareOrOpenFile(file: lastFile);
       }
 
@@ -3018,7 +3074,7 @@ class _HomeScreenState extends State<HomeScreen>
         final openHint = _uiSettings.autoOpenPdf ? '' : ' (auto-open off)';
         showAppSnack(
           context,
-          'Saved$pages$openHint:\n${lastFile?.path ?? ''}',
+          'Saved$pages$openHint:\n${lastFile.path}',
         );
       }
     } catch (e) {
@@ -3331,7 +3387,8 @@ class _HomeScreenState extends State<HomeScreen>
     );
     if (picked == null || !mounted) return;
     final bytes = await _signatureSync.loadBytes(picked);
-    if (bytes == null || !mounted) {
+    if (!mounted) return;
+    if (bytes == null) {
       showAppSnack(context, 'Could not load signature.');
       return;
     }
@@ -3422,7 +3479,12 @@ class _HomeScreenState extends State<HomeScreen>
       return _buildItemTypeField(key);
     }
     if (key.endsWith('_dimensions')) {
-      return BolDimensionsFields(controller: _controllers[key]!);
+      final itemTypeKey = '${key.substring(0, key.length - '_dimensions'.length)}_item_type';
+      final itemType = _controllers[itemTypeKey]?.text ?? '';
+      return BolDimensionsFields(
+        controller: _controllers[key]!,
+        unitDefaults: BolItemTypes.defaultDimensionUnits(itemType),
+      );
     }
     if (appDateFieldKeys.contains(key)) {
       return _buildDateField(key);
@@ -4215,19 +4277,13 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             SizedBox(height: dense ? 10 : 12),
           ],
-          SwiftCircleCheckbox(
-            value: _uiSettings.restoreLowResLogos,
-            dense: dense,
-            enabled: !_restoringLogo,
-            label: 'Restore low-resolution logos for print',
-            subtitle: _restoringLogo
-                ? 'Restoring logo…'
-                : 'Default for the Edit logo dialog. Restore runs only when you choose it while selecting a logo — not when generating.',
-            onChanged: _restoringLogo
-                ? null
-                : (v) => _setRestoreLowResLogos(v ?? false),
-          ),
-          SizedBox(height: dense ? 6 : 8),
+          if (_restoringLogo) ...[
+            const Text(
+              'Perfecting logo…',
+              style: TextStyle(fontSize: 12, color: SwiftColors.muted),
+            ),
+            SizedBox(height: dense ? 6 : 8),
+          ],
           logoButtons,
         ],
       ),
@@ -4660,6 +4716,7 @@ class _HomeScreenState extends State<HomeScreen>
         onErrorCapture: _openErrorCapture,
         onToggleDark: _toggleDarkMode,
         onFindLogo: _findLogoOnWeb,
+        overrides: _uiSettings.hotkeyOverrides,
       ),
       child: Focus(
         autofocus: true,
@@ -5222,7 +5279,7 @@ class _HomeScreenState extends State<HomeScreen>
                   Align(
                     alignment: Alignment.centerRight,
                     child: IconButton(
-                      tooltip: 'Cancel restore',
+                      tooltip: 'Cancel',
                       onPressed: _abortLogoRestore,
                       icon: const Icon(Icons.close),
                     ),
@@ -5234,7 +5291,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Restoring logo…',
+                    'Perfecting logo…',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 6),

@@ -26,26 +26,28 @@ class LogoImportOptions {
     required this.removeBackground,
     required this.cropMode,
     this.manualCropRect,
-    this.restoreHighRes = false,
+    this.perfectLogo = false,
   });
 
   factory LogoImportOptions.standard({
     bool removeBackground = true,
     LogoCropMode cropMode = LogoCropMode.auto,
     Rect? manualCropRect,
-    bool restoreHighRes = false,
+    bool perfectLogo = false,
   }) =>
       LogoImportOptions(
         removeBackground: removeBackground,
         cropMode: cropMode,
         manualCropRect: manualCropRect,
-        restoreHighRes: restoreHighRes,
+        perfectLogo: perfectLogo,
       );
 
   final bool removeBackground;
   final LogoCropMode cropMode;
-  /// RealESRGAN upscale (replaces the old Recreate / vectorizer).
-  final bool restoreHighRes;
+  /// Runs the Gemini + Claude verified redraw-and-vectorize pipeline
+  /// ([LogoPerfectRestore]) after import. Deliberate, paid, slow — never a
+  /// silent default.
+  final bool perfectLogo;
 
   /// Normalized crop rect (0–1) relative to image bounds; used when
   /// [cropMode] is [LogoCropMode.manual].
@@ -56,13 +58,13 @@ class LogoImportOptions {
   Future<LogoImportOptions?> showLogoImportEditDialog(
   BuildContext context, {
   required Uint8List previewBytes,
-  bool initialRestoreHighRes = false,
+  bool initialPerfectLogo = false,
 }) {
   return showDialog<LogoImportOptions>(
     context: context,
     builder: (ctx) => _LogoImportEditDialog(
       previewBytes: previewBytes,
-      initialRestoreHighRes: initialRestoreHighRes,
+      initialPerfectLogo: initialPerfectLogo,
     ),
   );
 }
@@ -70,11 +72,11 @@ class LogoImportOptions {
 class _LogoImportEditDialog extends StatefulWidget {
   const _LogoImportEditDialog({
     required this.previewBytes,
-    this.initialRestoreHighRes = false,
+    this.initialPerfectLogo = false,
   });
 
   final Uint8List previewBytes;
-  final bool initialRestoreHighRes;
+  final bool initialPerfectLogo;
 
   @override
   State<_LogoImportEditDialog> createState() => _LogoImportEditDialogState();
@@ -83,13 +85,13 @@ class _LogoImportEditDialog extends StatefulWidget {
 class _LogoImportEditDialogState extends State<_LogoImportEditDialog> {
   var _removeBg = true;
   var _cropMode = LogoCropMode.auto;
-  late bool _restoreHighRes;
+  late bool _perfectLogo;
   Rect? _manualCrop;
 
   @override
   void initState() {
     super.initState();
-    _restoreHighRes = widget.initialRestoreHighRes;
+    _perfectLogo = widget.initialPerfectLogo;
   }
 
   @override
@@ -268,14 +270,16 @@ class _LogoImportEditDialogState extends State<_LogoImportEditDialog> {
               const SizedBox(height: 6),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
-                value: _restoreHighRes,
-                onChanged: (v) => setState(() => _restoreHighRes = v ?? false),
-                title: const Text('Restore low-resolution logo for print'),
+                value: _perfectLogo,
+                onChanged: (v) => setState(() => _perfectLogo = v ?? false),
+                title: const Text('Perfect this logo'),
                 subtitle: const Text(
-                  'Windows: vectorize flat logos, then Real-ESRGAN, then cubic '
-                  '(needs Python). Gemini is off unless enabled for A/B; '
-                  'redraws are rejected. Android uses cubic (+ optional Gemini). '
-                  'Does not invent a new brand design.',
+                  'Gemini redraws it crisp on a clean white background, Gemini '
+                  'and Claude independently check the redraw against the '
+                  'original and it retries if either rejects it, then it\'s '
+                  'vectorized (Windows) for a print-ready file. Several paid '
+                  'API calls, 30–60+ seconds — use once per customer logo, '
+                  'not on every import.',
                   style: TextStyle(fontSize: 12, color: SwiftColors.muted),
                 ),
                 controlAffinity: ListTileControlAffinity.leading,
@@ -304,7 +308,7 @@ class _LogoImportEditDialogState extends State<_LogoImportEditDialog> {
                     _cropMode == LogoCropMode.none ? false : _removeBg,
                 cropMode: _cropMode,
                 manualCropRect: _manualCrop,
-                restoreHighRes: _restoreHighRes,
+                perfectLogo: _perfectLogo,
               ),
             );
           },

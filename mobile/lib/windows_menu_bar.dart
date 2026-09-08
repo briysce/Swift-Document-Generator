@@ -312,32 +312,41 @@ class WindowsAppMenuBar extends StatelessWidget {
     try {
       return await showDialog<String>(
         context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('Assign: $title'),
-          content: TextField(
-            controller: ctrl,
-            decoration: const InputDecoration(
-              hintText: 'e.g. Ctrl+Enter',
-              helperText:
-                  'Menu label only — does not rebind keyboard shortcuts. '
-                  'Built-in Ctrl/Alt shortcuts stay active.',
-            ),
-            autofocus: true,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(''),
-              child: const Text('Reset'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(ctrl.text),
-              child: const Text('OK'),
-            ),
-          ],
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setLocal) {
+            final text = ctrl.text.trim();
+            final valid = text.isEmpty || parseHotkeyString(text) != null;
+            return AlertDialog(
+              title: Text('Assign: $title'),
+              content: TextField(
+                controller: ctrl,
+                autofocus: true,
+                onChanged: (_) => setLocal(() {}),
+                decoration: InputDecoration(
+                  hintText: 'e.g. Ctrl+Shift+G',
+                  helperText: 'Ctrl/Shift/Alt + a letter, digit, or key name '
+                      '(Enter, F2, Space…), joined with +. Takes effect on Save.',
+                  errorText:
+                      valid ? null : 'Not recognized — try e.g. Ctrl+Shift+G',
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(''),
+                  child: const Text('Reset'),
+                ),
+                FilledButton(
+                  onPressed:
+                      valid ? () => Navigator.of(ctx).pop(ctrl.text) : null,
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
         ),
       );
     } finally {
@@ -844,15 +853,6 @@ class WindowsAppMenuBar extends StatelessWidget {
               ),
               child: const Text('Auto-open PDF after generate'),
             ),
-            CheckboxMenuButton(
-              value: s.restoreLowResLogos,
-              onChanged: (v) => _persist(
-                s.copyWith(restoreLowResLogos: v ?? false),
-              ),
-              child: const Text(
-                'Restore low-res logos for print',
-              ),
-            ),
             MenuItemButton(
               onPressed: () => _customize(context),
               child: const Text('Customize appearance & PDF…'),
@@ -968,7 +968,100 @@ Widget _darkSafeMenuChild({
   return child;
 }
 
+/// Parses a user-typed hotkey string like `"Ctrl+Shift+G"` into an activator.
+/// Returns null when the text isn't recognized — callers should keep the
+/// previous binding rather than silently dropping it.
+SingleActivator? parseHotkeyString(String raw) {
+  final tokens = raw
+      .split('+')
+      .map((p) => p.trim())
+      .where((p) => p.isNotEmpty)
+      .toList();
+  if (tokens.isEmpty) return null;
+  var control = false, shift = false, alt = false, meta = false;
+  LogicalKeyboardKey? key;
+  for (final token in tokens) {
+    switch (token.toLowerCase()) {
+      case 'ctrl':
+      case 'control':
+        control = true;
+      case 'shift':
+        shift = true;
+      case 'alt':
+      case 'option':
+        alt = true;
+      case 'cmd':
+      case 'meta':
+      case 'win':
+      case 'windows':
+        meta = true;
+      case final t:
+        final found = _hotkeyToken(t);
+        if (found == null) return null;
+        key = found;
+    }
+  }
+  if (key == null) return null;
+  return SingleActivator(key, control: control, shift: shift, alt: alt, meta: meta);
+}
+
+const _hotkeyLetterKeys = {
+  'a': LogicalKeyboardKey.keyA, 'b': LogicalKeyboardKey.keyB,
+  'c': LogicalKeyboardKey.keyC, 'd': LogicalKeyboardKey.keyD,
+  'e': LogicalKeyboardKey.keyE, 'f': LogicalKeyboardKey.keyF,
+  'g': LogicalKeyboardKey.keyG, 'h': LogicalKeyboardKey.keyH,
+  'i': LogicalKeyboardKey.keyI, 'j': LogicalKeyboardKey.keyJ,
+  'k': LogicalKeyboardKey.keyK, 'l': LogicalKeyboardKey.keyL,
+  'm': LogicalKeyboardKey.keyM, 'n': LogicalKeyboardKey.keyN,
+  'o': LogicalKeyboardKey.keyO, 'p': LogicalKeyboardKey.keyP,
+  'q': LogicalKeyboardKey.keyQ, 'r': LogicalKeyboardKey.keyR,
+  's': LogicalKeyboardKey.keyS, 't': LogicalKeyboardKey.keyT,
+  'u': LogicalKeyboardKey.keyU, 'v': LogicalKeyboardKey.keyV,
+  'w': LogicalKeyboardKey.keyW, 'x': LogicalKeyboardKey.keyX,
+  'y': LogicalKeyboardKey.keyY, 'z': LogicalKeyboardKey.keyZ,
+};
+
+const _hotkeyDigitKeys = {
+  '0': LogicalKeyboardKey.digit0, '1': LogicalKeyboardKey.digit1,
+  '2': LogicalKeyboardKey.digit2, '3': LogicalKeyboardKey.digit3,
+  '4': LogicalKeyboardKey.digit4, '5': LogicalKeyboardKey.digit5,
+  '6': LogicalKeyboardKey.digit6, '7': LogicalKeyboardKey.digit7,
+  '8': LogicalKeyboardKey.digit8, '9': LogicalKeyboardKey.digit9,
+};
+
+const _hotkeyNamedKeys = {
+  'enter': LogicalKeyboardKey.enter,
+  'return': LogicalKeyboardKey.enter,
+  'space': LogicalKeyboardKey.space,
+  'tab': LogicalKeyboardKey.tab,
+  'esc': LogicalKeyboardKey.escape,
+  'escape': LogicalKeyboardKey.escape,
+  'delete': LogicalKeyboardKey.delete,
+  'del': LogicalKeyboardKey.delete,
+  'backspace': LogicalKeyboardKey.backspace,
+  'up': LogicalKeyboardKey.arrowUp,
+  'down': LogicalKeyboardKey.arrowDown,
+  'left': LogicalKeyboardKey.arrowLeft,
+  'right': LogicalKeyboardKey.arrowRight,
+  'f1': LogicalKeyboardKey.f1, 'f2': LogicalKeyboardKey.f2,
+  'f3': LogicalKeyboardKey.f3, 'f4': LogicalKeyboardKey.f4,
+  'f5': LogicalKeyboardKey.f5, 'f6': LogicalKeyboardKey.f6,
+  'f7': LogicalKeyboardKey.f7, 'f8': LogicalKeyboardKey.f8,
+  'f9': LogicalKeyboardKey.f9, 'f10': LogicalKeyboardKey.f10,
+  'f11': LogicalKeyboardKey.f11, 'f12': LogicalKeyboardKey.f12,
+};
+
+LogicalKeyboardKey? _hotkeyToken(String token) {
+  if (token.length == 1) return _hotkeyLetterKeys[token] ?? _hotkeyDigitKeys[token];
+  return _hotkeyNamedKeys[token];
+}
+
 /// Built-in Windows CallbackShortcuts (MenuBar shortcuts alone are not enough).
+///
+/// [overrides] (from Options → Hotkeys → Assign) replace the default combo
+/// for the keys it covers ('generate', 'shipping', 'receiving', 'bol',
+/// 'savePreset', 'clearShipment', 'newShipping', 'checkUpdates') when the
+/// saved text parses; unparsed or missing entries keep the default.
 Map<ShortcutActivator, VoidCallback> windowsShortcutMap({
   required VoidCallback onGenerate,
   required VoidCallback onShipping,
@@ -982,35 +1075,55 @@ Map<ShortcutActivator, VoidCallback> windowsShortcutMap({
   required VoidCallback onErrorCapture,
   VoidCallback? onToggleDark,
   VoidCallback? onFindLogo,
+  Map<String, String> overrides = const {},
 }) {
+  ShortcutActivator activatorFor(String key, SingleActivator fallback) {
+    final custom = overrides[key];
+    if (custom == null || custom.trim().isEmpty) return fallback;
+    return parseHotkeyString(custom) ?? fallback;
+  }
+
   return {
-    const SingleActivator(LogicalKeyboardKey.enter, control: true): onGenerate,
-    const SingleActivator(LogicalKeyboardKey.digit1, control: true): onShipping,
-    const SingleActivator(LogicalKeyboardKey.digit2, control: true): onReceiving,
-    const SingleActivator(LogicalKeyboardKey.digit3, control: true): onBol,
-    if (onBulk != null)
-      const SingleActivator(LogicalKeyboardKey.digit4, control: true): onBulk,
-    const SingleActivator(LogicalKeyboardKey.keyS, control: true): onSavePreset,
-    const SingleActivator(
-      LogicalKeyboardKey.keyK,
-      control: true,
-      shift: true,
+    activatorFor(
+      'generate',
+      const SingleActivator(LogicalKeyboardKey.enter, control: true),
+    ): onGenerate,
+    activatorFor(
+      'shipping',
+      const SingleActivator(LogicalKeyboardKey.digit1, control: true),
+    ): onShipping,
+    activatorFor(
+      'receiving',
+      const SingleActivator(LogicalKeyboardKey.digit2, control: true),
+    ): onReceiving,
+    activatorFor(
+      'bol',
+      const SingleActivator(LogicalKeyboardKey.digit3, control: true),
+    ): onBol,
+    const SingleActivator(LogicalKeyboardKey.digit4, control: true): ?onBulk,
+    activatorFor(
+      'savePreset',
+      const SingleActivator(LogicalKeyboardKey.keyS, control: true),
+    ): onSavePreset,
+    activatorFor(
+      'clearShipment',
+      const SingleActivator(LogicalKeyboardKey.keyK, control: true, shift: true),
     ): onClearShipment,
-    const SingleActivator(LogicalKeyboardKey.keyN, control: true): onNewShipping,
-    const SingleActivator(
-      LogicalKeyboardKey.keyU,
-      control: true,
-      shift: true,
+    activatorFor(
+      'newShipping',
+      const SingleActivator(LogicalKeyboardKey.keyN, control: true),
+    ): onNewShipping,
+    activatorFor(
+      'checkUpdates',
+      const SingleActivator(LogicalKeyboardKey.keyU, control: true, shift: true),
     ): onCheckUpdates,
     const SingleActivator(LogicalKeyboardKey.f2): onErrorCapture,
-    if (onToggleDark != null)
-      const SingleActivator(LogicalKeyboardKey.keyD, control: true, shift: true):
-          onToggleDark,
-    if (onFindLogo != null)
-      const SingleActivator(
-        LogicalKeyboardKey.keyF,
-        control: true,
-        shift: true,
-      ): onFindLogo,
+    const SingleActivator(LogicalKeyboardKey.keyD, control: true, shift: true):
+        ?onToggleDark,
+    const SingleActivator(
+      LogicalKeyboardKey.keyF,
+      control: true,
+      shift: true,
+    ): ?onFindLogo,
   };
 }

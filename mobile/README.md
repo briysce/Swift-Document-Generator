@@ -37,7 +37,7 @@ flutter build apk --debug
 Copy-Item build\app\outputs\flutter-apk\app-debug.apk dist\SwiftShippingLabel-debug.apk -Force
 ```
 
-Note: `mobile\build` may be a junction to `%LOCALAPPDATA%\swift-shipping-label-build` to avoid OneDrive locking Gradle caches.
+Note: `mobile\build` may be a junction to `%LOCALAPPDATA%\swift-document-generator-build` to avoid OneDrive locking Gradle caches.
 
 ## Features vs Windows app
 

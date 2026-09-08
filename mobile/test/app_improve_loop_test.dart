@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -136,7 +135,7 @@ void main() {
         'duration_ms': ms,
         'bytes': bytesLen,
         'min_bytes': minBytes,
-        if (err != null) 'error': err,
+        'error': ?err,
       };
     }
 
@@ -244,7 +243,7 @@ void main() {
           'bytes': outBytes,
           'engine': engine,
           'skip_generative': true,
-          if (err != null) 'error': err,
+          'error': ?err,
         });
       } finally {
         try {
@@ -333,7 +332,6 @@ void main() {
 
       // History dialog load must use listForKind, never pruneWithoutSnapshots.
       final openBlock = _extractMethod(homeSrc, '_openHistory');
-      final loadBlock = _extractMethod(homeSrc, '_load');
       final openCallsPrune = openBlock.contains('pruneWithoutSnapshots');
       // _load appears in several State classes — check History dialog region.
       final histDialogIdx = homeSrc.indexOf('class _HistoryDialogState');
@@ -473,7 +471,7 @@ void main() {
           'successes': successes,
           'sizes': sizes,
         },
-        if (err != null) 'error': err,
+        'error': ?err,
       });
     }
 

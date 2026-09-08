@@ -1,8 +1,6 @@
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:image/image.dart' as img;
 import 'package:swift_shipping_label/label_data.dart';
 import 'package:swift_shipping_label/logo_ink_fit.dart';
 import 'package:swift_shipping_label/pdf/shipping_label_pdf.dart';

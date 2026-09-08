@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'theme.dart';
 
-/// High-contrast floating pill toast — top of screen (Windows right / Android
-/// centered) so it does not stretch across the full width.
+/// High-contrast floating pill toast — top of screen, centered, sized to
+/// hug its message rather than stretching across the full width.
 void showAppSnack(
   BuildContext context,
   String message, {
@@ -38,6 +38,10 @@ SnackBar appSnackBar(
   const pillH = 58.0;
   final bottom = (size.height - top - pillH).clamp(0.0, double.infinity);
   final isWin = Platform.isWindows;
+  // Content-hugging pill width, centered — not a wide bar anchored to
+  // either edge.
+  final winPillW = (size.width * 0.42).clamp(360.0, 640.0);
+  final winPillMargin = ((size.width - winPillW) / 2).clamp(16.0, size.width / 2 - 60);
   final dark = Theme.of(context).brightness == Brightness.dark;
 
   // Solid ink (light) / elevated dark panel — never washed-out grey-on-white.
@@ -60,8 +64,8 @@ SnackBar appSnackBar(
           ),
     margin: isWin
         ? EdgeInsets.only(
-            left: (size.width * 0.48).clamp(180.0, size.width - 320),
-            right: 16,
+            left: winPillMargin,
+            right: winPillMargin,
             top: top,
             bottom: bottom,
           )
@@ -82,7 +86,7 @@ SnackBar appSnackBar(
     ),
     content: Text(
       message,
-      textAlign: isWin ? TextAlign.start : TextAlign.center,
+      textAlign: TextAlign.center,
       style: TextStyle(
         fontFamily: font,
         color: fg,

@@ -20,6 +20,22 @@ class LogoVectorize {
     int minHeight = 3000,
     void Function(String)? onLog,
   }) async {
+    final result = await restoreWithSvg(
+      sourceBytes,
+      minHeight: minHeight,
+      onLog: onLog,
+    );
+    return result?.png;
+  }
+
+  /// Same as [restore], but also returns the traced SVG markup when vtracer's
+  /// own output was accepted (not the Lanczos fallback, which has no vector
+  /// path behind it — [LogoVectorizeResult.svg] is null in that case).
+  static Future<LogoVectorizeResult?> restoreWithSvg(
+    Uint8List sourceBytes, {
+    int minHeight = 3000,
+    void Function(String)? onLog,
+  }) async {
     if (!Platform.isWindows) {
       onLog?.call('vectorize: skipped (Windows-only local engine)');
       return null;
@@ -42,6 +58,7 @@ class LogoVectorize {
     try {
       final input = File(p.join(tmp.path, 'in.png'));
       final output = File(p.join(tmp.path, 'out.png'));
+      final svgOut = File(p.join(tmp.path, 'out.svg'));
       await input.writeAsBytes(sourceBytes, flush: true);
 
       onLog?.call('vectorize: ${py.exe} ${script.path}');
@@ -54,6 +71,8 @@ class LogoVectorize {
           output.path,
           '--min-height',
           '$minHeight',
+          '--svg-out',
+          svgOut.path,
         ],
         workingDirectory: script.parent.path,
         runInShell: false,
@@ -76,8 +95,16 @@ class LogoVectorize {
         onLog?.call('vectorize: empty output');
         return null;
       }
-      onLog?.call('vectorize: ok (${out.length} bytes)');
-      return out;
+      String? svgText;
+      if (await svgOut.exists()) {
+        svgText = await svgOut.readAsString();
+        if (svgText.trim().isEmpty) svgText = null;
+      }
+      onLog?.call(
+        'vectorize: ok (${out.length} bytes'
+        '${svgText == null ? ', Lanczos fallback — no vector' : ', vector accepted'})',
+      );
+      return LogoVectorizeResult(png: out, svg: svgText);
     } on TimeoutException {
       onLog?.call('vectorize: timed out');
       return null;
@@ -152,6 +179,15 @@ class LogoVectorize {
     }
     return null;
   }
+}
+
+class LogoVectorizeResult {
+  const LogoVectorizeResult({required this.png, this.svg});
+
+  final Uint8List png;
+  /// Traced vector markup, or null when vtracer's output didn't pass the
+  /// fidelity gate and [png] is the Lanczos fallback instead.
+  final String? svg;
 }
 
 class _PyCmd {

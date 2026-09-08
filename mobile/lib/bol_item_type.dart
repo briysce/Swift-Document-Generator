@@ -65,4 +65,24 @@ class BolItemTypes {
     if (singular.isEmpty) return '';
     return pluralize(singular);
   }
+
+  /// (length, width, height) unit defaults for the Dimensions row, keyed by
+  /// container type — Pallet/Crate ship in feet, Box in inches, and
+  /// Pipe/Bundle use inches for the cross-section with feet for the run
+  /// length. Null for Other/unset: leave whatever units are already there
+  /// alone.
+  static (String, String, String)? defaultDimensionUnits(String stored) {
+    switch (normalizeStored(stored)) {
+      case 'Pallet':
+      case 'Crate':
+        return ('ft', 'ft', 'ft');
+      case 'Box':
+        return ('in', 'in', 'in');
+      case 'Pipe':
+      case 'Bundle':
+        return ('in', 'in', 'ft');
+      default:
+        return null;
+    }
+  }
 }

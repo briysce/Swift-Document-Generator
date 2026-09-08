@@ -37,6 +37,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/swift_supply_logo_orange.png
+    - assets/images/swift_supply_logo_orange.svg
     - assets/images/swift_supply_logo_orange_solid.png
     - assets/images/swift_supply_logo_document.png
     - assets/images/swift_supply_header_white.png

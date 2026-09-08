@@ -586,7 +586,7 @@ void main() {
     }
     final out = LogoImageProcessor.processWithOptions(
       Uint8List.fromList(img.encodePng(src)),
-      LogoImportOptions.standard(restoreHighRes: false),
+      LogoImportOptions.standard(perfectLogo: false),
     );
     final decoded = img.decodeImage(out)!;
     var grey = 0, green = 0, gradient = 0;
@@ -756,7 +756,7 @@ void main() {
     final bytes = apex.readAsBytesSync();
     final out = LogoImageProcessor.processWithOptions(
       bytes,
-      LogoImportOptions.standard(restoreHighRes: false),
+      LogoImportOptions.standard(perfectLogo: false),
     );
     final decoded = img.decodeImage(out)!;
     expect(decoded.width, greaterThan(200));
@@ -902,7 +902,7 @@ void main() {
     );
     final out = LogoImageProcessor.processWithOptions(
       Uint8List.fromList(img.encodePng(src)),
-      LogoImportOptions.standard(restoreHighRes: false),
+      LogoImportOptions.standard(perfectLogo: false),
     );
     final decoded = img.decodeImage(out)!;
     var grey = 0;
@@ -960,7 +960,7 @@ void main() {
     final srcBytes = Uint8List.fromList(img.encodePng(src));
     final knockout = LogoImageProcessor.processWithOptions(
       srcBytes,
-      LogoImportOptions.standard(restoreHighRes: false),
+      LogoImportOptions.standard(perfectLogo: false),
     );
     expect(LogoImageProcessor.retainsBrandColors(srcBytes, knockout), isTrue);
     expect(LogoImageProcessor.retainsBrandColors(knockout, knockout), isTrue);

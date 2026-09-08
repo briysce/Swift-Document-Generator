@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
@@ -336,6 +335,9 @@ class AppStorage {
         fields: preset.fields,
         logoFileNames:
             preset.logoFileNames.where((n) => n != fileName).toList(),
+        // Logo list cleanup must not bump updatedAt — that would make every
+        // touched preset look "newer" than Supabase and force-push clobber.
+        updatedAt: preset.updatedAt,
       );
       changed = true;
     }
@@ -361,8 +363,9 @@ class AppStorage {
   /// already exists (name + size + visual scan).
   ///
   /// A colliding filename only gets `stem(1).png` when the incoming image is
-  /// actually a different mark. Low-res logos are restored separately via
-  /// [LogoRestorer] (vectorize / Real-ESRGAN / cubic; Gemini opt-in).
+  /// actually a different mark. Optional high-quality cleanup is the
+  /// user-triggered "Perfect this logo" path ([LogoPerfectRestore]), not an
+  /// automatic import-time restore.
   Future<ImportLogoResult> importLogoBytes(
     List<int> bytes, {
     required String preferredName,
@@ -471,6 +474,8 @@ class AppStorage {
         kind: preset.kind,
         fields: preset.fields,
         logoFileNames: next,
+        // Remap must not bump updatedAt (same reason as logo delete).
+        updatedAt: preset.updatedAt,
       );
       changed = true;
     }
@@ -722,7 +727,6 @@ class AppUiSettings {
     this.denseForms = false,
     this.showToolbarUpdate = true,
     this.autoUpdateEnabled = true,
-    this.restoreLowResLogos = true,
     this.hotkeyOverrides = const {},
     this.themePreference = UiThemePreference.light,
     this.layoutPreset = UiLayoutPreset.classic,
@@ -740,8 +744,6 @@ class AppUiSettings {
   final bool denseForms;
   final bool showToolbarUpdate;
   final bool autoUpdateEnabled;
-  /// Gemini redraw of low-res customer logos (online; replaces Recreate).
-  final bool restoreLowResLogos;
   final Map<String, String> hotkeyOverrides;
   final UiThemePreference themePreference;
   final UiLayoutPreset layoutPreset;
@@ -800,9 +802,6 @@ class AppUiSettings {
       autoUpdateEnabled: json['autoUpdateEnabled'] is bool
           ? json['autoUpdateEnabled'] as bool
           : true,
-      restoreLowResLogos: json['restoreLowResLogos'] is bool
-          ? json['restoreLowResLogos'] as bool
-          : true,
       hotkeyOverrides: hotkeys,
       themePreference:
           UiThemePreference.tryParse('${json['themePreference']}') ??
@@ -836,7 +835,6 @@ class AppUiSettings {
         'denseForms': denseForms,
         'showToolbarUpdate': showToolbarUpdate,
         'autoUpdateEnabled': autoUpdateEnabled,
-        'restoreLowResLogos': restoreLowResLogos,
         'hotkeyOverrides': hotkeyOverrides,
         'themePreference': themePreference.name,
         'layoutPreset': layoutPreset.name,
@@ -856,7 +854,6 @@ class AppUiSettings {
     bool? denseForms,
     bool? showToolbarUpdate,
     bool? autoUpdateEnabled,
-    bool? restoreLowResLogos,
     Map<String, String>? hotkeyOverrides,
     UiThemePreference? themePreference,
     UiLayoutPreset? layoutPreset,
@@ -875,7 +872,6 @@ class AppUiSettings {
       denseForms: denseForms ?? this.denseForms,
       showToolbarUpdate: showToolbarUpdate ?? this.showToolbarUpdate,
       autoUpdateEnabled: autoUpdateEnabled ?? this.autoUpdateEnabled,
-      restoreLowResLogos: restoreLowResLogos ?? this.restoreLowResLogos,
       hotkeyOverrides: hotkeyOverrides ?? this.hotkeyOverrides,
       themePreference: themePreference ?? this.themePreference,
       layoutPreset: layoutPreset ?? this.layoutPreset,
