@@ -24,33 +24,38 @@ class OrderAckParser {
     final text = raw.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     final warnings = <String>[];
 
-    final poNumber = _extractPo(text);
-    if (poNumber == null || poNumber.isEmpty) {
-      warnings.add('Could not find PO Number on the Order Acknowledgement.');
-    }
-
-    final orderNumber = _extractOrderNumber(text) ?? '';
-    final header = OrderAckHeader.parse(text);
-
     final lines = <BulkLabelLine>[];
     final incomplete = <BulkIncompleteLine>[];
+    // PO# seen beside individual CPO/Tag-Part-Item notes — a fallback (and
+    // cross-check) for the header "PO Number" grid, which can misparse when
+    // the Location value wraps across lines.
+    final linePoSightings = <String>[];
 
     // Legacy: "Order Line Notes: CPO #4"
-    // Current: "Order Line Notes: CPO LINE 1" / "CPO LINE 8, 9"
+    // Current: "Order Line Notes: CPO LINE 1" / "CPO LINE 8, 9" (comma list)
+    // Range: "Order Line Notes: CPO LINES 1-4" (hyphen range, plural LINES)
     final cpoRe = RegExp(
-      r'Order\s+Line\s+Notes:\s*CPO\s*(?:LINE\s*)?#?\s*'
-      r'([0-9]+(?:\s*,\s*[0-9]+)*)',
+      r'Order\s+Line\s+Notes:\s*CPO\s*(?:LINES?\s*)?#?\s*'
+      r'([0-9]+(?:\s*[-,]\s*[0-9]+)*)',
       caseSensitive: false,
     );
     // Classic identity note on its own Order Line Notes row.
     final idNoteRe = RegExp(
-      r'Order\s+Line\s+Notes:\s*(TAG|PART)\s*#\s*(.+)$',
+      r'Order\s+Line\s+Notes:\s*(TAG|PART|ITEM)\s*#\s*(.+)$',
       caseSensitive: false,
       multiLine: true,
     );
-    // Loose "part # 050211" / "TAG# abc" (often directly under CPO LINE).
+    // Loose "part # 050211" / "TAG# abc" / "ITEM# 033047" (often directly
+    // under CPO LINE).
     final idLooseRe = RegExp(
-      r'^\s*(TAG|PART)\s*#\s*(.+?)\s*$',
+      r'^\s*(TAG|PART|ITEM)\s*#\s*(.+?)\s*$',
+      caseSensitive: false,
+      multiLine: true,
+    );
+    // Per-line "PO# P613979" under a CPO note — cross-check / fallback for
+    // the header PO Number when that grid is hard to parse.
+    final linePoRe = RegExp(
+      r'^\s*PO\s*#\s*(' '${_refToken.pattern}' r')\s*$',
       caseSensitive: false,
       multiLine: true,
     );
@@ -75,13 +80,8 @@ class OrderAckParser {
 
     for (var i = 0; i < cpoMatches.length; i++) {
       final m = cpoMatches[i];
-      final cpoNums = m
-          .group(1)!
-          .split(RegExp(r'\s*,\s*'))
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList();
-      if (cpoNums.isEmpty) continue;
+      final cpoSpec = _parseCpoSpec(m.group(1)!);
+      if (cpoSpec.numbers.isEmpty) continue;
 
       final blockStart = m.end;
       final blockEnd =
@@ -105,7 +105,7 @@ class OrderAckParser {
         }
       } else {
         warnings.add(
-          'Line CPO #${cpoNums.join(",")} has no quantity — defaulting to 1 label.',
+          'Line CPO #${cpoSpec.display} has no quantity — defaulting to 1 label.',
         );
       }
 
@@ -132,55 +132,61 @@ class OrderAckParser {
         idLooseRe: idLooseRe,
       );
 
-      for (final cpo in cpoNums) {
-        final lineNo = int.tryParse(cpo) ?? (i + 1);
-        if (identity == null) {
-          incomplete.add(
-            BulkIncompleteLine(
-              lineNo: lineNo,
-              cpo: cpo,
-              quantity: qty,
-              description: description,
-              reason: 'Missing TAG# / PART#',
-            ),
-          );
-          continue;
-        }
+      final linePoMatch = linePoRe.firstMatch(after);
+      if (linePoMatch != null) {
+        linePoSightings.add(linePoMatch.group(1)!.trim());
+      }
 
-        final (idKind, idValue) = identity;
-        if (idValue.isEmpty) {
-          incomplete.add(
-            BulkIncompleteLine(
-              lineNo: lineNo,
-              cpo: cpo,
-              quantity: qty,
-              description: description,
-              reason: 'Empty ${idKind.fieldLabel}',
-            ),
-          );
-          continue;
-        }
-
-        lines.add(
-          BulkLabelLine(
+      final lineNo = cpoSpec.numbers.first;
+      if (identity == null) {
+        incomplete.add(
+          BulkIncompleteLine(
             lineNo: lineNo,
-            cpo: cpo,
-            tagOrPart: idValue,
-            idKind: idKind,
+            cpoDisplay: cpoSpec.display,
+            cpoNumbers: cpoSpec.numbers,
             quantity: qty,
             description: description,
+            reason: 'Missing TAG# / PART# / ITEM#',
           ),
         );
+        continue;
       }
+
+      final (idKind, idValue) = identity;
+      if (idValue.isEmpty) {
+        incomplete.add(
+          BulkIncompleteLine(
+            lineNo: lineNo,
+            cpoDisplay: cpoSpec.display,
+            cpoNumbers: cpoSpec.numbers,
+            quantity: qty,
+            description: description,
+            reason: 'Empty ${idKind.fieldLabel}',
+          ),
+        );
+        continue;
+      }
+
+      lines.add(
+        BulkLabelLine(
+          lineNo: lineNo,
+          cpoDisplay: cpoSpec.display,
+          cpoNumbers: cpoSpec.numbers,
+          tagOrPart: idValue,
+          idKind: idKind,
+          quantity: qty,
+          description: description,
+        ),
+      );
     }
 
-    // Deduplicate by CPO if page headers re-emit the same note.
+    // Deduplicate by CPO display if page headers re-emit the same note.
     final deduped = <BulkLabelLine>[];
     final seen = <String>{};
     for (final line in lines) {
-      final key = line.cpo;
+      final key = line.cpoDisplay;
       if (seen.contains(key)) {
-        warnings.add('Duplicate CPO #${line.cpo} ignored.');
+        warnings.add('Duplicate CPO #${line.cpoDisplay} ignored.');
         continue;
       }
       seen.add(key);
@@ -189,20 +195,41 @@ class OrderAckParser {
 
     final dedupedIncomplete = <BulkIncompleteLine>[];
     for (final inc in incomplete) {
-      if (seen.contains(inc.cpo)) {
+      if (seen.contains(inc.cpoDisplay)) {
         warnings.add(
-          'Duplicate incomplete CPO #${inc.cpo} ignored '
+          'Duplicate incomplete CPO #${inc.cpoDisplay} ignored '
           '(already have a complete line).',
         );
         continue;
       }
-      seen.add(inc.cpo);
+      seen.add(inc.cpoDisplay);
       dedupedIncomplete.add(inc);
     }
 
     if (deduped.isEmpty && dedupedIncomplete.isEmpty) {
       warnings.add('No printable label lines were parsed from this document.');
     }
+
+    var poNumber = _extractPo(text);
+    if (poNumber == null || poNumber.isEmpty) {
+      // Header grid didn't yield anything usable — fall back to whatever
+      // PO# was printed beside the CPO/Tag-Part-Item notes themselves.
+      if (linePoSightings.isNotEmpty) {
+        poNumber = linePoSightings.first;
+      } else {
+        warnings.add('Could not find PO Number on the Order Acknowledgement.');
+      }
+    } else if (linePoSightings.isNotEmpty &&
+        linePoSightings.any((p) => p.toUpperCase() != poNumber!.toUpperCase())) {
+      warnings.add(
+        'PO Number on the header ($poNumber) does not match the PO# noted '
+        'beside the order lines (${linePoSightings.toSet().join(", ")}). '
+        'Please double-check.',
+      );
+    }
+
+    final orderNumber = _extractOrderNumber(text) ?? '';
+    final header = OrderAckHeader.parse(text);
 
     return OrderAckParseResult(
       poNumber: poNumber ?? '',
@@ -245,9 +272,7 @@ class OrderAckParser {
       if (anyId.isNotEmpty) idMatch = anyId.last;
     }
     if (idMatch != null) {
-      final kindRaw = idMatch.group(1)!.toUpperCase();
-      final idKind =
-          kindRaw.startsWith('PART') ? BulkIdKind.part : BulkIdKind.tag;
+      final idKind = _idKindFromRaw(idMatch.group(1)!);
       final identity =
           idMatch.group(2)!.replaceAll(RegExp(r'\s+'), ' ').trim();
       return (idKind, identity);
@@ -255,9 +280,7 @@ class OrderAckParser {
 
     final loose = idLooseRe.firstMatch(after);
     if (loose != null) {
-      final kindRaw = loose.group(1)!.toUpperCase();
-      final idKind =
-          kindRaw.startsWith('PART') ? BulkIdKind.part : BulkIdKind.tag;
+      final idKind = _idKindFromRaw(loose.group(1)!);
       final identity = loose.group(2)!.replaceAll(RegExp(r'\s+'), ' ').trim();
       // Truncate if trailing OA mash leaked onto the same line.
       final cut = identity.split(RegExp(r'\s{2,}|\bEA\b')).first.trim();
@@ -292,6 +315,41 @@ class OrderAckParser {
       return (BulkIdKind.part, identity);
     }
     return null;
+  }
+
+  static BulkIdKind _idKindFromRaw(String kindRaw) {
+    final k = kindRaw.toUpperCase();
+    if (k.startsWith('PART')) return BulkIdKind.part;
+    if (k.startsWith('ITEM')) return BulkIdKind.item;
+    return BulkIdKind.tag;
+  }
+
+  /// Parses a raw CPO capture ("1-4", "8, 9", "5", or a mix like "1, 3-5")
+  /// into a display string (source text, whitespace-normalized) and the
+  /// resolved list of individual CPO numbers, expanding hyphen ranges.
+  static ({String display, List<int> numbers}) _parseCpoSpec(String raw) {
+    final display = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+    final numbers = <int>[];
+    for (final part in display.split(',')) {
+      final p = part.trim();
+      if (p.isEmpty) continue;
+      final rangeMatch = RegExp(r'^(\d+)\s*-\s*(\d+)$').firstMatch(p);
+      if (rangeMatch != null) {
+        final a = int.parse(rangeMatch.group(1)!);
+        final b = int.parse(rangeMatch.group(2)!);
+        if (a <= b) {
+          for (var n = a; n <= b; n++) {
+            numbers.add(n);
+          }
+        } else {
+          numbers.add(a);
+        }
+        continue;
+      }
+      final n = int.tryParse(p);
+      if (n != null) numbers.add(n);
+    }
+    return (display: display, numbers: numbers);
   }
 
   /// Customer PO / project tokens: P612207, 4460.168-016, PCE-112124-03690.
@@ -433,42 +491,71 @@ class OrderAckHeader {
   /// Parse Project/Location/PO or PO/Location/Project value row.
   static ({String project, String location, String po})
       extractProjectLocationPo(String text) {
+    ({String project, String location, String po}) tryRow(
+      Match headerMatch, {
+      required bool poLast,
+    }) {
+      final rest = text.substring(headerMatch.end);
+      final restLines = rest.split('\n');
+      if (restLines.isEmpty) return (project: '', location: '', po: '');
+
+      // Fast path: PO/Location/Project already sit on one line (most OAs).
+      final direct = _splitProjectLocationPoRow(restLines.first, poLast: poLast);
+      if (direct.po.isNotEmpty || direct.project.isNotEmpty) return direct;
+
+      // Slow path: a wrapped Location value (e.g. a street line then a
+      // postal-code line) pushed the PO value onto a later line. Keep
+      // collecting lines as "location" until one, by itself, is exactly a
+      // PO-shaped token — that one is the PO value, not part of the address.
+      final collected = <String>[];
+      String? poLine;
+      for (final raw in restLines.take(6)) {
+        final line = raw.trim();
+        if (line.isEmpty) continue;
+        if (RegExp('^(${OrderAckParser._refToken.pattern})\$',
+                caseSensitive: false)
+            .hasMatch(line)) {
+          poLine = line;
+          break;
+        }
+        collected.add(line);
+      }
+      if (poLine == null) return (project: '', location: '', po: '');
+      // This layout has no separate Project value here — Project falls back
+      // to PO elsewhere in the parser, matching the single-value convention.
+      return (project: '', location: collected.join(' '), po: poLine);
+    }
+
     // Propak: Project Location PO Number
     final projectFirst = RegExp(
-      r'Project\s*Location\s*PO\s*Number\s*\n\s*([^\n]+)',
+      r'Project\s*Location\s*PO\s*Number\s*\n',
       caseSensitive: false,
     ).firstMatch(text);
     if (projectFirst != null) {
-      return _splitProjectLocationPoRow(
-        projectFirst.group(1)!,
-        poLast: true,
-      );
+      final result = tryRow(projectFirst, poLast: true);
+      if (result.po.isNotEmpty || result.project.isNotEmpty) return result;
     }
 
     // Spartan / many OAs: PO Number Location Project
     final poFirst = RegExp(
-      r'PO\s*Number\s*Location\s*Project\s*\n\s*([^\n]+)',
+      r'PO\s*Number\s*Location\s*Project\s*\n',
       caseSensitive: false,
     ).firstMatch(text);
     if (poFirst != null) {
-      return _splitProjectLocationPoRow(
-        poFirst.group(1)!,
-        poLast: false,
-      );
+      final result = tryRow(poFirst, poLast: false);
+      if (result.po.isNotEmpty || result.project.isNotEmpty) return result;
     }
 
     // Tab-separated header on one line.
     final tabbed = RegExp(
-      r'(Project|PO\s*Number)[ \t]+Location[ \t]+(PO\s*Number|Project)\s*\n\s*([^\n]+)',
+      r'(Project|PO\s*Number)[ \t]+Location[ \t]+(PO\s*Number|Project)\s*\n',
       caseSensitive: false,
     ).firstMatch(text);
     if (tabbed != null) {
       final firstIsProject =
           tabbed.group(1)!.toLowerCase().startsWith('project');
-      return _splitProjectLocationPoRow(
-        tabbed.group(3)!,
-        poLast: firstIsProject,
-      );
+      final result = tryRow(tabbed, poLast: firstIsProject);
+      if (result.po.isNotEmpty || result.project.isNotEmpty) return result;
     }
 
     return (project: '', location: '', po: '');
@@ -513,8 +600,15 @@ class OrderAckHeader {
       );
     }
     if (tokens.length == 1) {
+      // Only trust a lone match when the WHOLE line is that value (e.g. a
+      // bare "P613979" on its own line). A single incidental digit-run
+      // inside prose — a street number in a wrapped address line, say — is
+      // not a PO/project value.
       final only = tokens.first.group(0)!;
-      return (project: only, location: '', po: only);
+      if (only == line) {
+        return (project: only, location: '', po: only);
+      }
+      return (project: '', location: '', po: '');
     }
 
     final first = tokens.first.group(0)!;
@@ -539,12 +633,22 @@ class OrderAckHeader {
     var afe = '';
 
     final row = RegExp(
-      r'Requisitioner\s+Approver\s+AFE\s*#[^\n]*\n\s*([^\n]+)',
+      r'Requisitioner\s+Approver\s+AFE\s*#[^\n]*\n',
       caseSensitive: false,
     ).firstMatch(text);
     if (row != null) {
-      final cols = row
-          .group(1)!
+      final restLines = text.substring(row.end).split('\n');
+      var rowText = restLines.isNotEmpty ? restLines.first.trim() : '';
+      // A bare given name with no tab/AFE columns on its line ("MARLENE")
+      // often wrapped a surname onto the next line ("DUNAND").
+      final bareWord = RegExp(r"^[A-Za-z][A-Za-z.'\-]*$");
+      if (bareWord.hasMatch(rowText) && restLines.length > 1) {
+        final next = restLines[1].trim();
+        if (bareWord.hasMatch(next)) {
+          rowText = '$rowText $next';
+        }
+      }
+      final cols = rowText
           .split(RegExp(r'\t+|\s{2,}'))
           .map((s) => s.trim())
           .where((s) => s.isNotEmpty)
@@ -568,8 +672,12 @@ class OrderAckHeader {
     }
 
     if (afe.isEmpty) {
+      // Require a digit somewhere in the value (real AFE codes always have
+      // one) so a bare column header word ("Cost", from the following
+      // "Cost Center #" column when the row underneath is blank) can't be
+      // mistaken for an AFE number.
       final labeled = RegExp(
-        r'AFE\s*#\s*([A-Z0-9][A-Z0-9\-]{2,})',
+        r'AFE\s*#\s*((?=[A-Z0-9\-]*\d)[A-Z0-9][A-Z0-9\-]{2,})',
         caseSensitive: false,
       ).firstMatch(text);
       if (labeled != null) afe = labeled.group(1)!.trim();

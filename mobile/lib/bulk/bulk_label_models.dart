@@ -1,17 +1,37 @@
-/// Whether an OA line supplies a valve TAG# or a PART#.
-enum BulkIdKind { tag, part }
+/// Whether an OA line supplies a valve TAG#, a PART#, or an ITEM#.
+enum BulkIdKind { tag, part, item }
 
 extension BulkIdKindLabel on BulkIdKind {
   /// Printed field label on the Propak sticker.
   String get fieldLabel => switch (this) {
         BulkIdKind.tag => 'TAG#',
         BulkIdKind.part => 'PART#',
+        BulkIdKind.item => 'ITEM#',
       };
 
   String get previewColumn => fieldLabel;
+
+  /// Sensible default print mode when the user hasn't chosen one yet.
+  /// TAG# lines are almost always individually-tagged valves (one tag per
+  /// unit); PART#/ITEM# lines are more often fittings/flanges shipped
+  /// together in one box or skid (one tag covers the whole quantity).
+  BulkPrintMode get defaultPrintMode => switch (this) {
+        BulkIdKind.tag => BulkPrintMode.perUnit,
+        BulkIdKind.part => BulkPrintMode.single,
+        BulkIdKind.item => BulkPrintMode.single,
+      };
 }
 
-/// User choice when OA lines are missing TAG# / PART#.
+/// How many physical stickers one [BulkLabelLine] becomes.
+enum BulkPrintMode {
+  /// One sticker for the whole line, however large its quantity.
+  single,
+
+  /// One sticker per unit of quantity.
+  perUnit,
+}
+
+/// User choice when OA lines are missing TAG# / PART# / ITEM#.
 enum BulkMissingIdAction {
   /// Include incomplete lines with a blank identity (editable in Word).
   proceed,
@@ -24,55 +44,105 @@ enum BulkMissingIdAction {
 }
 
 /// One order-ack line that will become one or more Avery stickers.
+///
+/// [cpoDisplay] is the CPO reference exactly as the PM wrote it in one
+/// `Order Line Notes:` block — a single number ("5"), a comma list
+/// ("8, 9"), or a hyphen range ("1-4"). [cpoNumbers] is that same reference
+/// resolved to individual line numbers, used only when [printMode] is
+/// [BulkPrintMode.perUnit] and the chosen quantity lines up 1:1 with them.
 class BulkLabelLine {
-  const BulkLabelLine({
+  BulkLabelLine({
     required this.lineNo,
-    required this.cpo,
+    required this.cpoDisplay,
+    this.cpoNumbers = const [],
     required this.tagOrPart,
     required this.idKind,
     required this.quantity,
     this.description = '',
     this.missingIdentity = false,
-  });
+    BulkPrintMode? printMode,
+    this.aiNote,
+  }) : printMode = printMode ?? idKind.defaultPrintMode;
 
   final int lineNo;
-  final String cpo;
+  final String cpoDisplay;
+  final List<int> cpoNumbers;
   final String tagOrPart;
   final BulkIdKind idKind;
   final int quantity;
   final String description;
 
-  /// True when Proceed kept a line that had no TAG#/PART# on the OA.
+  /// True when Proceed kept a line that had no TAG#/PART#/ITEM# on the OA.
   final bool missingIdentity;
 
+  /// One sticker for the whole line, or one per unit — user-editable in the
+  /// bulk review screen before generating.
+  final BulkPrintMode printMode;
+
+  /// Claude's reasoning for this line (always populated when the API is
+  /// configured — shown in the review screen, never silently substituted
+  /// for the regex-parsed value).
+  final String? aiNote;
+
   int get labelCount => quantity < 1 ? 0 : quantity;
+
+  /// Actual sticker count once [printMode] is applied: 1 for the whole line
+  /// in [BulkPrintMode.single], or [labelCount] (one per unit) otherwise.
+  int get effectiveLabelCount =>
+      printMode == BulkPrintMode.single ? (labelCount > 0 ? 1 : 0) : labelCount;
+
+  BulkLabelLine copyWith({
+    String? tagOrPart,
+    BulkIdKind? idKind,
+    bool? missingIdentity,
+    BulkPrintMode? printMode,
+    String? aiNote,
+  }) =>
+      BulkLabelLine(
+        lineNo: lineNo,
+        cpoDisplay: cpoDisplay,
+        cpoNumbers: cpoNumbers,
+        tagOrPart: tagOrPart ?? this.tagOrPart,
+        idKind: idKind ?? this.idKind,
+        quantity: quantity,
+        description: description,
+        missingIdentity: missingIdentity ?? this.missingIdentity,
+        printMode: printMode ?? this.printMode,
+        aiNote: aiNote ?? this.aiNote,
+      );
 }
 
-/// OA line that has CPO (+ qty) but no TAG# / PART# yet.
+/// OA line that has CPO (+ qty) but no TAG# / PART# / ITEM# yet.
 class BulkIncompleteLine {
   const BulkIncompleteLine({
     required this.lineNo,
-    required this.cpo,
+    required this.cpoDisplay,
+    this.cpoNumbers = const [],
     required this.quantity,
     this.description = '',
-    this.reason = 'Missing TAG# / PART#',
+    this.reason = 'Missing TAG# / PART# / ITEM#',
+    this.aiNote,
   });
 
   final int lineNo;
-  final String cpo;
+  final String cpoDisplay;
+  final List<int> cpoNumbers;
   final int quantity;
   final String description;
   final String reason;
+  final String? aiNote;
 
   /// Placeholder sticker rows if the user chooses Proceed.
   BulkLabelLine asProceedLine() => BulkLabelLine(
         lineNo: lineNo,
-        cpo: cpo,
+        cpoDisplay: cpoDisplay,
+        cpoNumbers: cpoNumbers,
         tagOrPart: '',
         idKind: BulkIdKind.tag,
         quantity: quantity,
         description: description,
         missingIdentity: true,
+        aiNote: aiNote,
       );
 }
 
@@ -132,7 +202,7 @@ class OrderAckParseResult {
   final List<BulkLabelLine> lines;
   final List<String> warnings;
 
-  /// Lines with CPO but no TAG#/PART# — awaiting Proceed / Skip / Cancel.
+  /// Lines with CPO but no TAG#/PART#/ITEM# — awaiting Proceed / Skip / Cancel.
   final List<BulkIncompleteLine> incompleteLines;
   final String sourceFileName;
 
@@ -181,7 +251,7 @@ class OrderAckParseResult {
   bool get hasIncompleteLines => incompleteLines.isNotEmpty;
 
   int get totalLabels =>
-      lines.fold<int>(0, (sum, line) => sum + line.labelCount);
+      lines.fold<int>(0, (sum, line) => sum + line.effectiveLabelCount);
 
   int get sheetCount {
     final n = totalLabels;
@@ -242,8 +312,8 @@ class OrderAckParseResult {
       case BulkMissingIdAction.skip:
         final notes = [
           for (final inc in incompleteLines)
-            'Line CPO #${inc.cpo} is missing TAG# / PART# — skipped. '
-                'Please check with the PM.',
+            'Line CPO #${inc.cpoDisplay} is missing TAG# / PART# / ITEM# — '
+                'skipped. Please check with the PM.',
         ];
         return copyWith(
           warnings: [...warnings, ...notes],
@@ -256,8 +326,8 @@ class OrderAckParseResult {
         ]..sort((a, b) => a.lineNo.compareTo(b.lineNo));
         final notes = [
           for (final inc in incompleteLines)
-            'Line CPO #${inc.cpo} is missing TAG# / PART# — included blank '
-                'for editing. Please check with the PM.',
+            'Line CPO #${inc.cpoDisplay} is missing TAG# / PART# / ITEM# — '
+                'included blank for editing. Please check with the PM.',
         ];
         return copyWith(
           lines: merged,
@@ -267,14 +337,42 @@ class OrderAckParseResult {
     }
   }
 
+  /// Replace one line (matched by [lineNo]) — used by the bulk review screen
+  /// when the user edits the identity text or the single/per-unit toggle.
+  OrderAckParseResult replacingLine(BulkLabelLine updated) {
+    return copyWith(
+      lines: [
+        for (final l in lines) if (l.lineNo == updated.lineNo) updated else l,
+      ],
+    );
+  }
+
   List<BulkLabelInstance> expand() {
     final out = <BulkLabelInstance>[];
     for (final line in lines) {
-      for (var i = 0; i < line.labelCount; i++) {
+      final n = line.labelCount;
+      if (n <= 0) continue;
+      if (line.printMode == BulkPrintMode.single) {
         out.add(
           BulkLabelInstance(
             poNumber: poNumber,
-            cpo: line.cpo,
+            cpo: line.cpoDisplay,
+            tagOrPart: line.tagOrPart,
+            idKind: line.idKind,
+            sourceLineNo: line.lineNo,
+          ),
+        );
+        continue;
+      }
+      // Per-unit: distribute individual CPO numbers 1:1 when the count
+      // lines up with the chosen quantity; otherwise every sticker repeats
+      // the full combined reference (still editable in the Word doc).
+      final oneToOne = line.cpoNumbers.length == n;
+      for (var i = 0; i < n; i++) {
+        out.add(
+          BulkLabelInstance(
+            poNumber: poNumber,
+            cpo: oneToOne ? '${line.cpoNumbers[i]}' : line.cpoDisplay,
             tagOrPart: line.tagOrPart,
             idKind: line.idKind,
             sourceLineNo: line.lineNo,

@@ -1,12 +1,17 @@
 import 'bulk/bulk_label_models.dart';
+import 'claude_client.dart';
 import 'gemini_client.dart';
 
 /// Gemini overlay for Swift OA / packing-list field extraction and
-/// leftover address-book merge decisions.
+/// leftover address-book merge decisions, plus a Claude "common sense" pass
+/// over the individual bulk order lines.
 class JobPdfAi {
-  JobPdfAi({GeminiClient? client}) : _gemini = client ?? GeminiClient();
+  JobPdfAi({GeminiClient? client, ClaudeClient? claude})
+      : _gemini = client ?? GeminiClient(),
+        _claude = claude ?? ClaudeClient();
 
   final GeminiClient _gemini;
+  final ClaudeClient _claude;
 
   Future<OrderAckParseResult> enrich(OrderAckParseResult parsed, String text) async {
     if (!GeminiClient.isConfigured) return parsed;
@@ -75,6 +80,107 @@ Rules:
       hasDeliveryShipTo: parsed.hasDeliveryShipTo ||
           deliveryName.isNotEmpty ||
           deliveryAddr.isNotEmpty,
+    );
+  }
+
+  /// Claude "common sense" pass over every bulk order line — always runs
+  /// (not just as a fallback), and always attaches its reasoning to
+  /// [BulkLabelLine.aiNote] / [BulkIncompleteLine.aiNote] so the review
+  /// screen can show it. Never silently overrides a regex-parsed identity:
+  /// when the regex found nothing at all (an [OrderAckParseResult.incompleteLines]
+  /// row), Claude's value fills the gap but stays flagged `missingIdentity`
+  /// so the user must still confirm it; when the regex already found a
+  /// value, Claude's read is attached as a note (agreement or an
+  /// alternative) but never replaces it.
+  Future<OrderAckParseResult> enrichLines(
+    OrderAckParseResult parsed,
+    String text,
+  ) async {
+    if (!ClaudeClient.isConfigured) return parsed;
+    final claudeLines = await _claude.extractOrderAckLines(text);
+    if (claudeLines == null || claudeLines.isEmpty) return parsed;
+    return applyClaudeLineSuggestions(parsed, claudeLines);
+  }
+
+  /// Pure reconciliation used by [enrichLines] (and unit tests).
+  static OrderAckParseResult applyClaudeLineSuggestions(
+    OrderAckParseResult parsed,
+    List<ClaudeOrderAckLine> claudeLines,
+  ) {
+    String norm(String s) => s.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+    final byCpo = <String, ClaudeOrderAckLine>{};
+    for (final cl in claudeLines) {
+      final key = norm(cl.cpoDisplay);
+      if (key.isEmpty) continue;
+      byCpo.putIfAbsent(key, () => cl);
+    }
+    if (byCpo.isEmpty) return parsed;
+
+    final updatedLines = <BulkLabelLine>[];
+    for (final line in parsed.lines) {
+      final match = byCpo[norm(line.cpoDisplay)];
+      String note;
+      if (match == null) {
+        note = 'Claude’s review did not separately match this CPO '
+            'reference.';
+      } else {
+        final agrees = match.idKind == line.idKind &&
+            match.idValue.trim().toLowerCase() ==
+                line.tagOrPart.trim().toLowerCase();
+        note = agrees
+            ? 'Claude agrees: ${line.idKind.fieldLabel} ${line.tagOrPart}. '
+                '${match.reasoning}'
+            : 'Claude read this differently (${match.confidence} '
+                'confidence): ${match.idKind?.fieldLabel ?? 'no identity'} '
+                '${match.idValue}. ${match.reasoning}';
+      }
+      updatedLines.add(line.copyWith(aiNote: note.trim()));
+    }
+
+    final stillIncomplete = <BulkIncompleteLine>[];
+    for (final inc in parsed.incompleteLines) {
+      final match = byCpo[norm(inc.cpoDisplay)];
+      if (match != null &&
+          match.idKind != null &&
+          match.idValue.trim().isNotEmpty) {
+        // Regex found nothing for this line; Claude did. Fill the gap, but
+        // keep it flagged as AI-suggested — never silently trusted.
+        updatedLines.add(
+          BulkLabelLine(
+            lineNo: inc.lineNo,
+            cpoDisplay: inc.cpoDisplay,
+            cpoNumbers: inc.cpoNumbers,
+            tagOrPart: match.idValue.trim(),
+            idKind: match.idKind!,
+            quantity: inc.quantity,
+            description: inc.description,
+            missingIdentity: true,
+            aiNote: 'AI-suggested (${match.confidence} confidence) — '
+                'please confirm: ${match.reasoning}',
+          ),
+        );
+        continue;
+      }
+      stillIncomplete.add(
+        BulkIncompleteLine(
+          lineNo: inc.lineNo,
+          cpoDisplay: inc.cpoDisplay,
+          cpoNumbers: inc.cpoNumbers,
+          quantity: inc.quantity,
+          description: inc.description,
+          reason: inc.reason,
+          aiNote: match?.reasoning.trim().isNotEmpty == true
+              ? match!.reasoning.trim()
+              : 'Claude’s review also found no TAG#/PART#/ITEM# for '
+                  'this line.',
+        ),
+      );
+    }
+
+    updatedLines.sort((a, b) => a.lineNo.compareTo(b.lineNo));
+    return parsed.copyWith(
+      lines: updatedLines,
+      incompleteLines: stillIncomplete,
     );
   }
 

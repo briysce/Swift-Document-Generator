@@ -14,12 +14,20 @@ import 'theme.dart';
 class AppChangelog {
   AppChangelog._();
 
-  static const campaignId = 'whats_new_1_1_94';
+  static const campaignId = 'whats_new_1_1_95';
   static const maxShows = 3;
-  static const title = "What's new (v1.1.68 – v1.1.94)";
+  static const title = "What's new (v1.1.68 – v1.1.95)";
 
   /// Ordered newest-first sections shown in the dialog.
   static const sections = <ChangelogSection>[
+    ChangelogSection(
+      version: 'v1.1.95',
+      bullets: [
+        'Bulk Avery OA: CPO LINES ranges, ITEM#, fixed qty for comma/range groups; Single vs Per-unit tags per line',
+        'Bulk: Claude common-sense pass always attaches reasoning; AI-suggested IDs stay visible for confirm',
+        'Carrier field: shared remembered names with Staging & Shipping Log',
+      ],
+    ),
     ChangelogSection(
       version: 'v1.1.94',
       bullets: [

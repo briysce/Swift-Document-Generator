@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
+import 'bulk/bulk_label_models.dart';
+
 /// Second-opinion logo-restore critique via the Claude API — runs alongside
 /// [GeminiClient.critiqueRestoreMatch] so one model's blind spot doesn't
 /// silently pass a drifted redraw. Same shape of verdict, independent model.
@@ -201,6 +203,155 @@ Respond with strict JSON only, no other text:
     }
   }
 
+  /// Reads every order line on a Swift Order Acknowledgement / packing list
+  /// and returns Claude's own take on CPO reference, PO#, identity
+  /// (TAG#/PART#/ITEM#), and quantity for each — with reasoning, always.
+  /// This is a "common sense" second pass that runs on every parse, not just
+  /// as a fallback when the regex parser comes up empty: it reads the whole
+  /// document the way a person would, so it catches layouts the regex
+  /// vocabulary doesn't know yet. Reconciliation against the regex result
+  /// happens in `JobPdfAi.enrichLines` — this method never decides anything
+  /// on its own, it only reports what it sees.
+  ///
+  /// Returns null on any failure (unconfigured, network, unparsable) —
+  /// never thrown, never treated as a pass.
+  Future<List<ClaudeOrderAckLine>?> extractOrderAckLines(String text) async {
+    final key = resolveApiKey();
+    if (key.isEmpty) return null;
+
+    final snippet = text.length > 14000 ? text.substring(0, 14000) : text;
+    final prompt = '''
+You are reading a Swift Oilfield Supply Order Acknowledgement (or packing
+list). Swift ships fittings/flanges/valves to customers, and prints one
+Avery sticker per order line to identify it in the warehouse. Your job is to
+read every order line and report, for each one:
+
+- The CPO reference: the customer's own PO line number(s) for that row,
+  usually noted as "CPO LINE 4", "CPO LINES 1-4" (a range), or
+  "CPO LINE 8, 9" (a list) — copy it EXACTLY as printed, including the
+  range/list punctuation. A range or list written together on one note is
+  ONE reference, not several.
+- The PO# for that row (usually the same PO# repeated on every line, but
+  check — do not assume).
+- The identity field: whichever of TAG#, PART#, or ITEM# is printed for that
+  row (terminology varies by customer/salesperson), and its value.
+- The quantity ordered for that row.
+- Your reasoning: a short, specific note on how you determined each value,
+  or what's ambiguous about the row and how you resolved it using common
+  sense (e.g. "no Order Line Notes block at all for this row — nothing to
+  tag" or "identity note wrapped across a page break, matched it back to
+  this row by position").
+- Your confidence: "high" if the row's CPO/PO/identity are printed plainly,
+  "low" if you had to infer or guess.
+
+If a row genuinely has no CPO note, no identity, or both, say so plainly in
+reasoning and use empty strings for the missing field(s) — do not invent
+data. Skip rows that are pure header/subtotal/freight noise, not real order
+lines.
+
+Document text:
+"""
+$snippet
+"""
+
+Respond with strict JSON only, no other text — an array, one object per
+order line:
+[
+  {
+    "cpo": "1-4",
+    "po": "P613979",
+    "id_kind": "TAG" | "PART" | "ITEM" | "",
+    "id_value": "033047",
+    "quantity": 7,
+    "reasoning": "short explanation",
+    "confidence": "high" | "low"
+  }
+]
+''';
+
+    try {
+      final uri = Uri.parse('https://api.anthropic.com/v1/messages');
+      final payload = {
+        'model': model,
+        'max_tokens': 4096,
+        'messages': [
+          {
+            'role': 'user',
+            'content': [
+              {'type': 'text', 'text': prompt},
+            ],
+          },
+        ],
+      };
+
+      final res = await _client
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': key,
+              'anthropic-version': _apiVersion,
+            },
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 60));
+      if (res.statusCode < 200 || res.statusCode >= 300) return null;
+
+      final body = jsonDecode(res.body);
+      if (body is! Map) return null;
+      final content = body['content'];
+      if (content is! List || content.isEmpty) return null;
+      String? text0;
+      for (final block in content) {
+        if (block is Map && block['type'] == 'text') {
+          text0 = '${block['text'] ?? ''}';
+          break;
+        }
+      }
+      if (text0 == null || text0.trim().isEmpty) return null;
+
+      final jsonStart = text0.indexOf('[');
+      final jsonEnd = text0.lastIndexOf(']');
+      if (jsonStart < 0 || jsonEnd <= jsonStart) return null;
+      final parsed = jsonDecode(text0.substring(jsonStart, jsonEnd + 1));
+      if (parsed is! List) return null;
+
+      final out = <ClaudeOrderAckLine>[];
+      for (final item in parsed) {
+        if (item is! Map) continue;
+        String s(String k) => '${item[k] ?? ''}'.trim();
+        final qtyRaw = item['quantity'];
+        final quantity = qtyRaw is num
+            ? qtyRaw.round()
+            : int.tryParse('$qtyRaw'.trim()) ?? 0;
+        out.add(
+          ClaudeOrderAckLine(
+            cpoDisplay: s('cpo'),
+            poNumber: s('po'),
+            idKind: _idKindFromClaude(s('id_kind')),
+            idValue: s('id_value'),
+            quantity: quantity,
+            reasoning: s('reasoning'),
+            confidence: s('confidence').toLowerCase() == 'high'
+                ? 'high'
+                : 'low',
+          ),
+        );
+      }
+      return out;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static BulkIdKind? _idKindFromClaude(String raw) {
+    final k = raw.trim().toUpperCase();
+    if (k.startsWith('TAG')) return BulkIdKind.tag;
+    if (k.startsWith('PART')) return BulkIdKind.part;
+    if (k.startsWith('ITEM')) return BulkIdKind.item;
+    return null;
+  }
+
   static String _guessMime(Uint8List bytes) {
     if (bytes.length >= 8 &&
         bytes[0] == 0x89 &&
@@ -231,4 +382,31 @@ class ClaudeMatchVerdict {
   final int score;
   final bool pass;
   final List<String> issues;
+}
+
+/// Claude's own read of one order line from [ClaudeClient.extractOrderAckLines].
+/// Always carries [reasoning] — reconciliation against the regex parser's
+/// result happens in `JobPdfAi.enrichLines`, never here.
+class ClaudeOrderAckLine {
+  const ClaudeOrderAckLine({
+    required this.cpoDisplay,
+    required this.poNumber,
+    required this.idKind,
+    required this.idValue,
+    required this.quantity,
+    required this.reasoning,
+    this.confidence = 'low',
+  });
+
+  final String cpoDisplay;
+  final String poNumber;
+
+  /// Null when Claude couldn't identify TAG#/PART#/ITEM# for this row.
+  final BulkIdKind? idKind;
+  final String idValue;
+  final int quantity;
+  final String reasoning;
+
+  /// "high" or "low".
+  final String confidence;
 }

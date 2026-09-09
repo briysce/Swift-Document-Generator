@@ -23,6 +23,7 @@ import 'bulk/order_ack_parser.dart';
 import 'job_pdf_ai.dart';
 import 'staging_log_promo.dart';
 import 'circle_selector.dart';
+import 'carrier_sync.dart';
 import 'contact_sync.dart';
 import 'document_history_sync.dart';
 import 'employee_autocomplete_field.dart';
@@ -239,6 +240,10 @@ class _HomeScreenState extends State<HomeScreen>
   bool _bolMultiPdf = false;
   List<String> _swiftContactNames = const [];
   bool _swiftContactsLoading = false;
+  final _carrierSync = CarrierSync();
+  List<String> _carrierNames = const [];
+  bool _carrierNamesLoading = false;
+  final FocusNode _carrierFocusNode = FocusNode();
   /// Focus nodes for employee-name autocomplete fields (one per key).
   final Map<String, FocusNode> _employeeFocusNodes = {
     LabelFields.swiftContact: FocusNode(),
@@ -307,6 +312,7 @@ class _HomeScreenState extends State<HomeScreen>
     _loadUiSettings();
     _syncPresetsOnLaunch();
     _refreshContactSuggestions();
+    unawaited(_loadCarrierNames());
     unawaited(_loadInstalledVersionLabel());
     unawaited(_documentHistorySync.purgeExpired());
     if (Platform.isAndroid) {
@@ -381,6 +387,43 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
     if (changed && mounted) _refreshContactSuggestions();
+  }
+
+  /// Autocomplete uses the same shared carrier directory as Staging &
+  /// Shipping Log (Windows/Android + Wear) — not the SLST `dropdown_roster`.
+  Future<void> _loadCarrierNames({bool forceRefresh = false}) async {
+    if (_carrierNamesLoading && !forceRefresh) return;
+    setState(() => _carrierNamesLoading = true);
+    try {
+      final names = await _carrierSync.fetchNames();
+      if (!mounted) return;
+      setState(() {
+        _carrierNames = names;
+        _carrierNamesLoading = false;
+      });
+    } on CarrierSyncException catch (e) {
+      if (!mounted) return;
+      setState(() => _carrierNamesLoading = false);
+      showAppSnack(context, 'Carrier sync: ${e.message}');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _carrierNamesLoading = false);
+    }
+  }
+
+  Future<void> _rememberCarrierName(String raw) async {
+    final name = raw.trim();
+    if (name.isEmpty) return;
+    try {
+      await _carrierSync.remember(name);
+    } catch (_) {
+      // Best-effort — the field value is already saved on the form either way.
+      return;
+    }
+    if (!mounted) return;
+    if (!_carrierNames.any((n) => n.toLowerCase() == name.toLowerCase())) {
+      setState(() => _carrierNames = [name, ..._carrierNames]);
+    }
   }
 
   Future<void> _loadUiSettings() async {
@@ -608,6 +651,7 @@ class _HomeScreenState extends State<HomeScreen>
   void dispose() {
     _customerFocusNode.removeListener(_onCustomerFocusChanged);
     _customerFocusNode.dispose();
+    _carrierFocusNode.dispose();
     _mobileChromeCtrl.dispose();
     for (final c in _controllers.values) {
       c.dispose();
@@ -2332,6 +2376,10 @@ class _HomeScreenState extends State<HomeScreen>
       );
       final text = await extractOrderAckPdfText(Uint8List.fromList(bytes));
       parsed = await JobPdfAi().enrich(parsed, text);
+      // Claude "common sense" pass — always runs, always attaches its
+      // reasoning to each line (shown in the review table below); never
+      // silently overrides a value the regex parser already found.
+      parsed = await JobPdfAi().enrichLines(parsed, text);
       if (!mounted) return;
 
       if (parsed.hasIncompleteLines) {
@@ -2672,17 +2720,17 @@ class _HomeScreenState extends State<HomeScreen>
     ];
   }
 
-  /// Ask what to do with OA lines that have CPO but no TAG# / PART#.
+  /// Ask what to do with OA lines that have CPO but no TAG# / PART# / ITEM#.
   Future<BulkMissingIdAction?> _promptBulkMissingIdentity(
     OrderAckParseResult parsed,
   ) async {
     final incomplete = parsed.incompleteLines;
-    final cpoList = incomplete.map((l) => '#${l.cpo}').join(', ');
+    final cpoList = incomplete.map((l) => '#${l.cpoDisplay}').join(', ');
     final lineSummary = incomplete.length == 1
-        ? 'Line CPO $cpoList is missing a TAG# or PART# on the Order '
+        ? 'Line CPO $cpoList is missing a TAG#, PART#, or ITEM# on the Order '
             'Acknowledgement.'
-        : '${incomplete.length} lines are missing a TAG# or PART# on the '
-            'Order Acknowledgement (CPO $cpoList).';
+        : '${incomplete.length} lines are missing a TAG#, PART#, or ITEM# on '
+            'the Order Acknowledgement (CPO $cpoList).';
 
     return showDialog<BulkMissingIdAction>(
       context: context,
@@ -2690,7 +2738,7 @@ class _HomeScreenState extends State<HomeScreen>
       builder: (ctx) {
         final chrome = SwiftChromeColors.of(ctx);
         return AlertDialog(
-          title: const Text('Missing TAG# / PART#'),
+          title: const Text('Missing TAG# / PART# / ITEM#'),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
             child: Column(
@@ -2710,7 +2758,9 @@ class _HomeScreenState extends State<HomeScreen>
                 Text(
                   'Please check with the PM before deciding. You can still '
                   'proceed with blank identity fields (edit them in Word), '
-                  'skip these lines, or cancel the upload.',
+                  'skip these lines, or cancel the upload. Lines Claude '
+                  'already filled appear italic with a * in the review table '
+                  '— confirm those before printing.',
                   style: TextStyle(
                     fontFamily: swiftUiFont(ctx),
                     fontSize: 13,
@@ -2724,7 +2774,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
-                        '• CPO #${inc.cpo}  ·  qty ${inc.quantity}  ·  '
+                        '• CPO #${inc.cpoDisplay}  ·  qty ${inc.quantity}  ·  '
                         '${inc.reason}',
                         style: TextStyle(
                           fontFamily: swiftUiFont(ctx),
@@ -2755,6 +2805,65 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         );
       },
+    );
+  }
+
+  Widget _buildBulkPrintModeControl(BulkLabelLine line) {
+    final chrome = SwiftChromeColors.of(context);
+    return SizedBox(
+      width: 170,
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<BulkPrintMode>(
+          isDense: true,
+          isExpanded: true,
+          value: line.printMode,
+          style: TextStyle(
+            fontFamily: swiftUiFont(context),
+            fontSize: 12,
+            color: chrome.ink,
+          ),
+          items: [
+            DropdownMenuItem(
+              value: BulkPrintMode.single,
+              child: Text('1 tag (qty ${line.quantity})'),
+            ),
+            DropdownMenuItem(
+              value: BulkPrintMode.perUnit,
+              child: Text('1 tag per unit (${line.labelCount})'),
+            ),
+          ],
+          onChanged: (mode) {
+            if (mode != null) _setBulkLinePrintMode(line, mode);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _setBulkLinePrintMode(BulkLabelLine line, BulkPrintMode mode) {
+    final parsed = _bulkParse;
+    if (parsed == null || line.printMode == mode) return;
+    setState(() {
+      _bulkParse = parsed.replacingLine(line.copyWith(printMode: mode));
+    });
+  }
+
+  void _showBulkAiNote(BulkLabelLine line) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('CPO #${line.cpoDisplay} — Claude’s reasoning'),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Text(line.aiNote ?? ''),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2974,6 +3083,10 @@ class _HomeScreenState extends State<HomeScreen>
       }
 
       File? lastFile;
+      // BOL + "also generate Shipping Labels" produces two separate PDFs —
+      // both must be opened/reported, not just whichever saved last.
+      File? bolFile;
+      File? alsoShippingFile;
       var shippingPages = 0;
       switch (_kind) {
         case LabelKind.receiving:
@@ -2987,7 +3100,7 @@ class _HomeScreenState extends State<HomeScreen>
             forData: data,
           );
         case LabelKind.bol:
-          lastFile = await saveOne(
+          lastFile = bolFile = await saveOne(
             kind: LabelKind.bol,
             bytes: await BolLabelPdf(widget.pdf).build(
               data: data,
@@ -3029,7 +3142,7 @@ class _HomeScreenState extends State<HomeScreen>
               );
               shippingPages = piecePlan.totalPages;
             }
-            lastFile = await saveOne(
+            lastFile = alsoShippingFile = await saveOne(
               kind: LabelKind.shipping,
               bytes: shipBytes,
               forData: shipMeta,
@@ -3059,7 +3172,21 @@ class _HomeScreenState extends State<HomeScreen>
       await _rememberDeliveryAddress(data);
 
       if (_uiSettings.autoOpenPdf) {
-        await shareOrOpenFile(file: lastFile);
+        if (bolFile != null) await shareOrOpenFile(file: bolFile);
+        if (alsoShippingFile != null) {
+          // The default PDF viewer (e.g. Edge) can still be claiming its
+          // window/tab for the first file — opening the second one back to
+          // back too quickly makes it reuse that same tab instead of
+          // opening its own, so only the shipping label ends up visible.
+          // A short gap lets the first file's viewer finish opening.
+          if (bolFile != null) {
+            await Future.delayed(const Duration(milliseconds: 1200));
+          }
+          await shareOrOpenFile(file: alsoShippingFile);
+        }
+        if (bolFile == null && alsoShippingFile == null) {
+          await shareOrOpenFile(file: lastFile);
+        }
       }
 
       if (mounted) {
@@ -3072,9 +3199,12 @@ class _HomeScreenState extends State<HomeScreen>
           LabelKind.bulk => '',
         };
         final openHint = _uiSettings.autoOpenPdf ? '' : ' (auto-open off)';
+        final paths = alsoShippingFile != null
+            ? '${bolFile!.path}\n${alsoShippingFile.path}'
+            : lastFile.path;
         showAppSnack(
           context,
-          'Saved$pages$openHint:\n${lastFile.path}',
+          'Saved$pages$openHint:\n$paths',
         );
       }
     } catch (e) {
@@ -3494,6 +3624,9 @@ class _HomeScreenState extends State<HomeScreen>
         key == BolFields.shipperCertName) {
       return _buildEmployeeNameField(key);
     }
+    if (key == LabelFields.carrier) {
+      return _buildCarrierField();
+    }
     if (key == LabelFields.customer && _kind != LabelKind.bulk) {
       return _buildCustomerField();
     }
@@ -3709,6 +3842,21 @@ class _HomeScreenState extends State<HomeScreen>
     if (!removed || !mounted) return;
     _refreshContactSuggestions();
     showAppSnack(context, 'Removed “$name” from shared memory.');
+  }
+
+  /// Reuses the generic shared-memory autocomplete widget (its name predates
+  /// carrier support) for the Carrier field.
+  Widget _buildCarrierField() {
+    return EmployeeAutocompleteField(
+      controller: _controllers[LabelFields.carrier]!,
+      focusNode: _carrierFocusNode,
+      names: _carrierNames,
+      labelText: 'CARRIER',
+      hintText: 'Type a carrier or pick from shared memory',
+      loading: _carrierNamesLoading,
+      onRequestRefresh: () => _loadCarrierNames(forceRefresh: true),
+      onNameCommitted: _rememberCarrierName,
+    );
   }
 
   /// On Windows, pair single-line fields into two columns for denser forms.
@@ -3940,7 +4088,7 @@ class _HomeScreenState extends State<HomeScreen>
         LabelKind.shipping =>
           'Pre-fill the label → Generate PDF. You’ll be asked how many pallet/crate and box labels to print.',
         LabelKind.bulk =>
-          'Upload a Swift Order Acknowledgement PDF. Avery 5163 Propak stickers are built from PO#, CPO LINE #, and TAG# / PART# (or the note line under CPO when part# is missing). Quantity = label count. Outputs Word + PDF.',
+          'Upload a Swift Order Acknowledgement PDF. Avery 5163 Propak stickers are built from PO#, CPO LINE #, and TAG# / PART# / ITEM# (or the note line under CPO when part# is missing). Choose Single vs Per-unit tags per line before Generate. Quantity = label count when Per-unit. Outputs Word + PDF.',
       };
 
   List<(String, String, List<String>)> get _activeGroups => switch (_kind) {
@@ -4381,31 +4529,44 @@ class _HomeScreenState extends State<HomeScreen>
                 child: DataTable(
                   headingRowHeight: 36,
                   dataRowMinHeight: 32,
-                  dataRowMaxHeight: 40,
+                  dataRowMaxHeight: 44,
                   columns: const [
                     DataColumn(label: Text('Line')),
                     DataColumn(label: Text('CPO')),
                     DataColumn(label: Text('Kind')),
                     DataColumn(label: Text('Identity')),
                     DataColumn(label: Text('Qty'), numeric: true),
-                    DataColumn(label: Text('Labels'), numeric: true),
+                    DataColumn(label: Text('Tags')),
+                    DataColumn(label: Text('AI')),
                   ],
                   rows: [
                     for (final line in parsed.lines)
                       DataRow(
                         cells: [
                           DataCell(Text('${line.lineNo}')),
-                          DataCell(Text(line.cpo)),
-                          DataCell(Text(
-                            line.missingIdentity ? 'TAG#*' : line.idKind.fieldLabel,
-                          )),
+                          DataCell(Text(line.cpoDisplay)),
+                          DataCell(Text(() {
+                            final blank = line.tagOrPart.trim().isEmpty;
+                            if (blank) return 'TAG#*';
+                            // AI-filled gaps stay marked with * so the user
+                            // confirms before trusting the sticker.
+                            return line.missingIdentity
+                                ? '${line.idKind.fieldLabel}*'
+                                : line.idKind.fieldLabel;
+                          }())),
                           DataCell(
                             SizedBox(
                               width: 160,
                               child: Text(
-                                line.missingIdentity
-                                    ? '(blank — check PM)'
-                                    : line.tagOrPart,
+                                () {
+                                  final id = line.tagOrPart.trim();
+                                  if (id.isEmpty) {
+                                    return '(blank — check PM)';
+                                  }
+                                  // Show Claude/AI-suggested values — do not
+                                  // hide them behind the blank placeholder.
+                                  return id;
+                                }(),
                                 overflow: TextOverflow.ellipsis,
                                 style: line.missingIdentity
                                     ? TextStyle(
@@ -4417,7 +4578,19 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                           DataCell(Text('${line.quantity}')),
-                          DataCell(Text('${line.labelCount}')),
+                          DataCell(_buildBulkPrintModeControl(line)),
+                          DataCell(
+                            (line.aiNote ?? '').trim().isEmpty
+                                ? const SizedBox.shrink()
+                                : IconButton(
+                                    tooltip: 'Claude’s reasoning for this line',
+                                    icon: const Icon(
+                                      Icons.psychology_outlined,
+                                      size: 18,
+                                    ),
+                                    onPressed: () => _showBulkAiNote(line),
+                                  ),
+                          ),
                         ],
                       ),
                   ],
@@ -4428,10 +4601,10 @@ class _HomeScreenState extends State<HomeScreen>
             const SizedBox(height: 12),
             Text(
               'Each sticker prints the Propak logo with PO#, CPO LINE #, and '
-              'TAG# (valves) or PART# (when the OA has no tag). '
-              'Quantity on each OA line controls how many identical stickers '
-              'are made. Press Generate to save Word (.docx) + PDF and open '
-              'the editable Word labels (same as other documents).',
+              'TAG# (valves), PART#, or ITEM# (fittings). Use the Tags column '
+              'to choose 1 sticker for the whole line or 1 per unit. Press '
+              'Generate to save Word (.docx) + PDF and open the editable Word '
+              'labels (same as other documents).',
               style: TextStyle(
                 fontFamily: swiftUiFont(context),
                 fontSize: 13,
