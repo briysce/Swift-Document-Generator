@@ -14,12 +14,21 @@ import 'theme.dart';
 class AppChangelog {
   AppChangelog._();
 
-  static const campaignId = 'whats_new_1_1_98';
+  static const campaignId = 'whats_new_1_1_99';
   static const maxShows = 3;
-  static const title = "What's new (v1.1.68 – v1.1.98)";
+  static const title = "What's new (v1.1.68 – v1.1.99)";
 
   /// Ordered newest-first sections shown in the dialog.
   static const sections = <ChangelogSection>[
+    ChangelogSection(
+      version: 'v1.1.99',
+      bullets: [
+        'History: Quick Search filters by title, customer, PO/SO, or file name — searches your full history, not just the last 50',
+        'History: entries are now paged (20 per page) with page count and left/right navigation',
+        'History: delete any entry with the new X button — removes it from the app and Supabase (row + stored PDF/logo files) after you confirm',
+        '90-day history auto-purge now also cleans up every stored file for a purged entry, not just the PDF',
+      ],
+    ),
     ChangelogSection(
       version: 'v1.1.98',
       bullets: [

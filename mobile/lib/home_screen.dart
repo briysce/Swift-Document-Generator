@@ -1234,7 +1234,7 @@ class _HomeScreenState extends State<HomeScreen>
       if (!mounted) return;
       await showDialog<void>(
         context: context,
-        builder: (ctx) => _HistoryDialog(
+        builder: (ctx) => HistoryDialog(
           kind: _kind,
           sync: _documentHistorySync,
           onOpenPdf: (doc) async {
@@ -6575,12 +6575,20 @@ class _Card extends StatelessWidget {
 }
 
 /// History list: open immediately, fetch cloud rows in the background.
-class _HistoryDialog extends StatefulWidget {
-  const _HistoryDialog({
+///
+/// Loads the **full** history for [kind] (see [DocumentHistorySync.listAllForKind]
+/// — no artificial cap), then a Quick Search box + 20-per-page pagination
+/// operate over that in-memory list so opening the dialog stays fast even
+/// with thousands of rows. Public (not `_`-prefixed) so preview/screenshot
+/// tests can render it directly via [debugInitialDocs].
+class HistoryDialog extends StatefulWidget {
+  const HistoryDialog({
+    super.key,
     required this.kind,
     required this.sync,
     required this.onOpenPdf,
     required this.onTemplate,
+    this.debugInitialDocs,
   });
 
   final LabelKind kind;
@@ -6588,24 +6596,67 @@ class _HistoryDialog extends StatefulWidget {
   final Future<void> Function(GeneratedDocumentRecord doc) onOpenPdf;
   final void Function(GeneratedDocumentRecord doc) onTemplate;
 
+  /// Test-only: when set, skips the network fetch and renders this list
+  /// directly — lets preview/screenshot tests render deterministic content
+  /// without a live Supabase call.
+  @visibleForTesting
+  final List<GeneratedDocumentRecord>? debugInitialDocs;
+
   @override
-  State<_HistoryDialog> createState() => _HistoryDialogState();
+  State<HistoryDialog> createState() => HistoryDialogState();
 }
 
-class _HistoryDialogState extends State<_HistoryDialog> {
+class HistoryDialogState extends State<HistoryDialog> {
+  static const _pageSize = 20;
+
   bool _loading = true;
   String? _error;
   List<GeneratedDocumentRecord> _docs = const [];
+  final _searchController = TextEditingController();
+  String _query = '';
+  int _page = 0;
+  final Set<String> _deletingIds = {};
 
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(_onSearchChanged);
     unawaited(_load());
   }
 
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    final q = _searchController.text;
+    if (q == _query) return;
+    setState(() {
+      _query = q;
+      _page = 0;
+    });
+  }
+
   Future<void> _load() async {
+    if (widget.debugInitialDocs != null) {
+      // Yield a microtask first — initState() calls _load() unawaited, and
+      // without an await here this branch would run fully synchronously,
+      // calling setState() before the widget's first build() (Flutter
+      // disallows that).
+      await Future<void>.value();
+      if (!mounted) return;
+      setState(() {
+        _docs = widget.debugInitialDocs!;
+        _loading = false;
+        _error = null;
+      });
+      return;
+    }
     try {
-      final docs = await widget.sync.listForKind(widget.kind);
+      final docs = await widget.sync.listAllForKind(widget.kind);
       if (!mounted) return;
       setState(() {
         _docs = docs;
@@ -6627,6 +6678,21 @@ class _HistoryDialogState extends State<_HistoryDialog> {
     }
   }
 
+  List<GeneratedDocumentRecord> get _filtered =>
+      DocumentHistorySync.filterDocs(_docs, _query);
+
+  int get _pageCount =>
+      DocumentHistorySync.pageCountFor(_filtered.length, _pageSize);
+
+  List<GeneratedDocumentRecord> get _pageItems =>
+      DocumentHistorySync.pageSlice(_filtered, _page, _pageSize);
+
+  @visibleForTesting
+  int get debugPageCount => _pageCount;
+
+  @visibleForTesting
+  List<GeneratedDocumentRecord> get debugPageItems => _pageItems;
+
   String get _title => switch (widget.kind) {
         LabelKind.shipping => 'Shipping history',
         LabelKind.receiving => 'Receiving history',
@@ -6634,66 +6700,199 @@ class _HistoryDialogState extends State<_HistoryDialog> {
         LabelKind.bulk => 'History',
       };
 
+  Future<void> _confirmAndDelete(GeneratedDocumentRecord d) async {
+    final label = d.title.isEmpty ? d.fileName : d.title;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete history entry'),
+        content: Text(
+          'Permanently delete “$label”? This removes the PDF from '
+          'Supabase too and cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _deletingIds.add(d.id));
+    try {
+      await widget.sync.deleteRecord(d);
+      if (!mounted) return;
+      setState(() {
+        _docs = [for (final x in _docs) if (x.id != d.id) x];
+        _deletingIds.remove(d.id);
+        final maxPage = _pageCount - 1;
+        if (_page > maxPage) _page = maxPage;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _deletingIds.remove(d.id));
+      showAppSnack(context, 'Could not delete: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = _filtered;
+    final pageItems = _pageItems;
+    final ready = !_loading && _error == null;
     return AlertDialog(
       title: Text(_title),
       content: SizedBox(
-        width: 520,
-        height: 440,
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        _error!,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  )
-                : _docs.isEmpty
-                    ? const Center(child: Text('No generated documents yet.'))
-                    : ListView.separated(
-                        itemCount: _docs.length,
-                        separatorBuilder: (_, _) => const Divider(height: 1),
-                        itemBuilder: (context, i) {
-                          final d = _docs[i];
-                          final when =
-                              d.createdAt.toLocal().toString().split('.').first;
-                          return ListTile(
-                            title: Text(
-                              d.title.isEmpty ? d.fileName : d.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+        width: 560,
+        height: 580,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _searchController,
+              enabled: !_loading && _error == null && _docs.isNotEmpty,
+              decoration: const InputDecoration(
+                isDense: true,
+                prefixIcon: Icon(Icons.search, size: 20),
+                hintText: 'Search title, customer, PO/SO, file name…',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              _error!,
+                              textAlign: TextAlign.center,
                             ),
-                            subtitle: Text(
-                              [
-                                if (d.customer.isNotEmpty) d.customer,
-                                if (d.salesOrder.isNotEmpty) d.salesOrder,
-                                when,
-                              ].join(' · '),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                TextButton(
-                                  onPressed: () => widget.onTemplate(d),
-                                  child: const Text('Template'),
+                          ),
+                        )
+                      : _docs.isEmpty
+                          ? const Center(
+                              child: Text('No generated documents yet.'),
+                            )
+                          : filtered.isEmpty
+                              ? const Center(
+                                  child: Text('No matches for that search.'),
+                                )
+                              : ListView.separated(
+                                  itemCount: pageItems.length,
+                                  separatorBuilder: (_, _) =>
+                                      const Divider(height: 1),
+                                  itemBuilder: (context, i) {
+                                    final d = pageItems[i];
+                                    final when = d.createdAt
+                                        .toLocal()
+                                        .toString()
+                                        .split('.')
+                                        .first;
+                                    final deleting =
+                                        _deletingIds.contains(d.id);
+                                    return ListTile(
+                                      title: Text(
+                                        d.title.isEmpty ? d.fileName : d.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      subtitle: Text(
+                                        [
+                                          if (d.customer.isNotEmpty)
+                                            d.customer,
+                                          if (d.salesOrder.isNotEmpty)
+                                            d.salesOrder,
+                                          when,
+                                        ].join(' · '),
+                                      ),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          TextButton(
+                                            onPressed: deleting
+                                                ? null
+                                                : () => widget.onTemplate(d),
+                                            child: const Text('Template'),
+                                          ),
+                                          IconButton(
+                                            tooltip: 'Open PDF',
+                                            icon: const Icon(
+                                              Icons.open_in_new,
+                                              size: 18,
+                                            ),
+                                            onPressed: deleting
+                                                ? null
+                                                : () => unawaited(
+                                                      widget.onOpenPdf(d),
+                                                    ),
+                                          ),
+                                          SizedBox(
+                                            width: 32,
+                                            height: 32,
+                                            child: deleting
+                                                ? const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(7),
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                                                  )
+                                                : IconButton(
+                                                    tooltip: 'Delete',
+                                                    padding: EdgeInsets.zero,
+                                                    icon: const Icon(
+                                                      Icons.close,
+                                                      size: 18,
+                                                    ),
+                                                    onPressed: () =>
+                                                        unawaited(
+                                                      _confirmAndDelete(d),
+                                                    ),
+                                                  ),
+                                          ),
+                                        ],
+                                      ),
+                                      onTap: deleting
+                                          ? null
+                                          : () =>
+                                              unawaited(widget.onOpenPdf(d)),
+                                    );
+                                  },
                                 ),
-                                IconButton(
-                                  tooltip: 'Open PDF',
-                                  icon: const Icon(Icons.open_in_new, size: 18),
-                                  onPressed: () =>
-                                      unawaited(widget.onOpenPdf(d)),
-                                ),
-                              ],
-                            ),
-                            onTap: () => unawaited(widget.onOpenPdf(d)),
-                          );
-                        },
-                      ),
+            ),
+            if (ready && filtered.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    tooltip: 'Previous page',
+                    icon: const Icon(Icons.chevron_left),
+                    onPressed:
+                        _page > 0 ? () => setState(() => _page -= 1) : null,
+                  ),
+                  Text('Page ${_page + 1} of $_pageCount'),
+                  IconButton(
+                    tooltip: 'Next page',
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: _page < _pageCount - 1
+                        ? () => setState(() => _page += 1)
+                        : null,
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
       actions: [
         TextButton(

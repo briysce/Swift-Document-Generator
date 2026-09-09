@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -95,7 +96,7 @@ class DocumentHistorySync {
     Map<String, String>? fields,
     List<Uint8List>? logoBytes,
   }) async {
-    final id = _newId();
+    final id = newId();
     final safeName = fileName.trim().isEmpty ? '$id.pdf' : fileName.trim();
     final storagePath = '${kind.name}/$id/${p.basename(safeName)}';
     await _uploadBytes(storagePath, bytes, contentType: 'application/pdf');
@@ -180,6 +181,72 @@ class DocumentHistorySync {
       limit: limit,
       createdAtGte: _retentionCutoff(),
     );
+  }
+
+  /// Fetch the **entire** history for [kind] within the 90-day retention
+  /// window — no artificial UI cap. Rows are tiny metadata (no PDF bytes),
+  /// so paginating through a few thousand of them under the hood is trivial;
+  /// this exists so the History dialog's Quick Search / pagination operate
+  /// over the real dataset instead of a silently-truncated recent-N slice
+  /// (the old `listForKind(limit: 60)` default is exactly why entries used
+  /// to "cut off" once a kind passed ~60 documents).
+  Future<List<GeneratedDocumentRecord>> listAllForKind(
+    LabelKind kind, {
+    int batchSize = 500,
+  }) async {
+    final cutoff = _retentionCutoff();
+    final out = <GeneratedDocumentRecord>[];
+    var offset = 0;
+    // Sane hard stop so a server-side paging bug can't loop forever; far
+    // beyond any realistic single-kind volume for this app.
+    const hardCap = 20000;
+    while (offset < hardCap) {
+      final batch = await _fetchKind(
+        kind,
+        limit: batchSize,
+        offset: offset,
+        createdAtGte: cutoff,
+      );
+      out.addAll(batch);
+      if (batch.length < batchSize) break;
+      offset += batchSize;
+    }
+    return out;
+  }
+
+  /// Case-insensitive substring match against title/customer/sales order/
+  /// file name — pure + testable, and the single source of truth used by
+  /// both the real History dialog and its unit tests.
+  static List<GeneratedDocumentRecord> filterDocs(
+    List<GeneratedDocumentRecord> docs,
+    String query,
+  ) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return docs;
+    return docs.where((d) {
+      final haystack = [
+        d.title,
+        d.customer,
+        d.salesOrder,
+        d.fileName,
+      ].join(' ').toLowerCase();
+      return haystack.contains(q);
+    }).toList(growable: false);
+  }
+
+  /// Page count for [pageSize]-sized pages over [itemCount] items (always
+  /// at least 1, even for zero items, so "Page 1 of 1" reads sensibly).
+  static int pageCountFor(int itemCount, int pageSize) {
+    if (itemCount <= 0) return 1;
+    return (itemCount + pageSize - 1) ~/ pageSize;
+  }
+
+  /// The slice of [items] for a 0-based [page] at [pageSize] entries/page.
+  static List<T> pageSlice<T>(List<T> items, int page, int pageSize) {
+    final start = page * pageSize;
+    if (start < 0 || start >= items.length) return const [];
+    final end = (start + pageSize).clamp(0, items.length);
+    return items.sublist(start, end);
   }
 
   /// Opt-in CLI only — do **not** call from the History UI.
@@ -278,19 +345,22 @@ class DocumentHistorySync {
   Future<List<GeneratedDocumentRecord>> _fetchKind(
     LabelKind kind, {
     int limit = 60,
+    int offset = 0,
     DateTime? createdAtGte,
   }) async {
     final kindEnc = Uri.encodeComponent(kind.name);
     final cutoffQ = createdAtGte == null
         ? ''
         : '&created_at=gte.${Uri.encodeComponent(createdAtGte.toIso8601String())}';
+    final offsetQ = offset > 0 ? '&offset=$offset' : '';
     final uri = Uri.parse(
       '${AppConfig.supabaseUrl}/rest/v1/generated_documents'
       '?kind=eq.$kindEnc'
       '$cutoffQ'
       '&select=id,kind,title,customer,sales_order,file_name,storage_path,byte_size,created_at'
       '&order=created_at.desc'
-      '&limit=$limit',
+      '&limit=$limit'
+      '$offsetQ',
     );
     final res = await http.get(uri, headers: _headers).timeout(_timeout);
     if (res.statusCode < 200 || res.statusCode >= 300) {
@@ -682,8 +752,25 @@ class DocumentHistorySync {
     }
   }
 
-  static String _newId() =>
-      DateTime.now().toUtc().microsecondsSinceEpoch.toRadixString(36);
+  /// A fresh id for one `generated_documents` row: microsecond timestamp +
+  /// a per-process random salt (differs across app launches/devices) +
+  /// a monotonic in-process counter. The counter alone *provably* rules out
+  /// same-process collisions no matter how tight the calling loop is or how
+  /// coarse the platform clock's real resolution turns out to be (measured:
+  /// a plain timestamp+random-suffix scheme still collided under a tight
+  /// loop in testing). Never derived from `sales_order`/PO — two entries
+  /// sharing an SO/PO must never collide on id, so each can be found,
+  /// individually deleted, and independently purged after 90 days on its own.
+  @visibleForTesting
+  static String newId() {
+    final micros = DateTime.now().toUtc().microsecondsSinceEpoch;
+    final seq = _idCounter++;
+    return '${micros.toRadixString(36)}$_idSessionSalt${seq.toRadixString(36)}';
+  }
+
+  static final _idSessionSalt =
+      Random().nextInt(1296).toRadixString(36).padLeft(2, '0');
+  static int _idCounter = 0;
 }
 
 class DocumentHistorySyncException implements Exception {
