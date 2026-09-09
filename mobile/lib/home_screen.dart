@@ -44,6 +44,7 @@ import 'preset_sync.dart';
 import 'signature_pad.dart';
 import 'signature_sync.dart';
 import 'ship_to_suggest_field.dart';
+import 'startup_sync.dart';
 import 'theme.dart';
 import 'update_sheet.dart';
 import 'operations_apps_rail.dart';
@@ -184,10 +185,22 @@ String _bolLineHint(int lineNum) => switch (lineNum) {
     };
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.storage, required this.pdf});
+  const HomeScreen({
+    super.key,
+    required this.storage,
+    required this.pdf,
+    this.startupSync,
+  });
 
   final AppStorage storage;
   final ShippingLabelPdf pdf;
+
+  /// Shared launch-time Supabase sync bundle. When `main.dart` already
+  /// created one (real app launches on every platform), pass it here so the
+  /// sync calls below reuse its already-in-flight futures instead of hitting
+  /// Supabase a second time. Tests that construct [HomeScreen] directly may
+  /// omit it — a fresh [StartupSync] is created locally in that case.
+  final StartupSync? startupSync;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -214,6 +227,7 @@ class _HomeScreenState extends State<HomeScreen>
   bool _soPairingDismissed = false;
   /// Visible BOL goods lines (1..7); start with line 1 only.
   int _bolLineCount = 1;
+  late final StartupSync _startupSync;
   late final PresetSync _presetSync;
   late final SignatureSync _signatureSync;
   late final ContactSync _contactSync;
@@ -240,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen>
   bool _bolMultiPdf = false;
   List<String> _swiftContactNames = const [];
   bool _swiftContactsLoading = false;
-  final _carrierSync = CarrierSync();
+  late final CarrierSync _carrierSync;
   List<String> _carrierNames = const [];
   bool _carrierNamesLoading = false;
   final FocusNode _carrierFocusNode = FocusNode();
@@ -286,11 +300,13 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _presetSync = PresetSync(widget.storage);
-    _signatureSync = SignatureSync(widget.storage);
-    _contactSync = ContactSync(widget.storage);
-    _addressBookSync = AddressBookSync();
-    _documentHistorySync = DocumentHistorySync(widget.storage);
+    _startupSync = widget.startupSync ?? StartupSync(widget.storage);
+    _presetSync = _startupSync.presetSync;
+    _signatureSync = _startupSync.signatureSync;
+    _contactSync = _startupSync.contactSync;
+    _addressBookSync = _startupSync.addressBookSync;
+    _documentHistorySync = _startupSync.documentHistorySync;
+    _carrierSync = _startupSync.carrierSync;
     _customerFocusNode.addListener(_onCustomerFocusChanged);
     _mobileChromeCtrl = AnimationController(
       vsync: this,
@@ -314,7 +330,7 @@ class _HomeScreenState extends State<HomeScreen>
     _refreshContactSuggestions();
     unawaited(_loadCarrierNames());
     unawaited(_loadInstalledVersionLabel());
-    unawaited(_documentHistorySync.purgeExpired());
+    unawaited(_startupSync.historyPurgeFuture);
     if (Platform.isAndroid) {
       _androidShakeSub = AndroidShake.events.listen((_) {
         unawaited(_onAndroidShake());
@@ -395,7 +411,11 @@ class _HomeScreenState extends State<HomeScreen>
     if (_carrierNamesLoading && !forceRefresh) return;
     setState(() => _carrierNamesLoading = true);
     try {
-      final names = await _carrierSync.fetchNames();
+      // Initial launch load reuses StartupSync's already-in-flight fetch;
+      // an explicit refresh always hits Supabase fresh.
+      final names = forceRefresh
+          ? await _carrierSync.fetchNames()
+          : await _startupSync.carrierFuture;
       if (!mounted) return;
       setState(() {
         _carrierNames = names;
@@ -563,7 +583,10 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _syncPresetsOnLaunch() async {
     try {
-      await _presetSync.syncOnLaunch();
+      // Reuses the future StartupSync already kicked off in main() (or in
+      // initState above, for callers that don't pass one in) — never a
+      // second network round-trip for the same launch.
+      await _startupSync.presetFuture;
       if (mounted) setState(() {});
     } on PresetSyncException catch (e) {
       if (mounted) {
@@ -581,7 +604,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _syncAddressBookQuietly() async {
     try {
-      await _addressBookSync.syncOnLaunch();
+      await _startupSync.addressBookFuture;
       if (mounted) setState(() {});
     } on AddressBookSyncException catch (e) {
       if (mounted) {
@@ -594,7 +617,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _syncSignaturesQuietly() async {
     try {
-      await _signatureSync.syncOnLaunch();
+      await _startupSync.signatureFuture;
       if (mounted) setState(() {});
     } on SignatureSyncException catch (e) {
       if (mounted) {
@@ -607,7 +630,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _syncContactsQuietly() async {
     try {
-      await _contactSync.syncOnLaunch();
+      await _startupSync.contactFuture;
       if (!mounted) return;
       _refreshContactSuggestions();
     } on ContactSyncException catch (e) {

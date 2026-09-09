@@ -14,12 +14,19 @@ import 'theme.dart';
 class AppChangelog {
   AppChangelog._();
 
-  static const campaignId = 'whats_new_1_1_96';
+  static const campaignId = 'whats_new_1_1_97';
   static const maxShows = 3;
-  static const title = "What's new (v1.1.68 – v1.1.96)";
+  static const title = "What's new (v1.1.68 – v1.1.97)";
 
   /// Ordered newest-first sections shown in the dialog.
   static const sections = <ChangelogSection>[
+    ChangelogSection(
+      version: 'v1.1.97',
+      bullets: [
+        'Windows: branded startup/loading screen — app icon, Swift Supply mark, and a real progress bar tied to your data actually syncing (presets, contacts, addresses, carriers, signatures, history), not a fake timer',
+        'Android: startup no longer flashes to a blank/incomplete screen — the launch screen now stays up until that same data sync finishes',
+      ],
+    ),
     ChangelogSection(
       version: 'v1.1.96',
       bullets: [
