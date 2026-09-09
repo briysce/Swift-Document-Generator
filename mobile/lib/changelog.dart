@@ -14,12 +14,18 @@ import 'theme.dart';
 class AppChangelog {
   AppChangelog._();
 
-  static const campaignId = 'whats_new_1_1_97';
+  static const campaignId = 'whats_new_1_1_98';
   static const maxShows = 3;
-  static const title = "What's new (v1.1.68 – v1.1.97)";
+  static const title = "What's new (v1.1.68 – v1.1.98)";
 
   /// Ordered newest-first sections shown in the dialog.
   static const sections = <ChangelogSection>[
+    ChangelogSection(
+      version: 'v1.1.98',
+      bullets: [
+        'Fixed: deleted presets (like a stray sample BOL preset) could resurrect from another device\'s stale cache — deletes now stick permanently everywhere',
+      ],
+    ),
     ChangelogSection(
       version: 'v1.1.97',
       bullets: [
