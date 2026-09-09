@@ -10,7 +10,7 @@ function Get-FlutterDartDefines {
         $eq = $line.IndexOf("=")
         if ($eq -le 0) { continue }
         $key = $line.Substring(0, $eq).Trim()
-        if ($key -notin @("SERPER_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY")) {
+        if ($key -notin @("SERPER_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY", "ANTHROPIC_API_KEY")) {
             continue
         }
         $value = $line.Substring($eq + 1).Trim()

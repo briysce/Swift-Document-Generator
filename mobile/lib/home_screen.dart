@@ -2867,6 +2867,130 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  /// Tap-to-edit the Kind/Identity cells — the only way to actually correct
+  /// (or explicitly confirm) an AI-suggested TAG#/PART#/ITEM# before
+  /// Generate, and also lets the user fix a regex misparse. Saving with a
+  /// non-empty value always clears [BulkLabelLine.missingIdentity] since the
+  /// user has now looked at it; clearing it back to blank keeps the line
+  /// flagged (still needs a real value from the PM).
+  Future<void> _editBulkLineIdentity(BulkLabelLine line) async {
+    if (_bulkParse == null) return;
+    final controller = TextEditingController(text: line.tagOrPart);
+    var kind = line.idKind;
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setLocalState) {
+            final chrome = SwiftChromeColors.of(ctx);
+            return AlertDialog(
+              title: Text('CPO #${line.cpoDisplay} — confirm identity'),
+              content: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 380),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if ((line.aiNote ?? '').trim().isNotEmpty) ...[
+                      Text(
+                        line.aiNote!,
+                        style: TextStyle(fontSize: 12, color: chrome.muted),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<BulkIdKind>(
+                        isExpanded: true,
+                        value: kind,
+                        items: [
+                          for (final k in BulkIdKind.values)
+                            DropdownMenuItem(
+                              value: k,
+                              child: Text(k.fieldLabel),
+                            ),
+                        ],
+                        onChanged: (k) {
+                          if (k != null) setLocalState(() => kind = k);
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: controller,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Identity value',
+                      ),
+                      onSubmitted: (_) => Navigator.of(ctx).pop(true),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text('Save & confirm'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (saved != true || !mounted) return;
+    final current = _bulkParse;
+    if (current == null) return;
+    final value = controller.text.trim();
+    setState(() {
+      _bulkParse = current.replacingLine(
+        line.copyWith(
+          tagOrPart: value,
+          idKind: kind,
+          // Non-empty = user explicitly confirmed or corrected it. Blank =
+          // still needs a real value, so keep the "check PM" flag on.
+          missingIdentity: value.isEmpty,
+        ),
+      );
+    });
+  }
+
+  /// Last-chance gate before Generate: any line still flagged
+  /// [BulkLabelLine.missingIdentity] (Claude-filled gap, or an explicitly
+  /// blanked identity) prints with **no visual marker at all** on the actual
+  /// Avery sticker/Word doc — the italic "*" only exists in this review
+  /// table. This is the last chance to send the user back to confirm/edit
+  /// before that distinction is lost.
+  Future<bool> _confirmUnverifiedBulkIdentities(int count) async {
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Unconfirmed identities'),
+        content: Text(
+          '$count line${count == 1 ? '' : 's'} still show an AI-suggested '
+          'or blank TAG#/PART#/ITEM# (italic with * in the table above). '
+          'The printed sticker will not carry that marker once generated. '
+          'Tap a line’s Identity cell to confirm or fix it first, or '
+          'generate anyway.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Review first'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Generate anyway'),
+          ),
+        ],
+      ),
+    );
+    return proceed == true;
+  }
+
   void _clearBulkParse() {
     setState(() {
       _bulkParse = null;
@@ -3227,6 +3351,11 @@ class _HomeScreenState extends State<HomeScreen>
       if (!mounted) return;
       showAppSnack(context, 'PO Number missing — check the uploaded OA PDF.');
       return;
+    }
+    final unconfirmed = parsed.lines.where((l) => l.missingIdentity).length;
+    if (unconfirmed > 0) {
+      final proceed = await _confirmUnverifiedBulkIdentities(unconfirmed);
+      if (!mounted || !proceed) return;
     }
 
     setState(() => _busy = true);
@@ -4545,15 +4674,19 @@ class _HomeScreenState extends State<HomeScreen>
                         cells: [
                           DataCell(Text('${line.lineNo}')),
                           DataCell(Text(line.cpoDisplay)),
-                          DataCell(Text(() {
-                            final blank = line.tagOrPart.trim().isEmpty;
-                            if (blank) return 'TAG#*';
-                            // AI-filled gaps stay marked with * so the user
-                            // confirms before trusting the sticker.
-                            return line.missingIdentity
-                                ? '${line.idKind.fieldLabel}*'
-                                : line.idKind.fieldLabel;
-                          }())),
+                          DataCell(
+                            Text(() {
+                              final blank = line.tagOrPart.trim().isEmpty;
+                              if (blank) return 'TAG#*';
+                              // AI-filled gaps stay marked with * so the
+                              // user confirms before trusting the sticker.
+                              return line.missingIdentity
+                                  ? '${line.idKind.fieldLabel}*'
+                                  : line.idKind.fieldLabel;
+                            }()),
+                            showEditIcon: true,
+                            onTap: () => _editBulkLineIdentity(line),
+                          ),
                           DataCell(
                             SizedBox(
                               width: 160,
@@ -4576,6 +4709,8 @@ class _HomeScreenState extends State<HomeScreen>
                                     : null,
                               ),
                             ),
+                            showEditIcon: true,
+                            onTap: () => _editBulkLineIdentity(line),
                           ),
                           DataCell(Text('${line.quantity}')),
                           DataCell(_buildBulkPrintModeControl(line)),
@@ -4595,6 +4730,16 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Tap Kind or Identity on any line to confirm or fix it — '
+              'italic values with * are AI-suggested and not yet confirmed.',
+              style: TextStyle(
+                fontFamily: swiftUiFont(context),
+                fontSize: 11,
+                color: chrome.muted,
               ),
             ),
           ] else ...[

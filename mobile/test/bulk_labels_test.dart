@@ -474,4 +474,117 @@ CA
       expect(out.lines.first.tagOrPart, '033047');
     });
   });
+
+  group('OrderAckParseResult.replacingLine', () {
+    // Backs both the print-mode dropdown and the bulk review table's
+    // tap-to-edit Identity dialog — only the targeted line (matched by
+    // lineNo) may change; every other line must be untouched.
+    OrderAckParseResult twoLineResult() => OrderAckParseResult(
+          poNumber: 'P1',
+          orderNumber: '1',
+          warnings: const [],
+          lines: [
+            BulkLabelLine(
+              lineNo: 1,
+              cpoDisplay: '1',
+              cpoNumbers: const [1],
+              tagOrPart: 'AAA',
+              idKind: BulkIdKind.tag,
+              quantity: 3,
+            ),
+            BulkLabelLine(
+              lineNo: 2,
+              cpoDisplay: '2',
+              cpoNumbers: const [2],
+              tagOrPart: 'BBB',
+              idKind: BulkIdKind.part,
+              quantity: 1,
+            ),
+          ],
+        );
+
+    test('updates only the matching line by lineNo', () {
+      final parsed = twoLineResult();
+      final target = parsed.lines.first;
+      final updated = parsed.replacingLine(target.copyWith(printMode: BulkPrintMode.perUnit));
+
+      expect(updated.lines, hasLength(2));
+      expect(updated.lines[0].printMode, BulkPrintMode.perUnit);
+      expect(updated.lines[0].tagOrPart, 'AAA');
+      // Untouched sibling line keeps its own default print mode.
+      expect(updated.lines[1].printMode, BulkIdKind.part.defaultPrintMode);
+      expect(updated.lines[1].tagOrPart, 'BBB');
+    });
+
+    test('confirming an AI-suggested identity clears missingIdentity', () {
+      final parsed = twoLineResult().replacingLine(
+        twoLineResult().lines[1].copyWith(
+          tagOrPart: 'AI-GUESS',
+          missingIdentity: true,
+        ),
+      );
+      final flagged = parsed.lines.firstWhere((l) => l.lineNo == 2);
+      expect(flagged.missingIdentity, isTrue);
+
+      // Mirrors _editBulkLineIdentity: user edits the dialog, saves a
+      // non-empty value — line is now confirmed.
+      final confirmed = parsed.replacingLine(
+        flagged.copyWith(
+          tagOrPart: 'CORRECTED',
+          idKind: BulkIdKind.item,
+          missingIdentity: false,
+        ),
+      );
+      final result = confirmed.lines.firstWhere((l) => l.lineNo == 2);
+      expect(result.tagOrPart, 'CORRECTED');
+      expect(result.idKind, BulkIdKind.item);
+      expect(result.missingIdentity, isFalse);
+      // Sibling line 1 is untouched.
+      expect(confirmed.lines.firstWhere((l) => l.lineNo == 1).tagOrPart, 'AAA');
+    });
+
+    test('clearing the identity value back to blank keeps it flagged', () {
+      final parsed = twoLineResult();
+      final line = parsed.lines.first;
+      // Mirrors _editBulkLineIdentity: user clears the text field to blank.
+      final updated = parsed.replacingLine(
+        line.copyWith(tagOrPart: '', missingIdentity: true),
+      );
+      final result = updated.lines.firstWhere((l) => l.lineNo == 1);
+      expect(result.tagOrPart, isEmpty);
+      expect(result.missingIdentity, isTrue);
+    });
+  });
+
+  group('Generate-time confirmation gate', () {
+    test('unconfirmed count only counts missingIdentity lines', () {
+      final lines = [
+        BulkLabelLine(
+          lineNo: 1,
+          cpoDisplay: '1',
+          tagOrPart: 'AAA',
+          idKind: BulkIdKind.tag,
+          quantity: 1,
+        ),
+        BulkLabelLine(
+          lineNo: 2,
+          cpoDisplay: '2',
+          tagOrPart: 'BBB',
+          idKind: BulkIdKind.part,
+          quantity: 1,
+          missingIdentity: true,
+        ),
+        BulkLabelLine(
+          lineNo: 3,
+          cpoDisplay: '3',
+          tagOrPart: '',
+          idKind: BulkIdKind.tag,
+          quantity: 1,
+          missingIdentity: true,
+        ),
+      ];
+      final unconfirmed = lines.where((l) => l.missingIdentity).length;
+      expect(unconfirmed, 2);
+    });
+  });
 }

@@ -9,8 +9,6 @@ extension BulkIdKindLabel on BulkIdKind {
         BulkIdKind.item => 'ITEM#',
       };
 
-  String get previewColumn => fieldLabel;
-
   /// Sensible default print mode when the user hasn't chosen one yet.
   /// TAG# lines are almost always individually-tagged valves (one tag per
   /// unit); PART#/ITEM# lines are more often fittings/flanges shipped

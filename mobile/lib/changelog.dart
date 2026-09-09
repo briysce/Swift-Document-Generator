@@ -14,12 +14,20 @@ import 'theme.dart';
 class AppChangelog {
   AppChangelog._();
 
-  static const campaignId = 'whats_new_1_1_95';
+  static const campaignId = 'whats_new_1_1_96';
   static const maxShows = 3;
-  static const title = "What's new (v1.1.68 – v1.1.95)";
+  static const title = "What's new (v1.1.68 – v1.1.96)";
 
   /// Ordered newest-first sections shown in the dialog.
   static const sections = <ChangelogSection>[
+    ChangelogSection(
+      version: 'v1.1.96',
+      bullets: [
+        'Fixed: Claude API key now ships in built Windows/Android apps — "Perfect this logo" dual critique and Bulk\'s common-sense pass actually run (were silently Gemini/regex-only since v1.1.94/v1.1.95)',
+        'Bulk: tap Kind or Identity in the review table to confirm or fix an AI-suggested TAG#/PART#/ITEM# before Generate',
+        'Bulk: Generate now warns if any unconfirmed AI-suggested identity remains',
+      ],
+    ),
     ChangelogSection(
       version: 'v1.1.95',
       bullets: [
