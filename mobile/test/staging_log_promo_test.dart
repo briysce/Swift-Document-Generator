@@ -5,7 +5,7 @@ import 'package:swift_shipping_label/staging_log_promo.dart';
 
 void main() {
   test('changelog campaign lists Swift Staging & Shipping Log intro', () {
-    expect(AppChangelog.campaignId, 'whats_new_1_1_99');
+    expect(AppChangelog.campaignId, 'whats_new_1_2_0');
     expect(AppChangelog.maxShows, 3);
     final bullets = AppChangelog.sections
         .expand((s) => s.bullets)

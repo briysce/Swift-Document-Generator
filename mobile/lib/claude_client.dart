@@ -344,6 +344,129 @@ order line:
     }
   }
 
+  /// Reads the header of a Swift Order Acknowledgement / packing list — the
+  /// same "common sense" pass as [extractOrderAckLines], but for the
+  /// document-level fields (customer, PO#, sales order, project, ship-to,
+  /// requisitioner, AFE, carrier) that every document type (Shipping,
+  /// Receiving, BOL, Bulk) pre-fills from. Runs on every upload, not just as
+  /// a fallback — `JobPdfAi.enrich` reconciles it against the regex/Gemini
+  /// result and never silently overrides a value they already found.
+  ///
+  /// Returns null on any failure — never thrown, never treated as a pass.
+  Future<ClaudeOrderAckHeader?> extractOrderAckHeader(String text) async {
+    final key = resolveApiKey();
+    if (key.isEmpty) return null;
+
+    final snippet = text.length > 9000 ? text.substring(0, 9000) : text;
+    final prompt = '''
+You are reading the header of a Swift Oilfield Supply Order Acknowledgement
+(or packing list) — the customer/job info block above the line-item table,
+not the line items themselves. Extract, using common sense about how these
+documents are laid out (values can wrap across lines, be mashed together
+with no spaces, or use a customer-specific term for the same thing):
+
+- customer_name: the Bill To company name (no account number prefix)
+- po_number: the customer's PO # exactly as printed (keep dots/hyphens,
+  don't truncate)
+- sales_order: Swift's own order/sales-order number
+- project_number: the Project column value if separate from the PO
+- job_location: Location / site / LSD column if present
+- requisitioner: the requisitioner/approver name
+- afe_number: AFE # if present
+- ship_to_name / ship_to_address: the actual delivery destination — prefer
+  Delivery Instructions over the Ship To header if both are present and
+  differ
+- carrier: freight carrier / "ship via" line if present
+- packing_slip_number: only if this document is a packing list
+
+Document text:
+"""
+$snippet
+"""
+
+Respond with strict JSON only, no other text:
+{
+  "customer_name": "", "po_number": "", "sales_order": "",
+  "project_number": "", "job_location": "", "requisitioner": "",
+  "afe_number": "", "ship_to_name": "", "ship_to_address": "",
+  "carrier": "", "packing_slip_number": "",
+  "reasoning": "short note on anything ambiguous or wrapped/mashed that you
+    had to puzzle out, or empty string if the header was straightforward",
+  "flags": ["field names you're not confident about, empty array if none"]
+}
+''';
+
+    try {
+      final uri = Uri.parse('https://api.anthropic.com/v1/messages');
+      final payload = {
+        'model': model,
+        'max_tokens': 1024,
+        'messages': [
+          {
+            'role': 'user',
+            'content': [
+              {'type': 'text', 'text': prompt},
+            ],
+          },
+        ],
+      };
+
+      final res = await _client
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': key,
+              'anthropic-version': _apiVersion,
+            },
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 45));
+      if (res.statusCode < 200 || res.statusCode >= 300) return null;
+
+      final body = jsonDecode(res.body);
+      if (body is! Map) return null;
+      final content = body['content'];
+      if (content is! List || content.isEmpty) return null;
+      String? text0;
+      for (final block in content) {
+        if (block is Map && block['type'] == 'text') {
+          text0 = '${block['text'] ?? ''}';
+          break;
+        }
+      }
+      if (text0 == null || text0.trim().isEmpty) return null;
+
+      final jsonStart = text0.indexOf('{');
+      final jsonEnd = text0.lastIndexOf('}');
+      if (jsonStart < 0 || jsonEnd <= jsonStart) return null;
+      final parsed = jsonDecode(text0.substring(jsonStart, jsonEnd + 1));
+      if (parsed is! Map) return null;
+
+      String s(String k) => '${parsed[k] ?? ''}'.trim();
+      final flagsRaw = parsed['flags'];
+      return ClaudeOrderAckHeader(
+        customerName: s('customer_name'),
+        poNumber: s('po_number'),
+        orderNumber: s('sales_order'),
+        projectNumber: s('project_number'),
+        jobLocation: s('job_location'),
+        requisitioner: s('requisitioner'),
+        afeNumber: s('afe_number'),
+        shipToName: s('ship_to_name'),
+        shipToAddress: s('ship_to_address'),
+        carrier: s('carrier'),
+        packingSlipNumber: s('packing_slip_number'),
+        reasoning: s('reasoning'),
+        flags: flagsRaw is List
+            ? flagsRaw.map((e) => '$e').where((e) => e.isNotEmpty).toList()
+            : const [],
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   static BulkIdKind? _idKindFromClaude(String raw) {
     final k = raw.trim().toUpperCase();
     if (k.startsWith('TAG')) return BulkIdKind.tag;
@@ -409,4 +532,44 @@ class ClaudeOrderAckLine {
 
   /// "high" or "low".
   final String confidence;
+}
+
+/// Claude's own read of an OA/packing-list header from
+/// [ClaudeClient.extractOrderAckHeader]. Fields are empty strings when
+/// Claude didn't find them — never null, so callers can treat this like any
+/// other header source in a `preferField`-style merge.
+class ClaudeOrderAckHeader {
+  const ClaudeOrderAckHeader({
+    this.customerName = '',
+    this.poNumber = '',
+    this.orderNumber = '',
+    this.projectNumber = '',
+    this.jobLocation = '',
+    this.requisitioner = '',
+    this.afeNumber = '',
+    this.shipToName = '',
+    this.shipToAddress = '',
+    this.carrier = '',
+    this.packingSlipNumber = '',
+    this.reasoning = '',
+    this.flags = const [],
+  });
+
+  final String customerName;
+  final String poNumber;
+  final String orderNumber;
+  final String projectNumber;
+  final String jobLocation;
+  final String requisitioner;
+  final String afeNumber;
+  final String shipToName;
+  final String shipToAddress;
+  final String carrier;
+  final String packingSlipNumber;
+
+  /// Short note on anything ambiguous/wrapped Claude had to puzzle out.
+  final String reasoning;
+
+  /// Field names (customer_name, po_number, …) Claude is unsure about.
+  final List<String> flags;
 }

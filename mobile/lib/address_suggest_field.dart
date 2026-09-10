@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'address_book_sync.dart';
+import 'google_places_client.dart';
 import 'osm_nominatim_client.dart';
 
 class AddressSuggestion {
@@ -152,6 +153,7 @@ class _AddressSuggestFieldState extends State<AddressSuggestField> {
   final _layerLink = LayerLink();
   final _fieldKey = GlobalKey();
   final _osm = OsmNominatimClient();
+  final _places = GooglePlacesClient();
   OverlayEntry? _overlay;
   Timer? _debounce;
   Timer? _hideTimer;
@@ -234,7 +236,17 @@ class _AddressSuggestFieldState extends State<AddressSuggestField> {
     final id = ++_req;
     if (mounted) setState(() => _thinking = true);
     try {
-      final hits = await _osm.search(query);
+      // Google Places has far better real-world coverage for civic/commercial
+      // addresses than free OSM data — try it first when configured. It
+      // returns nothing for LSD/lease-road/wellsite queries (not on any
+      // commercial map), so those still fall through to Nominatim/Photon
+      // exactly as before.
+      var hits = GooglePlacesClient.isConfigured
+          ? await _places.autocomplete(query)
+          : const <NominatimHit>[];
+      if (hits.isEmpty) {
+        hits = await _osm.search(query);
+      }
       if (!mounted || id != _req) return;
       setState(() {
         _osmHits = hits;

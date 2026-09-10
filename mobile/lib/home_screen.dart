@@ -2087,6 +2087,7 @@ class _HomeScreenState extends State<HomeScreen>
     final palletCtrl = TextEditingController(text: '1');
     final boxCtrl = TextEditingController(text: '0');
     var error = '';
+    var undetermined = false;
     try {
     return await showDialog<PieceCountPlan>(
       context: context,
@@ -2106,6 +2107,7 @@ class _HomeScreenState extends State<HomeScreen>
               TextField(
                 controller: palletCtrl,
                 keyboardType: TextInputType.number,
+                enabled: !undetermined,
                 decoration: const InputDecoration(
                   labelText: 'PALLET / CRATE LABELS',
                 ),
@@ -2115,12 +2117,33 @@ class _HomeScreenState extends State<HomeScreen>
               TextField(
                 controller: boxCtrl,
                 keyboardType: TextInputType.number,
+                enabled: !undetermined,
                 decoration: const InputDecoration(
                   labelText: 'BOX LABELS',
                 ),
               ),
+              const SizedBox(height: 10),
+              CheckboxListTile(
+                value: undetermined,
+                onChanged: (v) => setLocal(() {
+                  undetermined = v ?? false;
+                  if (undetermined) error = '';
+                }),
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                title: const Text(
+                  "Don't know the count or container type yet",
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                subtitle: const Text(
+                  'Prints one label with the count left blank — fill it in '
+                  'by hand and run off as many copies as you need.',
+                  style: TextStyle(fontSize: 12, color: SwiftColors.muted),
+                ),
+              ),
               if (error.isNotEmpty) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 4),
                 Text(
                   error,
                   style: const TextStyle(color: SwiftColors.accent, fontSize: 13),
@@ -2135,6 +2158,10 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             FilledButton(
               onPressed: () {
+                if (undetermined) {
+                  Navigator.pop(ctx, const PieceCountPlan(isUndetermined: true));
+                  return;
+                }
                 int parseCount(String raw) {
                   final t = raw.trim();
                   if (t.isEmpty) return 0;
@@ -2582,13 +2609,58 @@ class _HomeScreenState extends State<HomeScreen>
       _oaFilling = false;
     });
     if (!mounted) return;
+    final base = parsed.documentKind == 'packing_list'
+        ? 'Filled from packing list PDF.'
+        : parsed.hasDeliveryShipTo
+            ? 'Filled from Order Acknowledgement (Delivery Instructions).'
+            : 'Filled from Order Acknowledgement.';
+    // Only Claude's header notes are relevant here — the rest of
+    // `warnings` is line-item/CPO parser noise meant for the Bulk panel.
+    final claudeNotes =
+        parsed.warnings.where((w) => w.startsWith('Claude')).toList();
+    if (claudeNotes.isEmpty) {
+      showAppSnack(context, base);
+      return;
+    }
     showAppSnack(
       context,
-      parsed.documentKind == 'packing_list'
-          ? 'Filled from packing list PDF.'
-          : parsed.hasDeliveryShipTo
-              ? 'Filled from Order Acknowledgement (Delivery Instructions).'
-              : 'Filled from Order Acknowledgement.',
+      '$base ${claudeNotes.length == 1 ? '1 item' : '${claudeNotes.length} items'} to double-check.',
+      duration: const Duration(seconds: 6),
+      action: SnackBarAction(
+        label: 'Details',
+        onPressed: () => _showOaFillWarnings(claudeNotes),
+      ),
+    );
+  }
+
+  void _showOaFillWarnings(List<String> warnings) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Double-check these fields'),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 440),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final w in warnings)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text('• $w', style: const TextStyle(fontSize: 13)),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -3109,7 +3181,7 @@ class _HomeScreenState extends State<HomeScreen>
       piecePlan = await _askPieceCounts();
       if (piecePlan == null || piecePlan.isEmpty) return;
       final sos = parseSalesOrders(_controllers[LabelFields.salesOrder]?.text ?? '');
-      if (alsoShipping && sos.length > 1) {
+      if (alsoShipping && sos.length > 1 && !piecePlan.isUndetermined) {
         perSoPlans = await _askPieceCountsPerSalesOrder(
           salesOrders: sos,
           total: piecePlan,

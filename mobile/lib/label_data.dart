@@ -524,14 +524,23 @@ class CustomerPreset {
 
 /// Counts entered before generating a multi-page shipping PDF.
 class PieceCountPlan {
-  const PieceCountPlan({this.palletCrates = 0, this.boxes = 0});
+  const PieceCountPlan({
+    this.palletCrates = 0,
+    this.boxes = 0,
+    this.isUndetermined = false,
+  });
 
   final int palletCrates;
   final int boxes;
 
+  /// User doesn't know the count or container type yet — print a single
+  /// label with the Pallet/Crate and Box "# of #" fields left blank to fill
+  /// in by hand, then run off as many physical copies as needed.
+  final bool isUndetermined;
+
   int get totalPages => palletCrates + boxes;
 
-  bool get isEmpty => totalPages <= 0;
+  bool get isEmpty => !isUndetermined && totalPages <= 0;
 }
 
 class LabelFonts {

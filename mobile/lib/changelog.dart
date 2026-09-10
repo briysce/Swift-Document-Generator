@@ -14,12 +14,21 @@ import 'theme.dart';
 class AppChangelog {
   AppChangelog._();
 
-  static const campaignId = 'whats_new_1_1_99';
+  static const campaignId = 'whats_new_1_2_0';
   static const maxShows = 3;
-  static const title = "What's new (v1.1.68 – v1.1.99)";
+  static const title = "What's new (v1.1.68 – v1.2.0)";
 
   /// Ordered newest-first sections shown in the dialog.
   static const sections = <ChangelogSection>[
+    ChangelogSection(
+      version: 'v1.2.0',
+      bullets: [
+        'Shipping: "How many labels?" has a Don\'t know the count yet checkbox — prints one label with the count left blank to fill in and copy as needed',
+        'Bulk / Shipping / Receiving / BOL: Claude common-sense pass now also checks the header fields (customer, PO#, sales order, project, ship-to, requisitioner, AFE, carrier), not just Bulk line items — flags what to double-check after filling from an OA',
+        'Delivery Address: Google Places is now the primary suggestion source for real street addresses; LSD / lease-road / wellsite entry still falls back to OpenStreetMap the same as before',
+        'Android: now shares the same branded startup screen as Windows (Swift mark, app icon, live sync progress), sized for phone screens',
+      ],
+    ),
     ChangelogSection(
       version: 'v1.1.99',
       bullets: [

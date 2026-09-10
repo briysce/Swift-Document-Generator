@@ -50,37 +50,113 @@ Rules:
 - Empty string when unknown.
 ''',
     );
-    if (data == null) return parsed;
-    String g(String k) => '${data[k] ?? ''}'.trim();
+    var out = parsed;
+    if (data != null) {
+      String g(String k) => '${data[k] ?? ''}'.trim();
 
-    final kind = g('document_kind');
-    final packing = g('packing_slip');
-    final deliveryName = g('delivery_ship_to_name');
-    final deliveryAddr = g('delivery_ship_to_address');
-    return parsed.copyWith(
-      documentKind: kind == 'packing_list' || parsed.documentKind == 'packing_list'
-          ? 'packing_list'
-          : parsed.documentKind,
-      customerName: preferField(parsed.customerName, g('customer_name')),
-      orderNumber: preferField(parsed.orderNumber, g('sales_order')),
-      packingSlipNumber: preferField(parsed.packingSlipNumber, packing),
-      poNumber: preferField(parsed.poNumber, g('po_number')),
-      projectNumber: preferField(parsed.projectNumber, g('project')),
-      jobLocation: preferField(parsed.jobLocation, g('job_location')),
-      requisitioner: preferField(parsed.requisitioner, g('requisitioner')),
-      afeNumber: preferField(parsed.afeNumber, g('afe_number')),
-      deliveryShipToName: preferField(parsed.deliveryShipToName, deliveryName),
+      final kind = g('document_kind');
+      final packing = g('packing_slip');
+      final deliveryName = g('delivery_ship_to_name');
+      final deliveryAddr = g('delivery_ship_to_address');
+      out = parsed.copyWith(
+        documentKind:
+            kind == 'packing_list' || parsed.documentKind == 'packing_list'
+                ? 'packing_list'
+                : parsed.documentKind,
+        customerName: preferField(parsed.customerName, g('customer_name')),
+        orderNumber: preferField(parsed.orderNumber, g('sales_order')),
+        packingSlipNumber: preferField(parsed.packingSlipNumber, packing),
+        poNumber: preferField(parsed.poNumber, g('po_number')),
+        projectNumber: preferField(parsed.projectNumber, g('project')),
+        jobLocation: preferField(parsed.jobLocation, g('job_location')),
+        requisitioner: preferField(parsed.requisitioner, g('requisitioner')),
+        afeNumber: preferField(parsed.afeNumber, g('afe_number')),
+        deliveryShipToName:
+            preferField(parsed.deliveryShipToName, deliveryName),
+        deliveryShipToAddress:
+            preferField(parsed.deliveryShipToAddress, deliveryAddr),
+        headerShipToName:
+            preferField(parsed.headerShipToName, g('header_ship_to_name')),
+        headerShipToAddress: preferField(
+            parsed.headerShipToAddress, g('header_ship_to_address')),
+        deliveryCarrier: preferField(parsed.deliveryCarrier, g('carrier')),
+        hasDeliveryShipTo: parsed.hasDeliveryShipTo ||
+            deliveryName.isNotEmpty ||
+            deliveryAddr.isNotEmpty,
+      );
+    }
+    return enrichHeaderWithClaude(out, text);
+  }
+
+  /// Claude "common sense" pass over the OA/packing-list header — always
+  /// runs (not just as a fallback), same reconciliation rule as the Bulk
+  /// line pass: only fills a field the regex+Gemini pass left completely
+  /// empty; when a field already has a value and Claude reads it
+  /// differently, the existing value is kept and Claude's read is noted in
+  /// [OrderAckParseResult.warnings] instead of silently overriding it.
+  Future<OrderAckParseResult> enrichHeaderWithClaude(
+    OrderAckParseResult parsed,
+    String text,
+  ) async {
+    if (!ClaudeClient.isConfigured) return parsed;
+    final header = await _claude.extractOrderAckHeader(text);
+    if (header == null) return parsed;
+    return applyClaudeHeaderSuggestion(parsed, header);
+  }
+
+  /// Pure reconciliation used by [enrichHeaderWithClaude] (and unit tests).
+  static OrderAckParseResult applyClaudeHeaderSuggestion(
+    OrderAckParseResult parsed,
+    ClaudeOrderAckHeader header,
+  ) {
+    bool differs(String current, String claude) {
+      if (claude.isEmpty) return false;
+      if (current.isEmpty) return false;
+      return current.trim().toLowerCase() != claude.trim().toLowerCase();
+    }
+
+    final disagreements = <String>[];
+    void check(String label, String current, String claude) {
+      if (differs(current, claude)) {
+        disagreements.add('$label: using "$current" — Claude read "$claude"');
+      }
+    }
+
+    check('Customer', parsed.customerName, header.customerName);
+    check('PO#', parsed.poNumber, header.poNumber);
+    check('Sales order', parsed.orderNumber, header.orderNumber);
+    check('Project', parsed.projectNumber, header.projectNumber);
+    check('Requisitioner', parsed.requisitioner, header.requisitioner);
+    check('AFE #', parsed.afeNumber, header.afeNumber);
+
+    final merged = parsed.copyWith(
+      customerName: preferField(parsed.customerName, header.customerName),
+      poNumber: preferField(parsed.poNumber, header.poNumber),
+      orderNumber: preferField(parsed.orderNumber, header.orderNumber),
+      projectNumber: preferField(parsed.projectNumber, header.projectNumber),
+      jobLocation: preferField(parsed.jobLocation, header.jobLocation),
+      requisitioner: preferField(parsed.requisitioner, header.requisitioner),
+      afeNumber: preferField(parsed.afeNumber, header.afeNumber),
+      deliveryShipToName:
+          preferField(parsed.deliveryShipToName, header.shipToName),
       deliveryShipToAddress:
-          preferField(parsed.deliveryShipToAddress, deliveryAddr),
-      headerShipToName:
-          preferField(parsed.headerShipToName, g('header_ship_to_name')),
-      headerShipToAddress:
-          preferField(parsed.headerShipToAddress, g('header_ship_to_address')),
-      deliveryCarrier: preferField(parsed.deliveryCarrier, g('carrier')),
+          preferField(parsed.deliveryShipToAddress, header.shipToAddress),
+      deliveryCarrier: preferField(parsed.deliveryCarrier, header.carrier),
+      packingSlipNumber:
+          preferField(parsed.packingSlipNumber, header.packingSlipNumber),
       hasDeliveryShipTo: parsed.hasDeliveryShipTo ||
-          deliveryName.isNotEmpty ||
-          deliveryAddr.isNotEmpty,
+          header.shipToName.isNotEmpty ||
+          header.shipToAddress.isNotEmpty,
     );
+
+    final notes = <String>[
+      if (header.reasoning.isNotEmpty) 'Claude review: ${header.reasoning}',
+      if (header.flags.isNotEmpty)
+        'Claude is unsure about: ${header.flags.join(", ")} — please confirm.',
+      ...disagreements.map((d) => 'Claude review — $d'),
+    ];
+    if (notes.isEmpty) return merged;
+    return merged.copyWith(warnings: [...merged.warnings, ...notes]);
   }
 
   /// Claude "common sense" pass over every bulk order line — always runs

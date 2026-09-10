@@ -9,16 +9,18 @@ import 'home_screen.dart';
 import 'pdf/shipping_label_pdf.dart';
 import 'startup_sync.dart';
 
-/// Windows-only load/splash screen — shown until [StartupSync.ready]
-/// resolves (i.e. every startup Supabase load — presets, signatures,
-/// contacts, delivery addresses, carriers, generated-document history purge —
-/// has settled), then hands off to [HomeScreen].
+/// Branded load/splash screen — shown on both Windows and Android until
+/// [StartupSync.ready] resolves (i.e. every startup Supabase load — presets,
+/// signatures, contacts, delivery addresses, carriers, generated-document
+/// history purge — has settled), then hands off to [HomeScreen].
 ///
-/// Android/Wear do not get this widget: they keep their existing native
-/// launch screen, just held open longer by `main.dart` awaiting the same
-/// [StartupSync.ready] signal (see `deferFirstFrame`/`allowFirstFrame`).
-class WindowsSplashScreen extends StatefulWidget {
-  const WindowsSplashScreen({
+/// Same design on both platforms; sizing scales down on narrow/phone-width
+/// screens (see [_Scale]) rather than forking into a separate widget.
+/// Android additionally holds its native launch_background open until
+/// Flutter's first frame paints (see `main.dart`), so there's no flash of a
+/// blank window before this widget appears.
+class AppSplashScreen extends StatefulWidget {
+  const AppSplashScreen({
     super.key,
     required this.storage,
     required this.pdf,
@@ -30,10 +32,10 @@ class WindowsSplashScreen extends StatefulWidget {
   final StartupSync startupSync;
 
   @override
-  State<WindowsSplashScreen> createState() => _WindowsSplashScreenState();
+  State<AppSplashScreen> createState() => _AppSplashScreenState();
 }
 
-class _WindowsSplashScreenState extends State<WindowsSplashScreen> {
+class _AppSplashScreenState extends State<AppSplashScreen> {
   bool _ready = false;
   Timer? _settleTimer;
 
@@ -74,33 +76,38 @@ class _WindowsSplashScreenState extends State<WindowsSplashScreen> {
         startupSync: widget.startupSync,
       );
     }
+    final width = MediaQuery.sizeOf(context).width;
+    final scale = _Scale(width);
     return Scaffold(
       backgroundColor: const Color(0xFF14161A),
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            padding: EdgeInsets.symmetric(
+              horizontal: 32,
+              vertical: scale.compact ? 16 : 24,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const _SwiftMark(),
-                const SizedBox(height: 22),
-                const _AppIcon(),
-                const SizedBox(height: 30),
-                const Text(
+                _SwiftMark(width: scale.swiftMark),
+                SizedBox(height: scale.compact ? 16 : 22),
+                _AppIcon(size: scale.appIcon),
+                SizedBox(height: scale.compact ? 22 : 30),
+                Text(
                   'Swift Document Generator',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Oswald',
                     fontWeight: FontWeight.w600,
-                    fontSize: 22,
+                    fontSize: scale.compact ? 19 : 22,
                     color: Colors.white,
                     letterSpacing: 0.4,
                   ),
                 ),
-                const SizedBox(height: 44),
+                SizedBox(height: scale.compact ? 32 : 44),
                 SizedBox(
-                  width: 260,
+                  width: scale.progressBar,
                   child: ValueListenableBuilder<double>(
                     valueListenable: widget.startupSync.progress,
                     builder: (context, value, _) {
@@ -109,7 +116,8 @@ class _WindowsSplashScreenState extends State<WindowsSplashScreen> {
                         child: LinearProgressIndicator(
                           value: value <= 0 ? null : value,
                           minHeight: 4,
-                          backgroundColor: Colors.white.withOpacity(0.12),
+                          backgroundColor:
+                              Colors.white.withValues(alpha: 0.12),
                           color: const Color(0xFFCE4E30),
                         ),
                       );
@@ -122,12 +130,12 @@ class _WindowsSplashScreenState extends State<WindowsSplashScreen> {
                   style: TextStyle(
                     fontFamily: 'Oswald',
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     letterSpacing: 0.3,
                   ),
                 ),
-                const SizedBox(height: 64),
-                const BriysceAppsLockup(width: 112),
+                SizedBox(height: scale.compact ? 40 : 64),
+                BriysceAppsLockup(width: scale.compact ? 92 : 112),
               ],
             ),
           ),
@@ -135,6 +143,23 @@ class _WindowsSplashScreenState extends State<WindowsSplashScreen> {
       ),
     );
   }
+}
+
+/// Proportions the splash down for phone-width screens instead of a
+/// separate mobile layout — same design, smaller marks and tighter spacing
+/// once the window is narrower than a small desktop window.
+class _Scale {
+  _Scale(double width) : compact = width < 480 {
+    final f = compact ? (width / 480).clamp(0.72, 1.0) : 1.0;
+    swiftMark = 96 * f;
+    appIcon = 132 * f;
+    progressBar = (260 * f).clamp(180, 260).toDouble();
+  }
+
+  final bool compact;
+  late final double swiftMark;
+  late final double appIcon;
+  late final double progressBar;
 }
 
 /// Small standalone Swift Supply brand mark shown above the app icon.
@@ -155,13 +180,15 @@ class _WindowsSplashScreenState extends State<WindowsSplashScreen> {
 /// solid) variant besides. So this falls back to the solid-orange raster PNG
 /// per brand guidance, same as [SwiftChromeLogo] does elsewhere in the app.
 class _SwiftMark extends StatelessWidget {
-  const _SwiftMark();
+  const _SwiftMark({required this.width});
+
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return Image.asset(
       SwiftBrandAssets.logoOrangeSolid,
-      width: 96,
+      width: width,
       fit: BoxFit.contain,
     );
   }
@@ -169,20 +196,20 @@ class _SwiftMark extends StatelessWidget {
 
 /// The Swift Document Generator app icon.
 class _AppIcon extends StatelessWidget {
-  const _AppIcon();
+  const _AppIcon({required this.size});
 
-  static const _iconSize = 132.0;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: _iconSize,
-      height: _iconSize,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_iconSize * 0.222),
+        borderRadius: BorderRadius.circular(size * 0.222),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.45),
+            color: Colors.black.withValues(alpha: 0.45),
             blurRadius: 26,
             offset: const Offset(0, 12),
           ),
@@ -190,8 +217,8 @@ class _AppIcon extends StatelessWidget {
       ),
       child: Image.asset(
         'assets/images/app_icon.png',
-        width: _iconSize,
-        height: _iconSize,
+        width: size,
+        height: size,
         fit: BoxFit.contain,
       ),
     );

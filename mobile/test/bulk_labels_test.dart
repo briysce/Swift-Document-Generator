@@ -475,6 +475,76 @@ CA
     });
   });
 
+  group('JobPdfAi.applyClaudeHeaderSuggestion', () {
+    test('fills header fields the regex/Gemini pass left empty', () {
+      const parsed = OrderAckParseResult(
+        poNumber: '',
+        orderNumber: '1431332',
+        lines: [],
+        warnings: [],
+        requisitioner: '',
+      );
+      final out = JobPdfAi.applyClaudeHeaderSuggestion(
+        parsed,
+        const ClaudeOrderAckHeader(
+          poNumber: 'P613979',
+          requisitioner: 'MARLENE DUNAND',
+          reasoning: 'PO wrapped across the Location value on the header row',
+        ),
+      );
+      expect(out.poNumber, 'P613979');
+      expect(out.requisitioner, 'MARLENE DUNAND');
+      expect(out.warnings, contains(contains('Claude review: PO wrapped')));
+    });
+
+    test('keeps the existing value when Claude disagrees, notes it', () {
+      const parsed = OrderAckParseResult(
+        poNumber: 'P613979',
+        orderNumber: '1',
+        lines: [],
+        warnings: [],
+      );
+      final out = JobPdfAi.applyClaudeHeaderSuggestion(
+        parsed,
+        const ClaudeOrderAckHeader(poNumber: 'P999999'),
+      );
+      expect(out.poNumber, 'P613979');
+      expect(
+        out.warnings,
+        contains(contains('PO#: using "P613979" — Claude read "P999999"')),
+      );
+    });
+
+    test('flags fields Claude is unsure about without changing anything', () {
+      const parsed = OrderAckParseResult(
+        poNumber: 'P613979',
+        orderNumber: '1',
+        lines: [],
+        warnings: [],
+      );
+      final out = JobPdfAi.applyClaudeHeaderSuggestion(
+        parsed,
+        const ClaudeOrderAckHeader(flags: ['ship_to_address']),
+      );
+      expect(out.poNumber, 'P613979');
+      expect(out.warnings, contains(contains('ship_to_address')));
+    });
+
+    test('no notes added when Claude has nothing to add or flag', () {
+      const parsed = OrderAckParseResult(
+        poNumber: 'P613979',
+        orderNumber: '1',
+        lines: [],
+        warnings: ['unrelated CPO warning'],
+      );
+      final out = JobPdfAi.applyClaudeHeaderSuggestion(
+        parsed,
+        const ClaudeOrderAckHeader(poNumber: 'P613979'),
+      );
+      expect(out.warnings, ['unrelated CPO warning']);
+    });
+  });
+
   group('OrderAckParseResult.replacingLine', () {
     // Backs both the print-mode dropdown and the bulk review table's
     // tap-to-edit Identity dialog — only the targeted line (matched by
