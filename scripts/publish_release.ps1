@@ -197,42 +197,16 @@ try {
 }
 
 $title = "Swift Document Generator $Version"
+# "What's new" content lives in mobile/lib/changelog.dart (shown in-app and
+# kept current there) - do not duplicate a version-by-version history here,
+# it will go stale exactly like the old hardcoded block this replaced did
+# (still describing v1.1.81-v1.1.87 as of the v1.2.0 release).
 $notes = @"
 ## Swift Document Generator $Version
 
-### What's new (v1.1.87)
-- **Logos:** reuse stored file when name, size, and visual scan match — no more image(1) duplicates
-- **Add from Storage:** attaches existing file instead of importing a copy
-- **Shipping / Receiving / BOL:** extra logo shape cases (badge, tall, ultra-wide, mixed dual) in display loop
-- **Logo knockout:** enclosed counters (O/B/D/P) punch on white/black plates; thin-stroke skeleton guard + hue recovery (Python/Dart parity)
-- **Workspace:** diagnostic probes removed; .tools/ and scratch outputs ignored from git/dist
+See the in-app "What's new" dialog (Help menu / first launch after update)
+for this release's changes, or mobile/lib/changelog.dart in the repo.
 
-### What's new (v1.1.86)
-- **BOL:** ORDER# fallback; tracking refs shrink/wrap; wide logos clamp left of Probill/Swift
-- **Logo restore:** faster large upscales (strip at working size; linear when scale > 8)
-- **Receiving Label:** improve-loop scoring harness (SO→PM hairline preserved; Shipping SO/Contact lock unchanged)
-- **Training loops:** Shipping, Receiving, BOL, app, and logo restore curriculum / harnesses
-
-### What's new (v1.1.84)
-- **Shipping Label:** approved SO / Swift Contact spacing; square/circular vs rectangular logo height rules; Customer Pick-Up freight
-- **BOL:** L×W×H each with its own unit; Vehicle ID + Departure Date row; standardized micro-label→value gaps
-- **Freight:** Customer Pick-Up on Shipping Label and BOL radios
-- **Logo restore:** vectorize → Real-ESRGAN → cubic (Gemini opt-in); Swift-quality fill/stroke seams; golden + shipping improve loops
-
-### What's new (v1.1.83)
-- **History:** opens instantly, never wipes cloud rows on open; Bulk History archives too
-- **Logo restore:** Real-ESRGAN primary on Windows; Gemini gated
-
-### What's new (v1.1.82)
-- **Logo restore:** keep grey taglines and black script; crop to the mark (not the source plate); drop milky JPEG/cubic halos without hollowing silver type
-- **Find logo:** Gemini still super-resolves low-res rasters, but redraws are rejected and the source is cubic-enhanced instead
-
-### What's new (v1.1.81)
-- **BOL logos:** wide customer marks scale down to stay left of Probill (no clip behind the sticker box)
-- **Shipping / Receiving:** dual C/O logos share a bounded frame so wide lockups do not overlap
-- **Logo restore:** Gemini enhances existing pixels, then studio finish; later restores reuse winning techniques
-- **Restore UX:** runs from Edit logo with Cancel — not automatically on Generate
-- **BOL dimensions:** length × width × height with a unit
 ### Assets
 - SwiftDocumentGenerator-Setup.exe - Windows installer (per-user, no admin; Start Menu, uninstaller). Preferred for in-app Update.
 - SwiftDocumentGenerator-windows.zip - portable Flutter onedir. Run swift_shipping_label.exe.
