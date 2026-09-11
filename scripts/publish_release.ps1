@@ -204,7 +204,7 @@ $title = "Swift Document Generator $Version"
 $notes = @"
 ## Swift Document Generator $Version
 
-See the in-app "What's new" dialog (Help menu / first launch after update)
+See the in-app What's New dialog (Help menu, or first launch after update)
 for this release's changes, or mobile/lib/changelog.dart in the repo.
 
 ### Assets
@@ -223,9 +223,19 @@ if ($releaseExists) {
         gh release upload $tag $a --clobber
     }
 } else {
-    $createArgs = @("release", "create", $tag) + $assets + @("--title", $title, "--notes", $notes)
+    # --notes-file (a real file), not --notes (an inline arg) - a multi-line
+    # string with embedded quotes/punctuation reaching gh.exe as a raw native
+    # command-line argument is exactly what broke the v1.2.1 release (a
+    # stray quote/paren got mis-split into its own bogus positional arg,
+    # which gh then tried to stat as an asset file path). A file sidesteps
+    # native command-line escaping entirely regardless of what the notes say.
+    $notesFile = Join-Path $dist "release-notes-$Version.md"
+    Set-Content -Path $notesFile -Value $notes -Encoding UTF8 -NoNewline
+    $createArgs = @("release", "create", $tag) + $assets +
+        @("--title", $title, "--notes-file", $notesFile)
     if ($Draft) { $createArgs += "--draft" }
     & gh @createArgs
+    Remove-Item -Force $notesFile -ErrorAction SilentlyContinue
 }
 
 Write-Host ""
