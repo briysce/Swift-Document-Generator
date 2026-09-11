@@ -5137,25 +5137,23 @@ class _HomeScreenState extends State<HomeScreen>
           backgroundColor: chrome.bg,
           body: Column(
             children: [
-              Material(
-                color: chrome.surface,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    WindowsAppMenuBar(actions: menuActions),
-                    const Divider(height: 1),
-                    RepaintBoundary(
-                      child: _DesktopToolbar(
-                        busy: _busy,
-                        kindTitle: _kindTitle,
-                        showUpdate: _uiSettings.showToolbarUpdate,
-                        onUpdate: () => showUpdateFlow(context),
-                        onToggleDark: _toggleDarkMode,
-                        isDark: _uiSettings.isDark,
-                      ),
-                    ),
-                  ],
+              // One header strip, not two stacked bars: the File/Edit/View
+              // menu used to sit in its own full-width row above this one,
+              // with its own divider — reads as a second toolbar before you
+              // even reach the page content. It's now inline in the same
+              // row as the logo/title, so there's a single header block.
+              RepaintBoundary(
+                child: Material(
+                  color: chrome.surface,
+                  child: _DesktopToolbar(
+                    busy: _busy,
+                    kindTitle: _kindTitle,
+                    showUpdate: _uiSettings.showToolbarUpdate,
+                    onUpdate: () => showUpdateFlow(context),
+                    onToggleDark: _toggleDarkMode,
+                    isDark: _uiSettings.isDark,
+                    menuBar: WindowsAppMenuBar(actions: menuActions),
+                  ),
                 ),
               ),
               const Divider(height: 1),
@@ -5192,20 +5190,27 @@ class _HomeScreenState extends State<HomeScreen>
                           top: 10,
                           bottom: railExtended ? 16 : 10,
                         ),
-                        child: Container(
-                          width: railExtended ? 40 : 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: chrome.accentSoft,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: SwiftColors.accent.withValues(alpha: 0.22),
+                        // Decorative document-type mark, not a destination —
+                        // it sits in the same rail column as real nav items
+                        // and shares their rounded-chip treatment, so a
+                        // tooltip makes clear it isn't a 5th (broken) button.
+                        child: Tooltip(
+                          message: 'Document generator',
+                          child: Container(
+                            width: railExtended ? 40 : 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: chrome.accentSoft,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: SwiftColors.accent.withValues(alpha: 0.22),
+                              ),
                             ),
-                          ),
-                          child: const Icon(
-                            Icons.description_outlined,
-                            color: SwiftColors.accent,
-                            size: 20,
+                            child: const Icon(
+                              Icons.description_outlined,
+                              color: SwiftColors.accent,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
@@ -5734,6 +5739,7 @@ class _DesktopToolbar extends StatelessWidget {
     required this.onUpdate,
     required this.onToggleDark,
     required this.isDark,
+    required this.menuBar,
   });
 
   final bool busy;
@@ -5742,6 +5748,10 @@ class _DesktopToolbar extends StatelessWidget {
   final VoidCallback onUpdate;
   final VoidCallback onToggleDark;
   final bool isDark;
+
+  /// File/Edit/View/... menu, laid out inline with the logo/title instead
+  /// of its own stacked row above this one.
+  final Widget menuBar;
 
   @override
   Widget build(BuildContext context) {
@@ -5798,6 +5808,14 @@ class _DesktopToolbar extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 12),
+          Container(
+            width: 1,
+            height: 18,
+            color: chrome.border,
+          ),
+          const SizedBox(width: 4),
+          menuBar,
           const Spacer(),
           if (busy)
             const Padding(

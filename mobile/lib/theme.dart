@@ -14,6 +14,10 @@ class SwiftColors {
   static const surface = Color(0xFFFFFFFF);
   static const ink = Color(0xFF1A1A1A);
   static const muted = Color(0xFF6B6B6B);
+  /// Darker than [muted] — ~7:1 on white, real headroom above the 4.5:1 AA
+  /// floor for small all-caps field labels (muted's own ~5.3:1 reads weak in
+  /// practice at 12px/all-caps, especially under warehouse-floor glare).
+  static const inputLabel = Color(0xFF595959);
   static const border = Color(0xFFE6E2DC);
   /// Slightly cooler panel wash for desktop chrome (rails / sidebars).
   static const panel = Color(0xFFF7F5F2);
@@ -86,6 +90,9 @@ class SwiftTheme {
     final surface = dark ? SwiftColors.darkSurface : SwiftColors.surface;
     final ink = dark ? SwiftColors.darkInk : SwiftColors.ink;
     final muted = dark ? SwiftColors.darkMuted : SwiftColors.muted;
+    // Dark mode's muted is already light-on-dark (high contrast); only light
+    // mode's field-label color needed more headroom above the AA floor.
+    final inputLabelColor = dark ? SwiftColors.darkMuted : SwiftColors.inputLabel;
     final border = dark ? SwiftColors.darkBorder : SwiftColors.border;
     final accentSoft =
         dark ? SwiftColors.darkAccentSoft : SwiftColors.accentSoft;
@@ -114,8 +121,8 @@ class SwiftTheme {
       fontFamilyFallback: const ['Helvetica Neue', 'Arial', 'sans-serif'],
       fontSize: 12 * scale,
       fontWeight: FontWeight.w500,
-      color: muted,
-      letterSpacing: 0.6,
+      color: inputLabelColor,
+      letterSpacing: 0.3,
     );
 
     return ThemeData(
@@ -130,6 +137,14 @@ class SwiftTheme {
         onPrimary: Colors.white,
         secondary: SwiftColors.accent,
         onSecondary: Colors.white,
+        // FilledButton.tonal defaults to a seed-derived secondaryContainer,
+        // which for this saturated an accent renders nearly as loud as a
+        // plain solid FilledButton — two "tonal vs filled" buttons next to
+        // each other (e.g. Find logo vs Upload OA) read as equally primary.
+        // Force it to the actual soft tint so tonal buttons read as a real
+        // secondary tier app-wide.
+        secondaryContainer: accentSoft,
+        onSecondaryContainer: SwiftColors.accent,
         surface: surface,
         onSurface: ink,
         onSurfaceVariant: muted,
@@ -181,7 +196,11 @@ class SwiftTheme {
             ),
             bodySmall: TextStyle(
               fontFamily: fontFamily,
-              fontSize: 12 * scale,
+              // 13, not 12 — one more step in the scale between the 12px
+              // all-caps field labels and 14-16px section headers, so hint
+              // captions ("Who the shipment is for") read as their own tier
+              // instead of blending into the label tier below them.
+              fontSize: 13 * scale,
               color: muted,
               height: 1.35,
             ),
@@ -231,11 +250,15 @@ class SwiftTheme {
       ),
       cardTheme: CardThemeData(
         color: surface,
-        elevation: 0,
+        // A soft shadow instead of a hairline border on every section —
+        // stacked bordered cards (form section, right-rail block, etc.) were
+        // reading as boxes-in-boxes; whitespace + a light lift separates
+        // them just as clearly without the extra ruled lines.
+        elevation: 1,
+        shadowColor: Colors.black.withValues(alpha: dark ? 0.4 : 0.10),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(cardR),
-          side: BorderSide(color: border),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -251,7 +274,7 @@ class SwiftTheme {
         hintStyle: TextStyle(
           fontFamily: fontFamily,
           fontSize: 13 * scale,
-          color: muted.withValues(alpha: 0.85),
+          color: inputLabelColor,
         ),
         floatingLabelStyle: TextStyle(
           fontFamily: fontFamily,
@@ -280,12 +303,16 @@ class SwiftTheme {
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
+        // No explicit background/foreground here — `FilledButtonThemeData`
+        // is shared by both `FilledButton` (solid) and `FilledButton.tonal`,
+        // so a hard-coded accent background used to paint BOTH variants
+        // identically (e.g. "Upload OA" and "Find logo on the web" reading
+        // as two equally-loud primary CTAs). Leaving color unset lets each
+        // variant fall through to its own Material 3 default: `primary`/
+        // `onPrimary` (both already = accent/white below) for solid, and
+        // `secondaryContainer`/`onSecondaryContainer` (= accentSoft/accent,
+        // set below) for tonal — a real secondary tier, app-wide, for free.
         style: FilledButton.styleFrom(
-          backgroundColor: SwiftColors.accent,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor:
-              SwiftColors.accent.withValues(alpha: 0.38),
-          disabledForegroundColor: Colors.white.withValues(alpha: 0.7),
           elevation: 0,
           padding: EdgeInsets.symmetric(
             horizontal: desktop ? 18 : 22,

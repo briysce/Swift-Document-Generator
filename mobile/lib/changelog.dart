@@ -14,12 +14,20 @@ import 'theme.dart';
 class AppChangelog {
   AppChangelog._();
 
-  static const campaignId = 'whats_new_1_2_0';
+  static const campaignId = 'whats_new_1_2_1';
   static const maxShows = 3;
-  static const title = "What's new (v1.1.68 – v1.2.0)";
+  static const title = "What's new (v1.1.68 – v1.2.1)";
 
   /// Ordered newest-first sections shown in the dialog.
   static const sections = <ChangelogSection>[
+    ChangelogSection(
+      version: 'v1.2.1',
+      bullets: [
+        'Windows: single header bar — the File/Edit/View/Document/Tools/Options/Help menu now sits inline with the logo/title instead of its own stacked row above it',
+        'Field labels and hint text are darker for better readability on the warehouse floor; form sections separate with a soft shadow instead of boxed-in borders',
+        '"Upload OA or Packing List" / "Find logo on the web" now read as secondary actions — Generate PDF is the one clear primary button per screen',
+      ],
+    ),
     ChangelogSection(
       version: 'v1.2.0',
       bullets: [
