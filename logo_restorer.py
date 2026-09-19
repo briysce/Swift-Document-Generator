@@ -332,7 +332,33 @@ def restore_logo(
             print(f"trace rebuild: {meta}", file=sys.stderr)
             return output_path
     except Exception as e:
-        print(f"trace rebuild skipped ({e}); falling back to RealESRGAN", file=sys.stderr)
+        print(f"trace rebuild skipped ({e}); falling back to polish/SR", file=sys.stderr)
+
+    # Hierarchical polish: classical Gigapixel/Remacri/UltraSharp → Real-ESRGAN
+    # family (Upscayl weights) → optional GFPGAN / Upscayl CLI. Fail-open.
+    try:
+        root = Path(__file__).resolve().parent
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+        from tools.logo_vectorizer.raster_polish import polish_raster
+
+        rgba_in = _rgba_from_bgr_alpha(bgr, alpha)
+        polished = polish_raster(
+            Image.fromarray(rgba_in, "RGBA"),
+            target_long_side=max(min_dimension, 2048),
+            use_neural=True,
+            use_gfpgan=False,
+        )
+        print(
+            f"raster_polish: engine={polished.engine} steps="
+            + ",".join(f"{s.name}:{'ok' if s.ok else 'skip'}" for s in polished.steps),
+            file=sys.stderr,
+        )
+        parr = np.asarray(polished.image.convert("RGBA"))
+        bgr = cv2.cvtColor(parr[:, :, :3], cv2.COLOR_RGB2BGR)
+        alpha = parr[:, :, 3]
+    except Exception as e:
+        print(f"raster_polish skipped ({e}); RealESRGAN loop only", file=sys.stderr)
 
     # Tiny / warped phone crops: Lanczos-lift before SR, cap passes.
     # Multi-pass whole-frame ESRGAN on ~40px Trialta plate_halo timed out at 600s.

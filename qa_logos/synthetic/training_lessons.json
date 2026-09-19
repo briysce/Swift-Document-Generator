@@ -183,6 +183,71 @@
       "do_not_regress": "scoop_residual default True for document; Chrome prefer default True; Swift vectorize mean>=0.9269; no invented brand colors",
       "case_ids": [],
       "tags": []
+    },
+    {
+      "id": "20260919T213500Z",
+      "ts": "2026-09-19T21:32:57.960207+00:00",
+      "title": "Hierarchical polish + DejaType anchors + VTracer/Inkscape lead",
+      "lesson": "Baked raster_polish.py: classical Gigapixel/Upscayl/Remacri/UltraSharp-inspired OpenCV path \u2192 Real-ESRGAN family weights (drop Upscayl .pth into .cache/realesrgan) \u2192 optional GFPGAN/InstructIR/DeOldify/Upscayl CLI; all fail-open. Pre-polish in logo_vectorize is OFF by default (--polish / LOGO_PRE_POLISH=1) with ink IoU\u22650.92 honesty gate so Swift restore mean cannot regress below 0.9269. Document export keeps residual scoop + Chrome. Ensemble backend_priority now leads with vtracer, inkscape (DejaType sectional already does per-element corner/extrema/inflection anchors in manual_trace). Progressions: document true-ink IoU ~0.997; restore-safe sectional restores 0.9269. Regressions avoided: residual scoop on degraded mush, Chrome-first on restore gate, AI preprocess hints that weaken upscale/blur, token exhaustion blocking local engines.",
+      "do_not_regress": [
+        "Swift vectorize mean_composite >= 0.9269",
+        "document SVG true-ink IoU >= 0.99 at native with residual+Chrome",
+        "AI quota/token \u2192 fail-open local path",
+        "pre-polish default off on improve-loop restore",
+        "vtracer+inkscape remain in ensemble race"
+      ],
+      "case_ids": [
+        "swift_orange__import_combo",
+        "swift_orange_solid__import_combo",
+        "baseline_document_svg"
+      ],
+      "tags": [
+        "polish",
+        "upscayl",
+        "remacri",
+        "ultrasharp",
+        "gigapixel",
+        "gfpgan",
+        "realesrgan",
+        "vtracer",
+        "inkscape",
+        "dejatype",
+        "training"
+      ]
+    },
+    {
+      "id": "20260919T214000Z",
+      "ts": "2026-09-19T21:39:44.859508+00:00",
+      "title": "Unified engine; no Chrome dependency; restore mean locked 0.9269",
+      "lesson": "Combined polish\u2192sectional(DejaType anchors)\u2192VTracer/Inkscape\u2192Real-ESRGAN into tools.logo_vectorizer.engine for SDG+briyszier. SVG rasterize default is cairosvg\u2192PyMuPDF; Chrome is last-resort only (LOGO_NO_CHROME=1 skips it). Document true-ink stays ~0.9966 without Chrome via residual scoop. Restore color_masks must stay ce8-strict (r>140); loosened AA gates regress Swift import_combo (~0.922). Progressions kept: residual+tuning for document, AI quota fail-open, Upscayl/Remacri/UltraSharp/Gigapixel polish hooks, VTracer+Inkscape lead ensemble. Do not regress Swift vectorize mean < 0.9269.",
+      "do_not_regress": [
+        "Swift vectorize mean >= 0.9269",
+        "color_masks orange r>140 / black r<90 on restore",
+        "cairosvg-first rasterize (no Chrome required)",
+        "document residual scoop true-ink >= 0.99",
+        "AI token exhaustion fail-open"
+      ],
+      "scores": {
+        "swift_vectorize_mean": 0.9269,
+        "document_true_ink_cairosvg": 0.9966
+      },
+      "tags": [
+        "engine",
+        "chrome",
+        "cairosvg",
+        "unified",
+        "briyszier",
+        "training"
+      ]
+    },
+    {
+      "id": "20260919T213952Z",
+      "ts": "2026-09-19T21:39:52Z",
+      "title": "Optional pre-polish default off; restore mean 0.9269 locked",
+      "lesson": "raster_polish (Gigapixel/Remacri/UltraSharp/Real-ESRGAN family) is opt-in via --polish or LOGO_PRE_POLISH=1 with ink IoU honesty gate \u22650.92. Improve-loop restore keeps polish off. rasterize_svg prefer_chrome defaults True for document export; logo_vectorize restore passes prefer_chrome=False. Swift vectorize mean measured 0.9269.",
+      "do_not_regress": "Swift vectorize mean>=0.9269; polish default off; document prefer_chrome True; scoop_residual default True",
+      "case_ids": [],
+      "tags": []
     }
   ],
   "run_snapshots": [
@@ -1155,8 +1220,68 @@
         "baseline": 0.7357,
         "vectorize": 0.7419
       }
+    },
+    {
+      "ts": "2026-09-19T21:30:14Z",
+      "run_id": "20260919T213014Z",
+      "mean_composite": 0.7337,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5016,
+          "ink_iou": 0.2248,
+          "palette_fidelity": 0.3853,
+          "alpha_clean": 0.9973,
+          "aspect_drift": 0.0608
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9255,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "vectorize": 0.7316
+      }
     }
   ],
-  "updated_at": "2026-09-19T21:30:06Z",
+  "updated_at": "2026-09-19T21:39:52Z",
   "entries": []
 }

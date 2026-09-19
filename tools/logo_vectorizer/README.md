@@ -1,16 +1,24 @@
 # Logo Vectorizer — Manual-quality + Sectional tracing
 
-Two-flavour PNG → SVG vectorizer:
+Two-flavour PNG → SVG vectorizer plus hierarchical raster polish:
 
-- **Wordmark pipeline** (legacy) — multi-backend race (OpenCV / potrace / vtracer
-  / Inkscape) + optional AI advisors + hole-preserving evenodd paths. Great
-  for single-color glyph rasters where every letter counter must stay open.
+- **Wordmark pipeline** (legacy) — multi-backend race led by **VTracer** and
+  **Inkscape**, then OpenCV / potrace + optional AI advisors + hole-preserving
+  evenodd paths. Great for single-color glyph rasters where every letter
+  counter must stay open.
 
-- **Manual-quality pipeline** (new default for logos) — analyses each
-  raster individually, splits it into named *sections* (SWIFT-orange,
-  drop shadow, SUPPLY, bars…), and traces every section with a
-  Schneider-style least-squares cubic Bezier fitter that mimics the
-  anchor-placement choices of a designer doing a manual trace.
+- **Manual-quality pipeline** (default for logos) — DejaType-style per-element
+  anchors: analyses each raster, splits into named *sections* (SWIFT-orange,
+  drop shadow, SUPPLY, bars…), and traces every section with a Schneider-style
+  least-squares cubic Bezier fitter (corners, tangent extrema, inflections —
+  the same places a designer drops anchors).
+
+- **Raster polish** (`polish_raster`) — run *before* vectorize on soft / low-res
+  imports. Hierarchical fail-open chain inspired by commercial upscalers:
+  classical Gigapixel / Upscayl / Remacri / UltraSharp principles (bilateral +
+  edge-limited unsharp) → Real-ESRGAN family weights (drop Upscayl `.pth` files
+  into `.cache/realesrgan/`) → optional GFPGAN / InstructIR / DeOldify /
+  Upscayl CLI. Missing deps never fail the engine.
 
 ## Install
 
@@ -18,7 +26,9 @@ Two-flavour PNG → SVG vectorizer:
 pip install -r tools/logo_vectorizer/requirements.txt
 ```
 
-Optional: `winget install Inkscape.Inkscape` for the legacy Inkscape backend.
+Optional: `winget install Inkscape.Inkscape` for the Inkscape Trace Bitmap backend.
+Optional SR weights: place `4x-UltraSharp.pth`, `4x_foolhardy_Remacri.pth`,
+`RealESRGAN_x4plus.pth`, etc. under `.cache/realesrgan/`.
 
 ## CLI
 

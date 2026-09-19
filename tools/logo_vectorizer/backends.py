@@ -268,7 +268,13 @@ def generate_candidates(
         "vtracer": _vtracer_trace,
         "inkscape": _inkscape_trace,
     }
-    order = backend_order or list(fn_map.keys())
+    order = backend_order or [
+        "vtracer",
+        "inkscape",
+        "opencv-tree",
+        "opencv-ccomp",
+        "potrace",
+    ]
     fns = [fn_map[b] for b in order if b in fn_map]
     if not fns:
         fns = list(fn_map.values())

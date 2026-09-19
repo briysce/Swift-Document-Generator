@@ -136,6 +136,20 @@ def apply_hints_to_preprocess(hints: SourceHints | None) -> tuple[int, float, in
 
 
 def backend_priority(hints: SourceHints | None) -> list[str]:
+    # DejaType / briyszier path: VTracer + Inkscape first (heavy spline /
+    # centerline quality), then OpenCV tree/ccomp, then potrace.
+    default = ["vtracer", "inkscape", "opencv-tree", "opencv-ccomp", "potrace"]
     if hints and hints.recommended_backends:
-        return hints.recommended_backends
-    return ["opencv-tree", "opencv-ccomp", "potrace", "vtracer", "inkscape"]
+        # Keep AI order but always ensure vtracer+inkscape are attempted.
+        merged: list[str] = []
+        for name in list(hints.recommended_backends) + default:
+            if name not in merged and name in (
+                "vtracer",
+                "inkscape",
+                "opencv-tree",
+                "opencv-ccomp",
+                "potrace",
+            ):
+                merged.append(name)
+        return merged
+    return default

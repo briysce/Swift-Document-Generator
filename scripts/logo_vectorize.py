@@ -13,6 +13,7 @@ cairosvg is missing.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -282,7 +283,12 @@ def _try_sectional_briyszier(
 
 
 def convert(
-    src: Path, dest: Path, min_height: int = 3000, svg_out: Path | None = None
+    src: Path,
+    dest: Path,
+    min_height: int = 3000,
+    svg_out: Path | None = None,
+    *,
+    polish: bool = False,
 ) -> Path:
     if not src.is_file():
         raise FileNotFoundError(src)
@@ -292,9 +298,49 @@ def convert(
     if not _is_flat_enough(prepared):
         raise RuntimeError("source not flat enough for vectorize")
 
+    # Optional hierarchical polish (Gigapixel/Upscayl/Remacri/UltraSharp/
+    # Real-ESRGAN/GFPGAN/…) BEFORE sectional / VTracer. Default off for the
+    # improve-loop restore path so Swift mean 0.9269 cannot regress; enable
+    # via --polish or LOGO_PRE_POLISH=1 for low-res customer imports.
+    if polish or os.environ.get("LOGO_PRE_POLISH", "").strip() in {
+        "1",
+        "true",
+        "yes",
+    }:
+        try:
+            from tools.logo_vectorizer.raster_polish import polish_raster
+
+            polished = polish_raster(
+                Image.fromarray(prepared, "RGBA"),
+                target_long_side=max(min_height, 2048),
+                use_neural=True,
+                use_gfpgan=False,  # faces ≠ logos by default
+            )
+            cand = np.asarray(polished.image.convert("RGBA"), dtype=np.uint8)
+            # Honesty gate: polish must not dissolve ink vs prepared.
+            h0, w0 = prepared.shape[:2]
+            small = np.asarray(
+                Image.fromarray(cand, "RGBA").resize(
+                    (w0, h0), Image.Resampling.LANCZOS
+                )
+            )
+            if ink_mask_iou(prepared, small) >= 0.92:
+                prepared = prepare_for_engine(cand)
+                print(
+                    f"pre-polish accepted ({polished.engine})",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    f"pre-polish rejected ({polished.engine}); keep prepared",
+                    file=sys.stderr,
+                )
+        except Exception as exc:  # noqa: BLE001 — fail-open
+            print(f"pre-polish skipped ({exc})", file=sys.stderr)
+
     # briyszier sectional first for Swift / flat multi-color lockups (restore-
-    # safe settings). AI advisors are never required here — local vtracer is
-    # the fallback when sectional declines.
+    # safe settings). AI advisors are never required here — local vtracer +
+    # Inkscape (ensemble) are the fallbacks when sectional declines.
     if _try_sectional_briyszier(
         prepared, dest, min_height=min_height, svg_out=svg_out
     ):
@@ -376,6 +422,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("output")
     p.add_argument("--min-height", type=int, default=3000)
     p.add_argument(
+        "--polish",
+        action="store_true",
+        help=(
+            "Run hierarchical raster polish (Gigapixel/Upscayl/Remacri/"
+            "UltraSharp/Real-ESRGAN/…) before vectorize. Also via LOGO_PRE_POLISH=1."
+        ),
+    )
+    p.add_argument(
         "--svg-out",
         type=str,
         default=None,
@@ -388,6 +442,7 @@ def main(argv: list[str] | None = None) -> int:
             Path(args.output),
             args.min_height,
             Path(args.svg_out) if args.svg_out else None,
+            polish=bool(args.polish),
         )
         print(out)
         return 0
