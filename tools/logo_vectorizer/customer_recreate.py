@@ -746,14 +746,14 @@ def recreate_customer_logo(
                             "[recreate] AI colors="
                             + ",".join(ai_hints.dominant_colors_hex)
                         )
-                        # Prefer AI color count when it is a tighter palette.
-                        suggested = len(ai_hints.dominant_colors_hex)
-                        if 1 <= suggested <= max_colors:
-                            max_colors = max(suggested, 2)
+                        # Do not shrink max_colors from AI hints — token errors /
+                        # partial responses must never force a weaker palette than
+                        # the non-AI recreate path (fail-open to local clustering).
                     if ai_hints.layout_summary:
                         _log(f"[recreate] AI layout={ai_hints.layout_summary}")
         except Exception as exc:
-            _log(f"[recreate] AI assist skipped: {exc}")
+            _log(f"[recreate] AI assist skipped (using local pipeline): {exc}")
+            ai_hints = None
 
     _log("[recreate] stripping background")
     stripped_img, stripped = strip_background(img)
