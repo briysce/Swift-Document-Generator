@@ -1,7 +1,7 @@
 /// Public GitHub Releases feed for in-app Update (Windows/Android parity).
 class AppConfig {
-  static const githubOwner = 'StagingLogShippingTracker';
-  static const githubRepo = 'swift-shipping-label';
+  static const githubOwner = 'briysce';
+  static const githubRepo = 'Swift-Document-Generator';
 
   static const githubLatestReleaseApi =
       'https://api.github.com/repos/$githubOwner/$githubRepo/releases/latest';
@@ -31,11 +31,11 @@ class AppConfig {
   static const stagingTrackerWindowsExe = 'SwiftStagingLog.exe';
   static const stagingTrackerWindowsInstallFolder = 'Swift Staging Shipping Log';
 
-  /// Shared BOL serial counter (StagingLogShippingTracker Supabase).
+  /// Shared BOL serial + sync backend (briysce "Swift Document Generator").
   /// Anon key only — RPC is SECURITY DEFINER `next_bol_serial`.
-  static const supabaseUrl = 'https://gdrpdiwykmnybmkadlrv.supabase.co';
+  static const supabaseUrl = 'https://azmfyevfmctcxhpzsypi.supabase.co';
   static const supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkcnBkaXd5a21ueWJta2FkbHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MjMyMTIsImV4cCI6MjA5NjA5OTIxMn0.Z7ih_vQic1GtzCyZmTEV-RWJnmuaNZQDfOV2_Fvan5g';
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6bWZ5ZXZmbWN0Y3hocHpzeXBpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3OTQ0OTEsImV4cCI6MjEwNTM3MDQ5MX0.dBVOkUJTkkHUUtIGf4w_ZQTsGsHsi1CMG0i-Jk4Fa2M';
 
   /// Optional Retool REST/workflow proxy for Clearbit logo lookups.
   /// Set at build time via `--dart-define=RETOOL_CLEARBIT_LOGO_URL=...` or

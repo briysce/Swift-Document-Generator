@@ -1,6 +1,7 @@
-# Supabase (project `gdrpdiwykmnybmkadlrv`)
+# Supabase (project `azmfyevfmctcxhpzsypi`)
 
-Shared backend for Swift Document Generator:
+Shared backend for Swift Document Generator under the **briysce** Supabase org
+(project name: **Swift Document Generator**, region `ca-central-1`):
 
 - **`next_bol_serial`** — shared BOL document numbers (SECURITY DEFINER RPC)
 - **`customer_presets`** / **`customer_logos`** — presets and logo metadata synced across Windows/Android
@@ -11,6 +12,10 @@ Shared backend for Swift Document Generator:
 - **`generated_documents`** + Storage bucket **`generated-documents`** — generated PDF history (cloud source of truth; local `filled/` is cache)
 - **Storage bucket `customer-logos`** — customer logo image bytes
 - **Storage bucket `signatures`** — shipper signature PNGs (max 2 MB, `image/png` only)
+
+API URL (wired in `mobile/lib/app_config.dart`):
+
+`https://azmfyevfmctcxhpzsypi.supabase.co`
 
 ## Security posture
 
