@@ -49,6 +49,28 @@ class GeminiClient {
     _quotaCooldownUntil = DateTime.now().add(duration);
   }
 
+  /// True when the provider refused the call for quota / token / billing.
+  /// Callers must fall open to the local restore engine — never degrade.
+  static bool _isQuotaOrTokenFailure(int status, [String body = '']) {
+    if (status == 401 || status == 402 || status == 403) return true;
+    final blob = body.toLowerCase();
+    const markers = <String>[
+      'resource_exhausted',
+      'insufficient_quota',
+      'quota exceeded',
+      'quota_exceeded',
+      'billing',
+      'out of tokens',
+      'token limit',
+      'credit',
+      'payment required',
+    ];
+    if (status == 429) {
+      return markers.any(blob.contains);
+    }
+    return markers.any(blob.contains);
+  }
+
 
   static String resolveApiKey() {
     if (_cachedKey != null && _cachedKey!.isNotEmpty) return _cachedKey!;
@@ -237,6 +259,10 @@ Rules:
           .timeout(const Duration(seconds: 10));
       if (res.statusCode == 429) {
         _tripQuotaCooldown();
+        return const [];
+      }
+      if (_isQuotaOrTokenFailure(res.statusCode, res.body)) {
+        _tripQuotaCooldown(const Duration(minutes: 10));
         return const [];
       }
       if (res.statusCode < 200 || res.statusCode >= 300) return const [];
@@ -612,6 +638,10 @@ $extra''';
       _tripQuotaCooldown();
       throw StateError('Gemini rate limit — try again shortly.');
     }
+    if (_isQuotaOrTokenFailure(res.statusCode, res.body)) {
+      _tripQuotaCooldown(const Duration(minutes: 10));
+      throw StateError('Gemini quota/tokens exhausted — using local engine.');
+    }
     if (res.statusCode < 200 || res.statusCode >= 300) {
       throw StateError('Gemini HTTP ${res.statusCode}');
     }
@@ -772,6 +802,11 @@ Respond with strict JSON only:
             Duration(milliseconds: (800 * math.pow(2, attempt)).toInt()),
           );
           continue;
+        }
+        if (_isQuotaOrTokenFailure(res.statusCode, res.body)) {
+          lastError = 'quota/token HTTP ${res.statusCode}';
+          _tripQuotaCooldown(const Duration(minutes: 10));
+          break;
         }
         if (res.statusCode < 200 || res.statusCode >= 300) {
           lastError = 'HTTP ${res.statusCode}';
