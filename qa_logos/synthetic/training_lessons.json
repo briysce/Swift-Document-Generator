@@ -148,7 +148,7 @@
       "id": "20260822T222600Z",
       "ts": "2026-08-22T22:26:00Z",
       "title": "Customer-logo knockout Dart/Python parity",
-      "lesson": "normalizeToVisibleContent punches enclosed plate holes AFTER crop/pad because crop can isolate counters the first flood saw as border-connected (ARJAE white A-disc). Python prepare_for_engine must do the same. White outer flood matches Dart _isEmptyPixel (lum>=200 sat<=28) and 8-way on light plates; black plates stay 4-way + _isNearBlackCanvas (lum<=40 sat<=16). Letter-counter punch skips comps <8 px. Do not treat *_restored.png debug dumps as a reason to skip disk batch — gitignore them from commits only. Timing >300ms is not a bbox anomaly.",
+      "lesson": "normalizeToVisibleContent punches enclosed plate holes AFTER crop/pad because crop can isolate counters the first flood saw as border-connected (ARJAE white A-disc). Python prepare_for_engine must do the same. White outer flood matches Dart _isEmptyPixel (lum>=200 sat<=28) and 8-way on light plates; black plates stay 4-way + _isNearBlackCanvas (lum<=40 sat<=16). Letter-counter punch skips comps <8 px. Do not treat *_restored.png debug dumps as a reason to skip disk batch \u2014 gitignore them from commits only. Timing >300ms is not a bbox anomaly.",
       "do_not_regress": "solid brand fills >=80% ink; white/black plate corners clear; O/B/D/P counters clear; no AABB collapse <55%",
       "case_ids": [
         "customer_logos/ARJAE.png",
@@ -160,6 +160,20 @@
         "parity",
         "customer-logos"
       ]
+    },
+    {
+      "ts": "2026-09-19T20:22:14.771696+00:00",
+      "title": "Port briyszier engine back; prefer cairosvg for sectional rasterize",
+      "lesson": "Restored tools/logo_vectorizer + logo_vectorize/improve-loop scripts from pre-move history. logo_vectorize now tries sectional (briyszier) first then vtracer. Prefer cairosvg over PyMuPDF for SVG\u2192PNG (PyMuPDF under-renders evenodd fills \u2192 ~0.50 IoU). Do not promote document brand PNG without score-proven IoU win vs current asset at native size.",
+      "do_not_regress": [
+        "no invented brand colors from gray import_combo",
+        "do not overwrite swift_supply_logo_document.png without beating prior ink_iou at native resolution",
+        "vtracer fallthrough must remain when sectional IoU < gate"
+      ],
+      "scores": {
+        "swift_anchor_mean_best_engine": 0.9279,
+        "target_north_star": 0.92
+      }
     }
   ],
   "run_snapshots": [
@@ -833,7 +847,187 @@
         "esrgan": 0.7735,
         "vectorize": 0.7744
       }
+    },
+    {
+      "ts": "2026-09-19T20:14:04Z",
+      "run_id": "20260919T201404Z",
+      "mean_composite": 0.9248,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "swift_orange__import_combo",
+          "engine": "baseline",
+          "composite": 0.9117,
+          "ink_iou": 0.9711,
+          "palette_fidelity": 0.8939,
+          "alpha_clean": 0.9944,
+          "aspect_drift": 0.0038
+        },
+        {
+          "pair_id": "swift_orange__import_combo",
+          "engine": "vectorize",
+          "composite": 0.9123,
+          "ink_iou": 0.971,
+          "palette_fidelity": 0.8881,
+          "alpha_clean": 0.9943,
+          "aspect_drift": 0.0038
+        },
+        {
+          "pair_id": "swift_orange_solid__import_combo",
+          "engine": "vectorize",
+          "composite": 0.9126,
+          "ink_iou": 0.9262,
+          "palette_fidelity": 0.8947,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0014
+        },
+        {
+          "pair_id": "swift_orange__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.9179,
+          "ink_iou": 0.9617,
+          "palette_fidelity": 0.9541,
+          "alpha_clean": 0.9948,
+          "aspect_drift": 0.0022
+        },
+        {
+          "pair_id": "swift_orange_solid__downscale_jpeg",
+          "engine": "baseline",
+          "composite": 0.9275,
+          "ink_iou": 0.9441,
+          "palette_fidelity": 0.913,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0009
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9248,
+      "engine_mean_composite": {
+        "baseline": 0.927,
+        "vectorize": 0.9227
+      }
+    },
+    {
+      "ts": "2026-09-19T20:18:25Z",
+      "run_id": "20260919T201825Z",
+      "mean_composite": 0.927,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "swift_orange__import_combo",
+          "engine": "baseline",
+          "composite": 0.9117,
+          "ink_iou": 0.9711,
+          "palette_fidelity": 0.8939,
+          "alpha_clean": 0.9944,
+          "aspect_drift": 0.0038
+        },
+        {
+          "pair_id": "swift_orange__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.9179,
+          "ink_iou": 0.9617,
+          "palette_fidelity": 0.9541,
+          "alpha_clean": 0.9948,
+          "aspect_drift": 0.0022
+        },
+        {
+          "pair_id": "swift_orange__import_combo",
+          "engine": "vectorize",
+          "composite": 0.9218,
+          "ink_iou": 0.9773,
+          "palette_fidelity": 0.9743,
+          "alpha_clean": 0.9886,
+          "aspect_drift": 0.0013
+        },
+        {
+          "pair_id": "swift_orange_solid__downscale_jpeg",
+          "engine": "baseline",
+          "composite": 0.9275,
+          "ink_iou": 0.9441,
+          "palette_fidelity": 0.913,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0009
+        },
+        {
+          "pair_id": "swift_orange__downscale_jpeg",
+          "engine": "baseline",
+          "composite": 0.9283,
+          "ink_iou": 0.9613,
+          "palette_fidelity": 0.9473,
+          "alpha_clean": 0.9814,
+          "aspect_drift": 0.0003
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.927,
+      "engine_mean_composite": {
+        "baseline": 0.927,
+        "vectorize": 0.9269
+      }
+    },
+    {
+      "ts": "2026-09-19T20:22:14Z",
+      "run_id": "20260919T202214Z",
+      "mean_composite": 0.9269,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "swift_orange__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.9179,
+          "ink_iou": 0.9617,
+          "palette_fidelity": 0.9541,
+          "alpha_clean": 0.9948,
+          "aspect_drift": 0.0022
+        },
+        {
+          "pair_id": "swift_orange__import_combo",
+          "engine": "vectorize",
+          "composite": 0.9218,
+          "ink_iou": 0.9773,
+          "palette_fidelity": 0.9743,
+          "alpha_clean": 0.9886,
+          "aspect_drift": 0.0013
+        },
+        {
+          "pair_id": "swift_orange_solid__import_combo",
+          "engine": "vectorize",
+          "composite": 0.9292,
+          "ink_iou": 0.9771,
+          "palette_fidelity": 1.0,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0057
+        },
+        {
+          "pair_id": "swift_orange_solid__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.9302,
+          "ink_iou": 0.9386,
+          "palette_fidelity": 0.8098,
+          "alpha_clean": 0.9999,
+          "aspect_drift": 0.0036
+        },
+        {
+          "pair_id": "swift_orange__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.9312,
+          "ink_iou": 0.9489,
+          "palette_fidelity": 0.7987,
+          "alpha_clean": 0.9985,
+          "aspect_drift": 0.0013
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9269,
+      "engine_mean_composite": {
+        "vectorize": 0.9269
+      }
     }
   ],
-  "updated_at": "2026-08-22T21:44:55Z"
+  "updated_at": "2026-09-19T20:23:49Z",
+  "entries": []
 }
