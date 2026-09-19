@@ -179,8 +179,8 @@
       "id": "20260919T213006Z",
       "ts": "2026-09-19T21:30:06Z",
       "title": "Restore-safe sectional: no residual scoop, cairosvg gate, IoU 0.90",
-      "lesson": "logo_vectorize restore path uses decompose_swift_supply(scoop_residual=False), prefer_chrome=False (cairosvg), target_iou=0.90. Residual scoop + Chrome stay defaults for document export (process_header_logo). Plate-mush dens>0.70 skips sectional. Solid chrome must NOT use Swift sectional (keep color decompose). Swift vectorize mean 0.9269 restored.",
-      "do_not_regress": "scoop_residual default True for document; Chrome prefer default True; Swift vectorize mean>=0.9269; no invented brand colors",
+      "lesson": "logo_vectorize restore path uses decompose_swift_supply(scoop_residual=False), prefer_chrome=False (cairosvg), target_iou=0.90. Residual scoop stays default for document export; rasterize is cairosvg-first (no Chrome required). Plate-mush dens>0.70 skips sectional. Solid chrome must NOT use Swift sectional (keep color decompose). Swift vectorize mean 0.9269 restored.",
+      "do_not_regress": "scoop_residual default True for document; rasterize cairosvg-first (Chrome last-resort / LOGO_NO_CHROME); Swift vectorize mean>=0.9269; no invented brand colors",
       "case_ids": [],
       "tags": []
     },
@@ -188,10 +188,10 @@
       "id": "20260919T213500Z",
       "ts": "2026-09-19T21:32:57.960207+00:00",
       "title": "Hierarchical polish + DejaType anchors + VTracer/Inkscape lead",
-      "lesson": "Baked raster_polish.py: classical Gigapixel/Upscayl/Remacri/UltraSharp-inspired OpenCV path \u2192 Real-ESRGAN family weights (drop Upscayl .pth into .cache/realesrgan) \u2192 optional GFPGAN/InstructIR/DeOldify/Upscayl CLI; all fail-open. Pre-polish in logo_vectorize is OFF by default (--polish / LOGO_PRE_POLISH=1) with ink IoU\u22650.92 honesty gate so Swift restore mean cannot regress below 0.9269. Document export keeps residual scoop + Chrome. Ensemble backend_priority now leads with vtracer, inkscape (DejaType sectional already does per-element corner/extrema/inflection anchors in manual_trace). Progressions: document true-ink IoU ~0.997; restore-safe sectional restores 0.9269. Regressions avoided: residual scoop on degraded mush, Chrome-first on restore gate, AI preprocess hints that weaken upscale/blur, token exhaustion blocking local engines.",
+      "lesson": "Baked raster_polish.py: classical Gigapixel/Upscayl/Remacri/UltraSharp-inspired OpenCV path \u2192 Real-ESRGAN family weights (drop Upscayl .pth into .cache/realesrgan) \u2192 optional GFPGAN/InstructIR/DeOldify/Upscayl CLI; all fail-open. Pre-polish in logo_vectorize is OFF by default (--polish / LOGO_PRE_POLISH=1) with ink IoU\u22650.92 honesty gate so Swift restore mean cannot regress below 0.9269. Document export keeps residual scoop; cairosvg rasterize (no Chrome required). Ensemble backend_priority now leads with vtracer, inkscape (DejaType sectional already does per-element corner/extrema/inflection anchors in manual_trace). Progressions: document true-ink IoU ~0.997; restore-safe sectional restores 0.9269. Regressions avoided: residual scoop on degraded mush, Chrome-first on restore gate, AI preprocess hints that weaken upscale/blur, token exhaustion blocking local engines.",
       "do_not_regress": [
         "Swift vectorize mean_composite >= 0.9269",
-        "document SVG true-ink IoU >= 0.99 at native with residual+Chrome",
+        "document SVG true-ink IoU >= 0.99 at native with residual scoop (cairosvg, no Chrome required)",
         "AI quota/token \u2192 fail-open local path",
         "pre-polish default off on improve-loop restore",
         "vtracer+inkscape remain in ensemble race"
@@ -244,10 +244,29 @@
       "id": "20260919T213952Z",
       "ts": "2026-09-19T21:39:52Z",
       "title": "Optional pre-polish default off; restore mean 0.9269 locked",
-      "lesson": "raster_polish (Gigapixel/Remacri/UltraSharp/Real-ESRGAN family) is opt-in via --polish or LOGO_PRE_POLISH=1 with ink IoU honesty gate \u22650.92. Improve-loop restore keeps polish off. rasterize_svg prefer_chrome defaults True for document export; logo_vectorize restore passes prefer_chrome=False. Swift vectorize mean measured 0.9269.",
-      "do_not_regress": "Swift vectorize mean>=0.9269; polish default off; document prefer_chrome True; scoop_residual default True",
+      "lesson": "raster_polish (Gigapixel/Remacri/UltraSharp/Real-ESRGAN family) is opt-in via --polish or LOGO_PRE_POLISH=1 with ink IoU honesty gate \u22650.92. Improve-loop restore keeps polish off. rasterize_svg prefer_chrome defaults False (cairosvg\u2192PyMuPDF); Chrome last-resort only / LOGO_NO_CHROME=1. Swift vectorize mean measured 0.9269.",
+      "do_not_regress": "Swift vectorize mean>=0.9269; polish default off; rasterize cairosvg-first (Chrome last-resort / LOGO_NO_CHROME); scoop_residual default True",
       "case_ids": [],
       "tags": []
+    },
+    {
+      "id": "20260919T214500Z",
+      "ts": "2026-09-19T21:44:44.514520+00:00",
+      "title": "Chat-prompt compliance audit (briyszier port session)",
+      "lesson": "Audited every prompt in this chat. DONE: (1) briyszier engine ported into SDG tools/logo_vectorizer + logo_vectorize/logo_restorer; (2) measure lock Swift vectorize mean>=0.9269 \u2014 last locked score 0.9269 (run 20260919T201825Z/20260919T202214Z); run 20260919T213014Z had one engine_fail (swift_orange__downscale_jpeg: transient name 'os' is not defined during polish landing) which dropped anchor_mean to 0.9255 \u2014 import os is present and convert() re-verified; re-score required to reconfirm lock; (3) AI quota/token fail-open (AiQuotaExhausted, Gemini cooldown, preprocess hint floor); (4) training_lessons progressions/regressions recorded; (5) DejaType-style per-element anchors in manual_trace/sectional; (6) VTracer+Inkscape lead ensemble; (7) raster_polish hooks Real-ESRGAN/Upscayl-family/Remacri/UltraSharp/Gigapixel-inspired classical + optional GFPGAN/InstructIR/DeOldify/Upscayl CLI; (8) unified engine.py for SDG+briyszier; (9) Chrome not required (cairosvg\u2192PyMuPDF, prefer_chrome default False, LOGO_NO_CHROME). HONEST LIMITS: Topaz Gigapixel proprietary binary is NOT embedded\u2014only principle-level classical approx + Upscayl-compatible RRDB weights when user drops .pth files. InstructIR has no stable logo API in-tree (fail-open stub). Inkscape/GFPGAN/DeOldify require local install/weights. Clean document SVG true-ink ~0.997; degraded synthetic restore mean 0.9269 is the improve-loop lock (0.99 is the clean/document north star, not degraded mush).",
+      "do_not_regress": [
+        "Swift vectorize mean >= 0.9269",
+        "cairosvg-first / LOGO_NO_CHROME",
+        "AI fail-open",
+        "do not claim Topaz binary is bundled",
+        "polish default off on improve-loop"
+      ],
+      "tags": [
+        "compliance",
+        "audit",
+        "training",
+        "honest-limit"
+      ]
     }
   ],
   "run_snapshots": [
@@ -1280,8 +1299,68 @@
         "baseline": 0.7357,
         "vectorize": 0.7316
       }
+    },
+    {
+      "ts": "2026-09-19T21:40:03Z",
+      "run_id": "20260919T214003Z",
+      "mean_composite": 0.7395,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5016,
+          "ink_iou": 0.2248,
+          "palette_fidelity": 0.3853,
+          "alpha_clean": 0.9973,
+          "aspect_drift": 0.0608
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.927,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "vectorize": 0.7433
+      }
     }
   ],
-  "updated_at": "2026-09-19T21:39:52Z",
+  "updated_at": "2026-09-19T21:44:45Z",
   "entries": []
 }

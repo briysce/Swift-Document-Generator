@@ -16,7 +16,7 @@ the results into a clean, layered SVG:
     </svg>
 
 Each section can also be exported to its own file for review, and the
-overall SVG can be rasterized back to PNG (Chrome / cairosvg fallback).
+overall SVG can be rasterized back to PNG (cairosvg → PyMuPDF; Chrome last-resort).
 """
 
 from __future__ import annotations

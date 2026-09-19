@@ -235,9 +235,8 @@ def _try_sectional_briyszier(
                 sections = decompose_by_color(img)
             result = vectorize_sectional(img, sections)
             svg_path.write_text(result.svg, encoding="utf-8")
-            # Prefer cairosvg for restore gating parity with the approved
-            # 0.9269 Swift mean; Chrome remains available as fallback inside
-            # rasterize_svg when cairo is missing.
+            # cairosvg-first (engine default). Chrome is last-resort only and
+            # skipped when LOGO_NO_CHROME=1 — never gate quality on Chrome.
             rasterize_svg(
                 svg_path,
                 png_path,
