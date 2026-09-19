@@ -302,6 +302,35 @@
         "swift",
         "training"
       ]
+    },
+    {
+      "id": "20260919T222936Z",
+      "ts": "2026-09-19T22:29:36Z",
+      "title": "The improve wall was the scoreboard: composite cannot score a perfect restoration",
+      "lesson": "Feeding a clean reference back in AS ITS OWN restoration scores 0.9331 (swift_orange), 0.9500 (swift_orange_solid), 0.9225 (gcm) \u2014 not 1.0. composite's edge term is 0.10*min(eer,2.0)/2.0, which only pays out in full at TWICE the reference's edge energy; an exact copy has eer=1.0 and collects half. alpha_clean and palette_fidelity are absolute and the references do not score 1.0 on themselves. So 0.9269 on the Swift anchor was 0.0062 from a byte-identical copy, and the 0.97-0.99 target was unreachable by anything faithful \u2014 it requires eer>=2.0, i.e. deliberate ringing. Worse, the metric INVERTS ranking: swift_orange__blur_crush__vectorize scores legacy 0.9312 at eer=2.22 (visibly over-sharpened) while downscale_jpeg__vectorize scores legacy 0.9179 at eer=0.885 (faithful). Tuning to maximize composite selects for artifacts. Added composite_v2 (identity == 1.0 exactly, symmetric edge term) alongside; legacy composite left byte-identical and re-verified with zero drift across 54 rows.",
+      "do_not_regress": "Swift vectorize mean 0.9269 on legacy composite; legacy composite must stay byte-identical",
+      "case_ids": [
+        "swift_orange__blur_crush",
+        "swift_orange__downscale_jpeg"
+      ],
+      "tags": [
+        "metric",
+        "ceiling",
+        "composite-v2"
+      ]
+    },
+    {
+      "id": "20260919T222936Z",
+      "ts": "2026-09-19T22:29:36Z",
+      "title": "Raster-fidelity scoring is the wrong target; two brand SVGs are wrapped bitmaps",
+      "lesson": "qa_logos/synthetic/clean/swift_orange.png has exactly two alpha values (0 and 255) and ZERO anti-aliased pixels \u2014 the reference is hard-edged with jaggies baked in, so IoU against it rewards reproducing the staircase. The goal is the artwork the raster is a degraded rendering OF, not a copy of it. Separately: assets/brand/swift_supply_logo_orange.svg and swift_supply_logo_orange_solid.svg contain NO vector geometry at all \u2014 they are base64 PNGs inside an <svg><image> wrapper (36708 and 159063 bytes of PNG). Any 'true-ink IoU 1.0000' measured on them is a bitmap scored against itself and means nothing. Only swift_supply_logo_document.svg (8992 anchors, 114.8/1k) and swift_supply_logo_white.svg (11614 anchors, 307.5/1k) have real paths, and both are dense raster traces. Added tools/logo_vectorizer/ideality.py: a reference-free score (anchor economy, straightness, curvature smoothness, staircase detection) calibrated against the one genuinely hand-built vector in the repo, briysce_wordmark_paper.svg at 57 anchors/1k => 0.9246.",
+      "do_not_regress": "never quote fidelity from an <image>-wrapped SVG as vector quality",
+      "case_ids": [],
+      "tags": [
+        "ideality",
+        "vector-quality",
+        "honest-limit"
+      ]
     }
   ],
   "run_snapshots": [
@@ -1454,8 +1483,69 @@
         "baseline": 0.7357,
         "vectorize": 0.7433
       }
+    },
+    {
+      "ts": "2026-09-19T21:57:44Z",
+      "run_id": "20260919T215744Z",
+      "mean_composite": 0.7384,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "esrgan",
+          "composite": 0.4242,
+          "ink_iou": 0.2207,
+          "palette_fidelity": 0.0,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0802
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9118,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "esrgan": 0.7361,
+        "vectorize": 0.7433
+      }
     }
   ],
-  "updated_at": "2026-09-19T21:49:52.511422+00:00",
+  "updated_at": "2026-09-19T22:29:36Z",
   "entries": []
 }

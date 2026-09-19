@@ -40,6 +40,7 @@ from improve_loop_training import record_run_snapshot  # noqa: E402
 from logo_golden_suite import (  # noqa: E402
     _cubic_upscale,
     score_pair,
+    score_pair_v2,
 )
 
 
@@ -168,6 +169,11 @@ def run_loop(
             if ok:
                 metrics = score_pair(clean, out)
                 entry.update(metrics)
+                # Same run, second scale: `composite` cannot reach 1.0 even for
+                # an exact copy of the reference, so `composite_v2` (identity
+                # == 1.0) is what "0.99 fidelity" is actually measured on.
+                # Legacy `composite` stays untouched as the continuity guard.
+                entry.update(score_pair_v2(clean, out, metrics))
             rows.append(entry)
             status = "ok" if ok else "FAIL"
             comp = entry.get("composite", "-")
@@ -202,6 +208,21 @@ def run_loop(
     anchor_mean = (
         round(float(np.mean([r["composite"] for r in anchors])), 4) if anchors else None
     )
+    anchor_mean_v2 = (
+        round(float(np.mean([r["composite_v2"] for r in anchors])), 4)
+        if anchors
+        else None
+    )
+    by_engine_v2: dict[str, list[float]] = {}
+    for r in scored:
+        if "composite_v2" in r:
+            by_engine_v2.setdefault(r["engine"], []).append(r["composite_v2"])
+    engine_means_v2 = {
+        e: round(float(np.mean(v)), 4) for e, v in sorted(by_engine_v2.items())
+    }
+    # Headroom left on the legacy scale: ceiling (identity score) - achieved.
+    headrooms = [r["headroom"] for r in scored if "headroom" in r]
+    mean_headroom = round(float(np.mean(headrooms)), 4) if headrooms else None
     best_engine_mean = (
         round(float(np.mean(list(by_pair_best.values()))), 4) if by_pair_best else None
     )
@@ -226,6 +247,9 @@ def run_loop(
         "mean_best_engine_non_arc": non_arc_best_mean,
         "engine_mean_composite": engine_means,
         "anchor_mean_composite": anchor_mean,
+        "engine_mean_composite_v2": engine_means_v2,
+        "anchor_mean_composite_v2": anchor_mean_v2,
+        "mean_legacy_headroom": mean_headroom,
         "elapsed_s": round(time.time() - t0, 2),
         "top_failures": [
             {
@@ -255,9 +279,14 @@ def run_loop(
         "quality_bar": {
             "north_star_anchors": 0.92,
             "interim_suite_target": 0.85,
+            "north_star_anchors_v2": 0.99,
             "note": (
                 "Swift anchors define the quality class. mean_composite averages "
-                "all engines; mean_best_engine is product-path quality."
+                "all engines; mean_best_engine is product-path quality. "
+                "NOTE: `composite` cannot reach 1.0 — feeding a clean reference "
+                "back in as its own restoration scores ~0.93-0.95 "
+                "(see composite_ceiling / headroom per row). Judge 0.99-class "
+                "fidelity on composite_v2, where the identity scores exactly 1.0."
             ),
         },
         "next": (

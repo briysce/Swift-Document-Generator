@@ -166,6 +166,113 @@ def composite(m: dict) -> float:
     )
 
 
+# ---------------------------------------------------------------------------
+# Fidelity v2 — a self-normalizing scale where the clean reference scores 1.0
+#
+# `composite` above cannot express a perfect restoration. Two of its terms are
+# not satisfied by an exact copy of the reference:
+#
+#   * the edge term is `0.10 * min(eer, 2.0) / 2.0`, so it only pays out in
+#     full at edge_energy_ratio >= 2.0 — twice the reference's edge energy.
+#     An exact copy has eer == 1.0 and collects half the term. Chasing the
+#     rest means deliberately ringing/aliasing the output.
+#   * `alpha_clean` and `palette_fidelity` are absolute, and the references
+#     do not score 1.0 on themselves (anti-aliased edges are semi-transparent
+#     by construction; a 24-entry quantized palette cannot cover a gradient).
+#
+# So feeding a clean reference back in as its own restoration scores ~0.93-0.95,
+# not 1.0 — that identity score, not 1.0, is the real ceiling of `composite`.
+# Targets above it are unreachable by any faithful restoration.
+#
+# v2 keeps the same sub-metrics and weights but measures each one *relative to
+# what the reference scores on itself*, and makes the edge term symmetric so it
+# peaks at eer == 1.0 and penalizes over-sharpening as well as blur. The
+# identity therefore scores exactly 1.0 and "0.99 fidelity" is a real, testable
+# statement about the restoration rather than an artifact of the scale.
+#
+# `composite` is left exactly as it was: it remains the continuity guardrail so
+# runs stay comparable with every score recorded before this was added.
+# ---------------------------------------------------------------------------
+
+_IDENTITY_CACHE: dict[str, dict] = {}
+
+
+def identity_reference(src_path: Path) -> dict:
+    """What the clean reference scores against itself (the ceiling of `composite`)."""
+    key = str(Path(src_path).resolve())
+    hit = _IDENTITY_CACHE.get(key)
+    if hit is None:
+        src = _load_rgba(src_path)
+        hit = {
+            "palette_fidelity": palette_fidelity(src, src),
+            "alpha_clean": alpha_clean(src),
+            "composite": composite(
+                {
+                    "ink_iou": ink_iou(src, src),
+                    "palette_fidelity": palette_fidelity(src, src),
+                    "alpha_clean": alpha_clean(src),
+                    "edge_energy_ratio": 1.0,
+                    "aspect_drift": aspect_drift(src, src),
+                }
+            ),
+        }
+        _IDENTITY_CACHE[key] = hit
+    return hit
+
+
+def edge_match(eer: float) -> float:
+    """Symmetric edge agreement: 1.0 at eer == 1.0, falling off both ways.
+
+    Blur (eer < 1) and over-sharpening (eer > 1) are both fidelity losses.
+    """
+    if eer <= 0.0:
+        return 0.0
+    return float(min(eer, 1.0 / eer))
+
+
+def composite_v2(m: dict) -> float:
+    """Same weights as `composite`, but an exact copy of the reference scores 1.0."""
+    return float(
+        0.35 * m["ink_iou"]
+        + 0.25 * m["palette_rel"]
+        + 0.20 * m["alpha_rel"]
+        + 0.10 * m["edge_match"]
+        + 0.10 * max(0.0, 1.0 - m["aspect_drift"] / 0.5)
+    )
+
+
+def score_pair_v2(src_path: Path, out_path: Path, legacy: dict | None = None) -> dict:
+    """Fidelity metrics on the self-normalizing v2 scale.
+
+    Pass `legacy` (the dict from `score_pair`) to avoid recomputing shared terms.
+    """
+    m = dict(legacy) if legacy else score_pair(src_path, out_path)
+    ref = identity_reference(src_path)
+
+    pal_ref = ref["palette_fidelity"]
+    alpha_ref = ref["alpha_clean"]
+    # Relative to the reference's own score, capped at 1.0: beating the
+    # reference is not extra fidelity, it is a different image.
+    palette_rel = (
+        min(1.0, m["palette_fidelity"] / pal_ref) if pal_ref > 1e-6 else 0.0
+    )
+    alpha_rel = min(1.0, m["alpha_clean"] / alpha_ref) if alpha_ref > 1e-6 else 0.0
+
+    v2 = {
+        "ink_iou": m["ink_iou"],
+        "aspect_drift": m["aspect_drift"],
+        "palette_rel": round(palette_rel, 4),
+        "alpha_rel": round(alpha_rel, 4),
+        "edge_match": round(edge_match(m["edge_energy_ratio"]), 4),
+    }
+    v2["composite_v2"] = round(composite_v2(v2), 4)
+    # How much of the legacy scale's reachable range this run actually took.
+    ceiling = ref["composite"]
+    v2["composite_ceiling"] = round(ceiling, 4)
+    v2["headroom"] = round(max(0.0, ceiling - m["composite"]), 4)
+    return v2
+
+
 def score_pair(src_path: Path, out_path: Path) -> dict:
     src = _load_rgba(src_path)
     dst = _load_rgba(out_path)
