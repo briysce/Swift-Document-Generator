@@ -331,6 +331,57 @@
         "vector-quality",
         "honest-limit"
       ]
+    },
+    {
+      "id": "20260919T225959Z",
+      "ts": "2026-09-19T22:59:59Z",
+      "title": "Establish intent by recognition, not inference: glyph > shape > residual",
+      "lesson": "Ranked evidence beats statistics. (1) Run-level font ID: group elements by baseline/cap-height, pick the ONE font maximizing agreement across the run, then emit the font's own outline. Positive control 12/12 correct (font AND every character) for Oswald-Bold SUPPLY, Montserrat-Bold SWIFT, LiberationSans-Bold CARGO down to 0.18x scale + JPEG q40. On a degraded SUPPLY this cut anchors 149.6/1k -> 2.7/1k AND raised IoU vs the TRUE original 0.9479 -> 0.9776 \u2014 recognition beats tracing on BOTH quality and accuracy. Glyph must outrank generic polygon fit or an L/I gets claimed as a polygon and the real curves are lost. Placement must be refined by local offset/scale search against the element mask; naive bbox mapping lost ~0.5-3% IoU. (2) Shape vocabulary (circle/ellipse/rect/rotated-rect/regular-polygon/rounded-rect/polygon), most-constrained-wins by DOF. (3) Residual character only as last resort.",
+      "do_not_regress": "glyph match must outrank generic polygon; placement refinement must stay on",
+      "case_ids": [],
+      "tags": [
+        "font-id",
+        "shapes",
+        "recognition"
+      ]
+    },
+    {
+      "id": "20260919T225959Z",
+      "ts": "2026-09-19T22:59:59Z",
+      "title": "Three metric traps: fixed coverage gates, side-length residuals, and equal sides without equal angles",
+      "lesson": "All three produced wrong answers before being caught. (a) A fixed coverage threshold (0.972) is size-blind: a 44px circle tops out at 0.938 no matter how perfect the fit, because its 1px rim is ~6% of its area. Gate against the achievable ceiling 1-(perimeter*0.5*pixel/area) instead, or every small shape is rejected \u2014 exactly the low-res case that matters most. (b) Residual must mean the same thing for every primitive (mean boundary distance in px). Using side-length spread for polygons read ~15 on a clean large triangle and wrongly rejected it. (c) Regular polygon needs equal TURN ANGLES as well as equal sides: a kite has sides std/mean 0.018 (passes) but turn-angle std 6.72deg, and was falsely called regular. Also: never fall back to 'accept the best candidate anyway' when nothing passes the gate \u2014 inventing regularity that was not there is worse than tracing honestly.",
+      "do_not_regress": "size-aware coverage floor; unified boundary residual; angle check on regular polygons",
+      "case_ids": [],
+      "tags": [
+        "shapes",
+        "metric",
+        "honest-limit"
+      ]
+    },
+    {
+      "id": "20260919T225959Z",
+      "ts": "2026-09-19T22:59:59Z",
+      "title": "Damage metrics must be chosen empirically; most candidates invert on flat artwork",
+      "lesson": "First cut of flaw_analysis scored the CLEAN anchor as more damaged (0.476) than blur_crush (0.306) \u2014 the same failure it accuses BRISQUE of. Three of five measures invert on flat art: posterization (flat brand art legitimately has 2-3 colours), staircase (clean anchors are hard-alpha renders so 100% of steps are on the pixel grid), and spectral cutoff (JPEG noise ADDS high-frequency energy, so damage reads as MORE resolution). Tested candidates against known severity across every slug and kept only ink_speckle (share of ink components <64px): monotonic everywhere \u2014 swift_orange 0.00/0.71/0.91, gcm 0.00/0.80/0.96, propak 0.04/0.80/0.93, trialta 0.00/0.71/0.95. Rejected hf_noise (gcm clean 0.377 > degraded 0.268), contour roughness, chroma variance, and BRISQUE (clean 171.46 vs degraded 93.68/96.88 \u2014 ranks pristine worst, needs 3 shims to even run). Known asymmetry: speckle is strong positive evidence but its absence proves little; a clean 0.18x/q40 rescale still reports ~0.10. Score only ever RAISES correction strength from a safe baseline, so a false low is a missed opportunity, not a regression.",
+      "do_not_regress": "never wire BRISQUE into the degradation score; validate any new damage metric for monotonicity across all slugs first",
+      "case_ids": [],
+      "tags": [
+        "flaw-analysis",
+        "metric",
+        "honest-limit"
+      ]
+    },
+    {
+      "id": "20260919T225959Z",
+      "ts": "2026-09-19T22:59:59Z",
+      "title": "RANSAC consensus over least-squares for damaged primitives; corpus size gates font ID",
+      "lesson": "A mean-radius circle fit is least-squares so every outlier pulls it \u2014 wrong estimator for damaged artwork. RANSAC (pyransac3d, 2D lifted to z=0) finds the circle the largest agreeing subset supports and treats damage as outliers. A/B: chunk bitten out 4.34px/7.32px centre/radius error -> 1.50/0.45; ragged bled edge 5.30/0.64 -> 1.57/1.04; IDENTICAL on clean input, so no regression. Keep the robust fit only when it beats the least-squares coverage. Separately: font ID is bounded by corpus, not by matcher tuning. Swift SUPPLY (a Eurostile/Microgramma-like square face) scored 0.608 against 103 system fonts and 0.851 against 458 after pulling Google Fonts via the css2 API \u2014 still below the 0.86 run threshold, so it correctly declines. Note Google content-negotiates format from User-Agent: a BROWSER UA gets WOFF (PIL cannot open it), an unrecognized UA gets plain TTF.",
+      "do_not_regress": "RANSAC must not change clean-input fits; font_fetch must not send a browser UA",
+      "case_ids": [],
+      "tags": [
+        "ransac",
+        "font-corpus"
+      ]
     }
   ],
   "run_snapshots": [
@@ -1544,8 +1595,69 @@
         "esrgan": 0.7361,
         "vectorize": 0.7433
       }
+    },
+    {
+      "ts": "2026-09-19T22:59:28Z",
+      "run_id": "20260919T225928Z",
+      "mean_composite": 0.7384,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "esrgan",
+          "composite": 0.4242,
+          "ink_iou": 0.2207,
+          "palette_fidelity": 0.0,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0802
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9118,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "esrgan": 0.7361,
+        "vectorize": 0.7433
+      }
     }
   ],
-  "updated_at": "2026-09-19T22:29:36Z",
+  "updated_at": "2026-09-19T23:10:55Z",
   "entries": []
 }

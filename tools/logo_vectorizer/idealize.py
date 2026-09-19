@@ -373,10 +373,36 @@ def idealize_layered(
     turdsize: int = DEFAULT_TURDSIZE,
     denoise: int = DEFAULT_DENOISE,
     snap_primitives: bool = True,
+    match_fonts: bool = True,
+    adapt_to_damage: bool = True,
+    source_path: "Path | None" = None,
 ) -> str | None:
-    """Rebuild `arr` as a composition of individually traced, corrected elements."""
+    """Rebuild `arr` as a composition of individually recognized elements.
+
+    Each element is resolved by the strongest evidence available, in order:
+    a named geometric primitive, then a recognized glyph emitted from its own
+    font, then an ordinary trace.
+    """
     if not have_potrace():
         return None
+
+    # Measure the damage, then correct in proportion to it. A pristine master
+    # gets a light touch; a thumbnail dragged off a website gets aggressive
+    # correction, because at that resolution almost every wobble is
+    # quantization rather than something a designer drew.
+    if adapt_to_damage:
+        try:
+            from .flaw_analysis import analyze
+
+            tuned = analyze(arr, source_path).idealize_params
+            supersample = tuned["supersample"]
+            denoise = tuned["denoise"]
+            alphamax = tuned["alphamax"]
+            opttolerance = tuned["opttolerance"]
+            turdsize = tuned["turdsize"]
+        except Exception:
+            pass
+
     els = elements_of(arr, max_layers=max_layers)
     if not els:
         return None
@@ -385,15 +411,70 @@ def idealize_layered(
     # Back to front: within a layer, bigger first so shadows sit under letters.
     els.sort(key=lambda e: (e.layer, -e.area))
 
+    # Recognize letters across the whole image first. A wordmark is set in one
+    # face, so deciding per element would throw away the strongest evidence
+    # available — that six neighbours all agree on the same font.
+    glyphs: dict[int, tuple[object, str]] = {}
+    if match_fonts:
+        try:
+            from .glyph_match import font_corpus, group_runs, match_run
+
+            corpus = font_corpus()
+            masks = [e.mask for e in els]
+            boxes = [e.bbox for e in els]
+            for run in group_runs(boxes):
+                if len(run) < 3:
+                    continue
+                m = match_run(masks, run, corpus)
+                if m is None:
+                    continue
+                for idx, ch in zip(m.indices, m.chars):
+                    if ch:
+                        glyphs[idx] = (m.font, ch)
+        except Exception:
+            glyphs = {}
+
     groups: list[str] = []
-    for el in els:
+    for pos, el in enumerate(els):
         hexc = "#%02X%02X%02X" % el.colour
         eid = f"L{el.layer}-E{el.index}"
 
+        # 1. Named letter. Run-level font agreement is the strongest evidence
+        #    we ever get — six neighbours voting for the same face — and the
+        #    font file holds the designer's real curves. It therefore outranks
+        #    a generic polygon fit, which would happily claim an L or an I and
+        #    throw those curves away.
+        hit = glyphs.get(pos)
+        if hit is not None:
+            try:
+                from .glyph_match import glyph_outline
+
+                font_path, ch = hit
+                outline = glyph_outline(font_path, ch, el.bbox, refine_against=el.mask)
+            except Exception:
+                outline = None
+            if outline:
+                groups.append(
+                    f'<g id="{eid}" data-glyph="{ch}" '
+                    f'data-font="{Path(str(hit[0])).name}" '
+                    f'fill="{hexc}" stroke="none">{outline}</g>'
+                )
+                continue
+
+        # 2. Named geometry. Knowing the element *is* a circle makes every
+        #    departure from that circle flaw by definition.
         if snap_primitives:
-            prim = _circle_snap(el) or _rect_snap(el)
-            if prim is not None:
-                groups.append(f'<g id="{eid}" fill="{hexc}" stroke="none">{prim}</g>')
+            try:
+                from .shapes import best_fit
+
+                fit = best_fit(el.mask)
+            except Exception:
+                fit = None
+            if fit is not None:
+                groups.append(
+                    f'<g id="{eid}" data-shape="{fit.kind}" '
+                    f'fill="{hexc}" stroke="none">{fit.markup}</g>'
+                )
                 continue
 
         markup = _trace_mask(

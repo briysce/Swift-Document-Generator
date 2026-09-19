@@ -4,3 +4,12 @@ Pillow>=10.0
 potracer>=0.0.4
 vtracer>=0.6
 cairosvg>=2.7
+# Recognition stages (engine.reconstruct): shapes, glyph ID, flaw analysis.
+scipy>=1.10
+scikit-image>=0.21
+fonttools>=4.40
+pyransac3d>=0.6
+# Optional, probed at runtime and fail-open:
+#   potrace (binary)   — apt-get install potrace   [element tracing]
+#   exiftool (binary)  — apt-get install libimage-exiftool-perl  [provenance]
+#   inkscape (binary)  — ensemble tracer
