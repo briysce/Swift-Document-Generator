@@ -296,13 +296,16 @@ def rasterize_svg(
     *,
     width: int | None = None,
     background: str = "white",
+    prefer_chrome: bool = True,
 ) -> Path:
     """
     Render an SVG to PNG.
 
-    Order when Chrome is available (best evenodd / sectional fidelity):
+    When *prefer_chrome* is True and Chrome is available (best evenodd /
+    sectional fidelity for document export):
         headless Chrome → cairosvg → PyMuPDF.
-    Otherwise: cairosvg → PyMuPDF.
+    Otherwise (restore improve-loop parity):
+        cairosvg → PyMuPDF → Chrome.
 
     *background* controls the backdrop:
         - "transparent": alpha channel preserved when the backend supports it.
@@ -310,10 +313,10 @@ def rasterize_svg(
     """
     png_path.parent.mkdir(parents=True, exist_ok=True)
     errors: list[str] = []
-    chrome_exe = _find_chrome()
+    chrome_exe = _find_chrome() if prefer_chrome else None
 
-    # Chrome first when present — cairosvg/PyMuPDF under-render complex
-    # evenodd sectional lockups (~0.50 ink IoU on Swift document SVG).
+    # Chrome first when requested — cairosvg/PyMuPDF under-render complex
+    # evenodd sectional lockups on some document SVGs.
     if chrome_exe is not None:
         try:
             if background == "transparent":
@@ -346,14 +349,13 @@ def rasterize_svg(
     except Exception as e:
         errors.append(f"pymupdf: {e}")
 
-    if chrome_exe is None and background == "transparent":
+    # Chrome as last resort when prefer_chrome was False or first attempt failed.
+    if _find_chrome() is not None:
         try:
-            return _render_svg_transparent_via_chrome(svg_path, png_path, width=width)
-        except Exception as e:
-            errors.append(f"chrome_alpha: {e}")
-
-    if chrome_exe is None:
-        try:
+            if background == "transparent":
+                return _render_svg_transparent_via_chrome(
+                    svg_path, png_path, width=width
+                )
             return _render_svg_chrome_html(
                 svg_path, png_path, width=width, background=background
             )

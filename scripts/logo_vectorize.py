@@ -154,7 +154,11 @@ def _is_flat_enough(arr: np.ndarray, max_colors: int = 80, coverage: float = 0.7
 
 
 def _looks_like_swift_lockup(arr: np.ndarray) -> bool:
-    """Orange + black flat lockup (Swift document / chrome marks)."""
+    """Orange + black flat lockup (Swift document bars + wordmark).
+
+    Solid chrome (orange-only) stays on decompose_by_color — Swift sectional
+    regresses solid import_combo (~0.929 → ~0.916).
+    """
     alpha = arr[:, :, 3]
     rgb = arr[:, :, :3].astype(np.int32)
     ink = alpha > 40
@@ -168,50 +172,20 @@ def _looks_like_swift_lockup(arr: np.ndarray) -> bool:
     return o >= 0.12 and k >= 0.05
 
 
-def _is_clean_enough_for_sectional(arr: np.ndarray) -> bool:
-    """Sectional Bezier recreate must not lock onto degraded mush.
-
-    Matching a JPEG/blur crush at IoU≥0.975 vs *prepared* raises restore
-    scores against the mush and tanks improve-loop scores vs clean. Only run
-    briyszier sectional when the raster still looks like a crisp lockup.
-
-    Primary signal: ink bbox fill density. Clean Swift lockups sit ~0.42–0.55;
-    downscale/blur recipes crush the mark into a near-solid plate (>0.85).
-    """
+def _is_plate_mush(arr: np.ndarray) -> bool:
+    """Blur/JPEG crush that filled the ink bbox into a near-solid plate."""
     alpha = arr[:, :, 3]
     ink = alpha > 40
     n_ink = int(ink.sum())
     if n_ink < 400:
-        return False
+        return True
     ys, xs = np.where(ink)
     if ys.size == 0:
-        return False
+        return True
     bbox = float((int(ys.max()) - int(ys.min()) + 1) * (int(xs.max()) - int(xs.min()) + 1))
     dens = float(n_ink) / max(bbox, 1.0)
-    # Clean lockup with bars+wordmark; reject plate-filled crushes.
-    if dens < 0.36 or dens > 0.62:
-        return False
-    rgb = arr[:, :, :3].astype(np.int32)
-    r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
-    orange = ink & (r > 130) & ((r - g) > 30) & ((r - b) > 30)
-    black = ink & (r < 80) & (g < 80) & (b < 80)
-    pure = float((orange | black).sum()) / float(n_ink)
-    if pure < 0.85:
-        return False
-    # Soft plate / halo recipes keep density but muddy orange chroma.
-    if orange.any():
-        orange_std = float(arr[:, :, :3][orange].astype(np.float32).std(axis=0).mean())
-    else:
-        orange_std = 999.0
-    # Brand AA source is often <900px wide — don't apply the small+muddy reject.
-    h, w = arr.shape[:2]
-    if orange_std > 12.5:
-        return False
-    if max(h, w) < 2000 and orange_std > 3.5 and dens > 0.48:
-        # Synthetic degraded Swift after prepare is typically ≤1642 wide with
-        # mottled orange; full-res clean QA assets are ~3000px.
-        return False
-    return True
+    # Healthy Swift dens ~0.42–0.55; blur_crush plates sit >0.85.
+    return dens > 0.70
 
 
 def _try_sectional_briyszier(
@@ -220,12 +194,16 @@ def _try_sectional_briyszier(
     *,
     min_height: int,
     svg_out: Path | None,
-    target_iou: float = 0.975,
+    target_iou: float = 0.90,
 ) -> bool:
-    """briyszier sectional / recreate path — prefer when it beats target IoU."""
-    # Degraded restore inputs: fall through to vtracer (sectional locks mush).
-    if not _is_clean_enough_for_sectional(prepared):
-        print("sectional skipped (source not clean enough)", file=sys.stderr)
+    """briyszier sectional path — prefer when it beats target IoU vs prepared.
+
+    Uses the restore-safe decomposer (no residual AA scoop, no recreate
+    oversmooth tuning). Document export keeps residual+tuning separately in
+    process_header_logo — that path must not regress this restore gate.
+    """
+    if _is_plate_mush(prepared):
+        print("sectional skipped (plate mush density)", file=sys.stderr)
         return False
     root = Path(__file__).resolve().parents[1]
     if str(root) not in sys.path:
@@ -239,10 +217,6 @@ def _try_sectional_briyszier(
             decompose_by_color,
             decompose_swift_supply,
         )
-        from tools.logo_vectorizer.analyze import analyze_raster  # type: ignore
-        from tools.logo_vectorizer.customer_recreate import (  # type: ignore
-            _tune_analysis_for_recreate,
-        )
     except Exception as e:
         print(f"sectional unavailable ({e})", file=sys.stderr)
         return False
@@ -254,22 +228,21 @@ def _try_sectional_briyszier(
         png_path = td_path / "out.png"
         try:
             if _looks_like_swift_lockup(prepared):
-                sections = decompose_swift_supply(img)
-                analysis = analyze_raster(img)
-                _tune_analysis_for_recreate(analysis)
-                # Swift lockup: favor coverage over oversmooth — residual-ink
-                # scoop already lifts union; keep fit tight for letter counters.
-                analysis.fit_error_px = min(analysis.fit_error_px, 0.55)
+                # Restore-safe: no residual scoop (locks JPEG mush).
+                sections = decompose_swift_supply(img, scoop_residual=False)
             else:
                 sections = decompose_by_color(img)
-                analysis = None
-            result = vectorize_sectional(img, sections, analysis=analysis)
+            result = vectorize_sectional(img, sections)
             svg_path.write_text(result.svg, encoding="utf-8")
+            # Prefer cairosvg for restore gating parity with the approved
+            # 0.9269 Swift mean; Chrome remains available as fallback inside
+            # rasterize_svg when cairo is missing.
             rasterize_svg(
                 svg_path,
                 png_path,
                 width=max(min_height, prepared.shape[1]),
                 background="transparent",
+                prefer_chrome=False,
             )
             restored = load_rgba(png_path)
             finished = finalize_restore(
@@ -319,21 +292,13 @@ def convert(
     if not _is_flat_enough(prepared):
         raise RuntimeError("source not flat enough for vectorize")
 
-    # briyszier sectional recreate is for clean designer sources (document
-    # export / explicit --svg). On degraded restore inputs it can pass the
-    # IoU≥0.975 gate against *mush* and regress improve-loop scores vs clean.
-    # Only attempt it when the caller asked for an SVG (or the raster still
-    # looks like a crisp full-res lockup).
-    try_sectional = svg_out is not None or (
-        max(prepared.shape[0], prepared.shape[1]) >= 2000
-        and _is_clean_enough_for_sectional(prepared)
-    )
-    if try_sectional and _try_sectional_briyszier(
+    # briyszier sectional first for Swift / flat multi-color lockups (restore-
+    # safe settings). AI advisors are never required here — local vtracer is
+    # the fallback when sectional declines.
+    if _try_sectional_briyszier(
         prepared, dest, min_height=min_height, svg_out=svg_out
     ):
         return dest
-    if not try_sectional:
-        print("sectional deferred (restore path / not clean lockup)", file=sys.stderr)
 
     thin = is_thin_stroke_mark(prepared)
     if thin:

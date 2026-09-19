@@ -123,6 +123,7 @@ def decompose_swift_supply(
     img: Image.Image,
     *,
     outline_dilation_px: int = 3,
+    scoop_residual: bool = True,
 ) -> SectionSet:
     """
     Split the Swift Supply full lockup into five named layers:
@@ -289,7 +290,10 @@ def decompose_swift_supply(
     # Scoop anti-aliased fringe / near-brand pixels that hard color gates miss.
     # Without this, section∪ typically covers only ~90% of prepared ink and
     # Bezier IoU cannot beat that ceiling (Swift document lockup).
-    _assign_residual_ink(arr, sections)
+    # Restore/degraded paths pass scoop_residual=False — scooping AA fringe on
+    # mushy JPEG sources locks the mush and regresses improve-loop scores.
+    if scoop_residual:
+        _assign_residual_ink(arr, sections)
     return sections
 
 
