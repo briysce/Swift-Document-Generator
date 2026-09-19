@@ -285,7 +285,78 @@ def decompose_swift_supply(
             description="Thin black outline on the bottom orange bar.",
         )
     )
+
+    # Scoop anti-aliased fringe / near-brand pixels that hard color gates miss.
+    # Without this, section∪ typically covers only ~90% of prepared ink and
+    # Bezier IoU cannot beat that ceiling (Swift document lockup).
+    _assign_residual_ink(arr, sections)
     return sections
+
+
+def _assign_residual_ink(arr: np.ndarray, sections: SectionSet) -> None:
+    """Fold uncovered opaque ink into the nearest orange/black section."""
+    h, w = arr.shape[:2]
+    a = arr[:, :, 3]
+    ink = a > 32
+    union = np.zeros((h, w), dtype=bool)
+    for s in sections.trace_order:
+        union |= s.mask > 0
+    residual = ink & ~union
+    if not residual.any():
+        return
+
+    r = arr[:, :, 0].astype(np.int16)
+    g = arr[:, :, 1].astype(np.int16)
+    b = arr[:, :, 2].astype(np.int16)
+    # Distance to brand orange vs near-black (ignore near-white residuals).
+    d_orange = (r - 0xCE) ** 2 + (g - 0x4E) ** 2 + (b - 0x30) ** 2
+    d_black = r ** 2 + g ** 2 + b ** 2
+    near_white = (r > 240) & (g > 240) & (b > 240)
+    residual = residual & ~near_white
+    if not residual.any():
+        return
+
+    want_orange = residual & (d_orange <= d_black)
+    want_black = residual & ~want_orange
+
+    # Prefer spatial proximity: dilate existing sections and claim residuals
+    # that touch them; leftover residuals go to the color-matched primary.
+    by_name = {s.name: s for s in sections.trace_order}
+
+    def _claim(name: str, pixels: np.ndarray) -> None:
+        sec = by_name.get(name)
+        if sec is None or not pixels.any():
+            return
+        sec.mask = np.maximum(sec.mask, (pixels.astype(np.uint8) * 255))
+
+    # Orange residuals near SWIFT / bars.
+    for name in ("swift-orange", "bar-top", "bar-bottom"):
+        sec = by_name.get(name)
+        if sec is None:
+            continue
+        touch = _dilate(sec.mask, 2) > 0
+        claim = want_orange & touch
+        _claim(name, claim)
+        want_orange &= ~claim
+
+    # Black residuals near shadow / supply / bar borders.
+    for name in (
+        "swift-shadow",
+        "supply-black",
+        "bar-top-border",
+        "bar-bottom-border",
+    ):
+        sec = by_name.get(name)
+        if sec is None:
+            continue
+        touch = _dilate(sec.mask, 2) > 0
+        claim = want_black & touch
+        _claim(name, claim)
+        want_black &= ~claim
+
+    # Anything still unclaimed: dump into primary color section.
+    _claim("swift-orange", want_orange)
+    _claim("swift-shadow", want_black)
 
 
 # ---------------------------------------------------------------------------

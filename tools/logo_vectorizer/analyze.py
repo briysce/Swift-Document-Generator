@@ -309,21 +309,22 @@ def color_masks(
     r, g, b, a = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2], arr[:, :, 3]
 
     masks: dict[str, np.ndarray] = {}
-    # Orange (#CE4E30) with generous saturation window.
+    # Orange (#CE4E30) with generous saturation window — include AA fringe.
     orange = (
-        (r > 140)
-        & (g < 140)
-        & (b < 140)
-        & (r.astype(int) - g.astype(int) > 40)
-        & (r.astype(int) - b.astype(int) > 40)
+        (r > 120)
+        & (g < 160)
+        & (b < 160)
+        & (r.astype(int) - g.astype(int) > 28)
+        & (r.astype(int) - b.astype(int) > 28)
     )
-    if a.max() < 255:
-        orange = orange & (a > 32)
+    if a.max() < 255 or (a > 0).any():
+        orange = orange & (a > 24)
     masks["orange"] = (orange.astype(np.uint8)) * 255
 
-    black = (r < 90) & (g < 90) & (b < 90)
-    if a.max() < 255:
-        black = black & (a > 32)
+    # Near-black including soft AA outline (not just pure <90).
+    black = (r < 110) & (g < 110) & (b < 110) & (r.astype(int) + g.astype(int) + b.astype(int) < 280)
+    if a.max() < 255 or (a > 0).any():
+        black = black & (a > 24)
     masks["black"] = (black.astype(np.uint8)) * 255
 
     white_bg = (r > 232) & (g > 232) & (b > 232)

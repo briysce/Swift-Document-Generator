@@ -7,6 +7,7 @@ import sys
 from collections import deque
 from pathlib import Path
 
+import numpy as np
 from PIL import Image, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -494,8 +495,24 @@ def export_document_logo(
     from PIL import Image as _PILImage
 
     img = _PILImage.open(source_png).convert("RGBA")
+    # Knock out plate / white so residual-ink scoop sees real logo coverage.
+    try:
+        sys.path.insert(0, str(ROOT / "scripts"))
+        from logo_raster_finish import prepare_for_engine  # type: ignore
+
+        prepared = prepare_for_engine(np.asarray(img))
+        img = _PILImage.fromarray(prepared, "RGBA")
+    except Exception:
+        pass
+
     sections = decompose_swift_supply(img)
-    result = vectorize_sectional(img, sections)
+    from tools.logo_vectorizer.analyze import analyze_raster
+    from tools.logo_vectorizer.customer_recreate import _tune_analysis_for_recreate
+
+    analysis = analyze_raster(img)
+    _tune_analysis_for_recreate(analysis)
+    analysis.fit_error_px = min(float(analysis.fit_error_px), 0.55)
+    result = vectorize_sectional(img, sections, analysis=analysis)
     out_svg.parent.mkdir(parents=True, exist_ok=True)
     out_svg.write_text(result.svg, encoding="utf-8")
 

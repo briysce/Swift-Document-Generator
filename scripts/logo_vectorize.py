@@ -174,7 +174,7 @@ def _try_sectional_briyszier(
     *,
     min_height: int,
     svg_out: Path | None,
-    target_iou: float = 0.90,
+    target_iou: float = 0.975,
 ) -> bool:
     """briyszier sectional / recreate path — prefer when it beats target IoU."""
     root = Path(__file__).resolve().parents[1]
@@ -189,6 +189,10 @@ def _try_sectional_briyszier(
             decompose_by_color,
             decompose_swift_supply,
         )
+        from tools.logo_vectorizer.analyze import analyze_raster  # type: ignore
+        from tools.logo_vectorizer.customer_recreate import (  # type: ignore
+            _tune_analysis_for_recreate,
+        )
     except Exception as e:
         print(f"sectional unavailable ({e})", file=sys.stderr)
         return False
@@ -201,9 +205,15 @@ def _try_sectional_briyszier(
         try:
             if _looks_like_swift_lockup(prepared):
                 sections = decompose_swift_supply(img)
+                analysis = analyze_raster(img)
+                _tune_analysis_for_recreate(analysis)
+                # Swift lockup: favor coverage over oversmooth — residual-ink
+                # scoop already lifts union; keep fit tight for letter counters.
+                analysis.fit_error_px = min(analysis.fit_error_px, 0.55)
             else:
                 sections = decompose_by_color(img)
-            result = vectorize_sectional(img, sections)
+                analysis = None
+            result = vectorize_sectional(img, sections, analysis=analysis)
             svg_path.write_text(result.svg, encoding="utf-8")
             rasterize_svg(
                 svg_path,

@@ -255,18 +255,38 @@ def _render_svg_pymupdf(
 
 
 def _find_chrome() -> Path | None:
+    # Prefer real binaries over PATH wrappers. Cursor cloud images wrap
+    # /usr/local/bin/google-chrome with a fixed --user-data-dir +
+    # --remote-debugging-port that makes headless --screenshot hang.
     candidates = [
         Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
         Path(r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"),
-        Path("/usr/bin/google-chrome"),
+        Path("/opt/google/chrome/chrome"),
         Path("/usr/bin/google-chrome-stable"),
+        Path("/usr/bin/google-chrome"),
         Path("/usr/bin/chromium"),
         Path("/usr/bin/chromium-browser"),
         Path("/snap/bin/chromium"),
+        Path("/usr/local/bin/chromium"),
+        # Wrappers last (may inject conflicting flags).
+        Path("/usr/local/bin/google-chrome"),
+        Path("/usr/local/bin/chrome"),
     ]
     for c in candidates:
         if c.is_file():
             return c
+    import shutil
+
+    for name in (
+        "google-chrome-stable",
+        "chromium",
+        "chromium-browser",
+        "google-chrome",
+        "chrome",
+    ):
+        hit = shutil.which(name)
+        if hit:
+            return Path(hit)
     return None
 
 
@@ -280,7 +300,9 @@ def rasterize_svg(
     """
     Render an SVG to PNG.
 
-    Order: PyMuPDF (cross-platform) → cairosvg → headless Chrome (Windows/Linux).
+    Order when Chrome is available (best evenodd / sectional fidelity):
+        headless Chrome → cairosvg → PyMuPDF.
+    Otherwise: cairosvg → PyMuPDF.
 
     *background* controls the backdrop:
         - "transparent": alpha channel preserved when the backend supports it.
@@ -288,8 +310,22 @@ def rasterize_svg(
     """
     png_path.parent.mkdir(parents=True, exist_ok=True)
     errors: list[str] = []
+    chrome_exe = _find_chrome()
 
-    # Prefer cairosvg for fill-rule/evenodd fidelity, then PyMuPDF, then Chrome.
+    # Chrome first when present — cairosvg/PyMuPDF under-render complex
+    # evenodd sectional lockups (~0.50 ink IoU on Swift document SVG).
+    if chrome_exe is not None:
+        try:
+            if background == "transparent":
+                return _render_svg_transparent_via_chrome(
+                    svg_path, png_path, width=width
+                )
+            return _render_svg_chrome_html(
+                svg_path, png_path, width=width, background=background
+            )
+        except Exception as e:
+            errors.append(f"chrome: {e}")
+
     if background == "transparent":
         try:
             import cairosvg  # type: ignore
@@ -310,22 +346,21 @@ def rasterize_svg(
     except Exception as e:
         errors.append(f"pymupdf: {e}")
 
-    if background == "transparent":
+    if chrome_exe is None and background == "transparent":
         try:
             return _render_svg_transparent_via_chrome(svg_path, png_path, width=width)
         except Exception as e:
             errors.append(f"chrome_alpha: {e}")
-            raise RuntimeError(
-                "SVG rasterize failed (" + "; ".join(errors) + ")"
-            ) from e
 
-    try:
-        return _render_svg_chrome_html(
-            svg_path, png_path, width=width, background=background
-        )
-    except Exception as e:
-        errors.append(f"chrome: {e}")
-        raise RuntimeError("SVG rasterize failed (" + "; ".join(errors) + ")") from e
+    if chrome_exe is None:
+        try:
+            return _render_svg_chrome_html(
+                svg_path, png_path, width=width, background=background
+            )
+        except Exception as e:
+            errors.append(f"chrome: {e}")
+
+    raise RuntimeError("SVG rasterize failed (" + "; ".join(errors) + ")")
 
 
 def _render_svg_transparent_via_chrome(
@@ -405,29 +440,42 @@ def _render_svg_chrome_html(
         r'height="[^"]+"', f'height="{target_h}"', svg_scaled, count=1
     )
 
-    with tempfile.NamedTemporaryFile(
-        "w", suffix=".html", delete=False, encoding="utf-8"
-    ) as tmp:
-        tmp.write(
-            "<!DOCTYPE html><html><body style='margin:0;background:"
-            f"{body_bg}'>{svg_scaled}</body></html>"
-        )
-        html_path = Path(tmp.name)
-    try:
-        subprocess.run(
-            [
-                str(chrome_exe),
-                "--headless=new",
-                "--disable-gpu",
-                "--hide-scrollbars",
-                f"--window-size={target_w},{target_h}",
-                f"--screenshot={png_path.resolve()}",
-                html_path.as_uri(),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    finally:
-        html_path.unlink(missing_ok=True)
+    with tempfile.TemporaryDirectory(prefix="swift_chrome_") as udir:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".html", delete=False, encoding="utf-8"
+        ) as tmp:
+            tmp.write(
+                "<!DOCTYPE html><html><body style='margin:0;background:"
+                f"{body_bg}'>{svg_scaled}</body></html>"
+            )
+            html_path = Path(tmp.name)
+        try:
+            # Cloud / container Linux needs no-sandbox + private user-data-dir
+            # or headless Chrome hangs / refuses DevTools. virtual-time-budget
+            # keeps SVG screenshots from waiting on idle network timers.
+            subprocess.run(
+                [
+                    str(chrome_exe),
+                    "--headless=new",
+                    "--disable-gpu",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                    f"--user-data-dir={udir}",
+                    "--virtual-time-budget=5000",
+                    "--hide-scrollbars",
+                    f"--window-size={target_w},{target_h}",
+                    f"--screenshot={png_path.resolve()}",
+                    html_path.as_uri(),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+        finally:
+            html_path.unlink(missing_ok=True)
+    if not png_path.is_file() or png_path.stat().st_size <= 0:
+        raise RuntimeError("chrome wrote empty PNG")
     return png_path
