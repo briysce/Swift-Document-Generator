@@ -276,6 +276,32 @@
       "do_not_regress": "Swift vectorize mean>=0.9269; anchor_mean>=0.92; no invented Arc/Trialta colors from gray crush",
       "case_ids": [],
       "tags": []
+    },
+    {
+      "id": "20260919T215200Z",
+      "ts": "2026-09-19T21:49:52.511407+00:00",
+      "title": "Compliance re-score: Swift vectorize mean 0.9269",
+      "lesson": "After chat-prompt audit, re-ran logo_restore_improve_loop (run 20260919T214501Z). Zero engine fails. Swift anchor vectorize mean exactly 0.9269 (six pairs). Prior 213014Z fail was transient NameError during polish landing; current import os + cairosvg-first path holds the lock. Stale Chrome-prefer lesson text corrected.",
+      "do_not_regress": [
+        "Swift vectorize mean >= 0.9269",
+        "cairosvg-first / LOGO_NO_CHROME",
+        "AI fail-open",
+        "polish default off on improve-loop"
+      ],
+      "case_ids": [
+        "swift_orange__downscale_jpeg",
+        "swift_orange__blur_crush",
+        "swift_orange__import_combo",
+        "swift_orange_solid__downscale_jpeg",
+        "swift_orange_solid__blur_crush",
+        "swift_orange_solid__import_combo"
+      ],
+      "tags": [
+        "compliance",
+        "lock",
+        "swift",
+        "training"
+      ]
     }
   ],
   "run_snapshots": [
@@ -1368,8 +1394,68 @@
         "baseline": 0.7357,
         "vectorize": 0.7433
       }
+    },
+    {
+      "ts": "2026-09-19T21:45:01Z",
+      "run_id": "20260919T214501Z",
+      "mean_composite": 0.7395,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5016,
+          "ink_iou": 0.2248,
+          "palette_fidelity": 0.3853,
+          "alpha_clean": 0.9973,
+          "aspect_drift": 0.0608
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.927,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "vectorize": 0.7433
+      }
     }
   ],
-  "updated_at": "2026-09-19T21:45:17Z",
+  "updated_at": "2026-09-19T21:49:52.511422+00:00",
   "entries": []
 }
