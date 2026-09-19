@@ -214,7 +214,7 @@ def reconstruct(
     snap_primitives: bool = True,
     adapt_to_damage: bool = True,
     compact_layers: bool = True,
-    use_memory: bool = True,
+    use_memory: bool = False,
     store_memory: bool = False,
 ) -> Reconstruction:
     """Rebuild `arr` as the vector a designer would have drawn.
@@ -233,9 +233,14 @@ def reconstruct(
         damage = None
 
     # Have we already solved this mark? Only reuse a stored answer that beats
-    # what we are about to produce; recall must never lower quality, and the
-    # similarity bar is strict because emitting the wrong company's logo is
-    # unrecoverable.
+    # what we are about to produce; recall must never lower quality.
+    #
+    # OFF BY DEFAULT. A full-corpus sweep caught the first version returning
+    # PROPAK's artwork for gcm and swift_orange inputs, because heavy
+    # degradation collapses different lockups into similar silhouettes. The
+    # descriptor and gating have since been rebuilt, but recall stays opt-in
+    # until a cross-brand test proves zero false positives on a given corpus —
+    # emitting another company's logo is not a bug you ship and fix later.
     recalled = None
     if use_memory:
         try:

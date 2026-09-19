@@ -50,9 +50,21 @@ ROOT = Path(__file__).resolve().parents[2]
 STORE = ROOT / "tools" / "logo_vectorizer" / ".cache" / "memory"
 COLLECTION = "logo_reconstructions"
 
-# Descriptor: a 16x16 ink occupancy grid plus aspect and colour summary.
-GRID = 16
-VECTOR_SIZE = GRID * GRID + 4
+# Descriptor: a 32x32 ink grid, row/column ink profiles, a coarse colour
+# histogram, and structural counts.
+#
+# The first version was a 16x16 grid plus mean colour and aspect, and it was not
+# remotely discriminative enough. Under heavy degradation every lockup collapses
+# toward a similar horizontal blob, and those descriptors converged: gcm vs
+# swift_orange measured cosine 0.9900 and propak vs swift_orange 0.9915, both
+# above the 0.985 bar. In a full-corpus sweep that produced real cross-brand
+# false recalls — gcm and swift_orange each returned PROPAK's artwork. Emitting
+# another company's logo is the one failure this module must never produce, so
+# the descriptor now carries marginals, colour distribution and component
+# structure, which degradation blurs far less uniformly than a silhouette.
+GRID = 32
+COLOUR_BINS = 3  # per channel -> 27 cells
+VECTOR_SIZE = GRID * GRID + 2 * GRID + COLOUR_BINS**3 + 4
 
 # A recall must be at least this similar. Deliberately strict — emitting
 # another company's logo is unrecoverable.
@@ -64,7 +76,7 @@ VECTOR_SIZE = GRID * GRID + 4
 # far below (gcm 0.4773, arc 0.5067, propak 0.7535, trialta 0.7967). So 0.985
 # clears the true confusable by about 0.003, and dropping the bar to 0.98 would
 # start returning the wrong variant of our own logo.
-MIN_SIMILARITY = 0.985
+MIN_SIMILARITY = 0.995
 
 
 @dataclass
@@ -77,7 +89,19 @@ class Recollection:
 
 
 def descriptor(arr: np.ndarray) -> np.ndarray | None:
-    """Resolution-tolerant fingerprint of a logo's ink and palette."""
+    """Discriminative, degradation-tolerant fingerprint of a logo.
+
+    Four families of evidence, because a silhouette alone is not enough once
+    the source is badly degraded:
+
+      * a 32x32 ink occupancy grid — overall shape;
+      * row and column ink profiles — where mass sits along each axis, which
+        separates a wide wordmark from a stacked lockup even when both blur to
+        similar blobs;
+      * a 3x3x3 colour histogram over ink pixels — brand palette, which survives
+        compression far better than geometry and differs sharply between brands;
+      * structural counts — component count and ink density.
+    """
     if arr.ndim != 3 or arr.shape[2] < 4:
         return None
     ink = arr[:, :, 3] >= 128
@@ -86,6 +110,7 @@ def descriptor(arr: np.ndarray) -> np.ndarray | None:
     ys, xs = np.where(ink)
     y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
     crop = ink[y0 : y1 + 1, x0 : x1 + 1]
+
     grid = np.asarray(
         Image.fromarray((crop.astype(np.uint8) * 255), "L").resize(
             (GRID, GRID), Image.Resampling.BILINEAR
@@ -93,11 +118,48 @@ def descriptor(arr: np.ndarray) -> np.ndarray | None:
         dtype=np.float32,
     ) / 255.0
 
-    rgb = arr[:, :, :3][ink].astype(np.float32)
-    mean = rgb.mean(axis=0) / 255.0
+    # Axis profiles, normalized so they describe distribution, not size.
+    rows = grid.mean(axis=1)
+    cols = grid.mean(axis=0)
+    rows = rows / (np.linalg.norm(rows) or 1.0)
+    cols = cols / (np.linalg.norm(cols) or 1.0)
+
+    # Brand palette: a coarse joint histogram of the ink colours.
+    rgb = arr[:, :, :3][ink].astype(np.int32)
+    idx = np.minimum(rgb * COLOUR_BINS // 256, COLOUR_BINS - 1)
+    flat = idx[:, 0] * COLOUR_BINS**2 + idx[:, 1] * COLOUR_BINS + idx[:, 2]
+    hist = np.bincount(flat, minlength=COLOUR_BINS**3).astype(np.float32)
+    hist = hist / (hist.sum() or 1.0)
+
+    # Structure: how many separate pieces, and how densely filled.
+    try:
+        from scipy import ndimage
+
+        _lab, ncomp = ndimage.label(crop, structure=np.ones((3, 3), dtype=int))
+    except Exception:
+        ncomp = 1
+    density = float(crop.mean())
     aspect = (x1 - x0 + 1) / float(y1 - y0 + 1)
+    struct = np.array(
+        [
+            min(ncomp, 64) / 64.0,
+            density,
+            min(aspect, 8.0) / 8.0,
+            min(float(ink.sum()) / float(arr.shape[0] * arr.shape[1]), 1.0),
+        ],
+        dtype=np.float32,
+    )
+
+    # Weight the families so shape cannot drown out palette and structure —
+    # shape is exactly what degradation destroys.
     vec = np.concatenate(
-        [grid.ravel(), mean, np.array([min(aspect, 8.0) / 8.0], dtype=np.float32)]
+        [
+            grid.ravel() * 0.6,
+            rows * 1.0,
+            cols * 1.0,
+            hist * 3.0,
+            struct * 2.0,
+        ]
     ).astype(np.float32)
     n = float(np.linalg.norm(vec))
     return vec / n if n > 1e-6 else None
@@ -171,6 +233,7 @@ def recall(
     arr: np.ndarray,
     *,
     min_similarity: float = MIN_SIMILARITY,
+    require_margin: float = 0.004,
     better_than: float = 0.0,
     path: Path | None = None,
 ) -> Recollection | None:
@@ -186,11 +249,17 @@ def recall(
     if c is None:
         return None
     try:
-        res = c.query_points(COLLECTION, query=vec.tolist(), limit=3).points
+        res = c.query_points(COLLECTION, query=vec.tolist(), limit=5).points
     except Exception:
         return None
-    for p in res or []:
-        score = float(getattr(p, "score", 0.0) or 0.0)
+    scored = [(float(getattr(p, "score", 0.0) or 0.0), p) for p in (res or [])]
+    scored.sort(key=lambda t: -t[0])
+    # Ambiguity guard: if the runner-up is nearly as close, we cannot tell the
+    # two apart and must not guess. This is what a plain threshold missed — the
+    # false recalls had several near-identical neighbours.
+    if len(scored) > 1 and (scored[0][0] - scored[1][0]) < require_margin:
+        return None
+    for score, p in scored:
         if score < min_similarity:
             continue
         payload = getattr(p, "payload", None) or {}
