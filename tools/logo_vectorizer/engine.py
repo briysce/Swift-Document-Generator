@@ -213,6 +213,9 @@ def reconstruct(
     match_fonts: bool = True,
     snap_primitives: bool = True,
     adapt_to_damage: bool = True,
+    compact_layers: bool = True,
+    use_memory: bool = True,
+    store_memory: bool = False,
 ) -> Reconstruction:
     """Rebuild `arr` as the vector a designer would have drawn.
 
@@ -229,6 +232,19 @@ def reconstruct(
     except Exception:
         damage = None
 
+    # Have we already solved this mark? Only reuse a stored answer that beats
+    # what we are about to produce; recall must never lower quality, and the
+    # similarity bar is strict because emitting the wrong company's logo is
+    # unrecoverable.
+    recalled = None
+    if use_memory:
+        try:
+            from .memory import recall
+
+            recalled = recall(arr)
+        except Exception:
+            recalled = None
+
     try:
         svg = idealize_layered(
             arr,
@@ -239,6 +255,17 @@ def reconstruct(
         )
     except Exception:
         svg = None
+
+    # Layer budget: drop anything that does not pay for itself, then settle
+    # placement against the source. Reverts itself if it would cost agreement.
+    if svg and compact_layers:
+        try:
+            from .layerwise import compact
+
+            res = compact(svg, arr)
+            svg = res.svg
+        except Exception:
+            pass
 
     ideality = 0.0
     if svg:
@@ -254,6 +281,16 @@ def reconstruct(
             tmp.unlink(missing_ok=True)
         except Exception:
             ideality = 0.0
+
+    if recalled is not None and recalled.ideality > ideality:
+        svg, ideality = recalled.svg, recalled.ideality
+    elif store_memory and svg:
+        try:
+            from .memory import remember
+
+            remember(arr, svg, ideality, source=str(source_path or ""))
+        except Exception:
+            pass
 
     return Reconstruction(
         svg=svg,
