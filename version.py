@@ -2,8 +2,8 @@
 
 __version__ = "1.2.1"
 APP_NAME = "Swift Document Generator"
-GITHUB_OWNER = "StagingLogShippingTracker"
-GITHUB_REPO = "swift-shipping-label"
+GITHUB_OWNER = "briysce"
+GITHUB_REPO = "Swift-Document-Generator"
 GITHUB_RELEASES_API = (
     f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
 )

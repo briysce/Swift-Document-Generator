@@ -115,3 +115,4 @@ mobile/test/fixtures/_bulk_labels_smoke.docx
 
 # Claude Code local settings (machine-specific paths/permissions)
 .claude/settings.local.json
+supabase/.temp/

@@ -239,5 +239,5 @@ if ($releaseExists) {
 }
 
 Write-Host ""
-Write-Host "Published: https://github.com/StagingLogShippingTracker/swift-shipping-label/releases/tag/$tag"
-Write-Host "Latest API: https://api.github.com/repos/StagingLogShippingTracker/swift-shipping-label/releases/latest"
+Write-Host "Published: https://github.com/briysce/Swift-Document-Generator/releases/tag/$tag"
+Write-Host "Latest API: https://api.github.com/repos/briysce/Swift-Document-Generator/releases/latest"

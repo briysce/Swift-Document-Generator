@@ -40,6 +40,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.customer_logos TO anon;
 CREATE OR REPLACE FUNCTION public.touch_updated_at()
 RETURNS trigger
 LANGUAGE plpgsql
+SET search_path = public
 AS $$
 BEGIN
   NEW.updated_at = now();

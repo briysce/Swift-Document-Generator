@@ -4,7 +4,7 @@
 #define AppName "Swift Document Generator"
 #define AppExeName "swift_shipping_label.exe"
 #define AppPublisher "Swift Oilfield Supply"
-#define AppURL "https://github.com/StagingLogShippingTracker/swift-shipping-label"
+#define AppURL "https://github.com/briysce/Swift-Document-Generator"
 #define AppVersion GetVersionNumbersString("..\dist\Swift Document Generator\swift_shipping_label.exe")
 
 [Setup]
