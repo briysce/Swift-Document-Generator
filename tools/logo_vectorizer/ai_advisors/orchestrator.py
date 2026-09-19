@@ -50,11 +50,16 @@ def resolve_providers(requested: list[str] | None = None) -> list[str]:
 
 
 def analyze_source_multi(img: Image.Image, providers: list[str]) -> SourceHints | None:
+    """Merge source hints across providers. Fail-open: never raise."""
     merged: SourceHints | None = None
     used: list[str] = []
     for name in providers:
-        fn: Callable[[Image.Image], SourceHints | None] = PROVIDERS[name]["analyze"]
-        result = fn(img)
+        try:
+            fn: Callable[[Image.Image], SourceHints | None] = PROVIDERS[name]["analyze"]
+            result = fn(img)
+        except Exception as exc:  # noqa: BLE001 — quota / network / parse
+            print(f"[ai] {name} analyze failed (using local fallback): {exc}", file=sys.stderr)
+            continue
         if result is None:
             continue
         used.append(name)
@@ -76,17 +81,22 @@ def critique_render_multi(
     p_hollow: float,
     holes: int,
 ) -> CritiqueResult | None:
+    """Critique a candidate. Fail-open: returns None when all providers fail."""
     results: list[CritiqueResult] = []
     for name in providers:
-        fn = PROVIDERS[name]["critique"]
-        r = fn(
-            ref_img,
-            render_img,
-            backend=backend,
-            alpha_iou=alpha_iou,
-            p_hollow=p_hollow,
-            holes=holes,
-        )
+        try:
+            fn = PROVIDERS[name]["critique"]
+            r = fn(
+                ref_img,
+                render_img,
+                backend=backend,
+                alpha_iou=alpha_iou,
+                p_hollow=p_hollow,
+                holes=holes,
+            )
+        except Exception as exc:  # noqa: BLE001
+            print(f"[ai] {name} critique failed (skip): {exc}", file=sys.stderr)
+            continue
         if r is not None:
             results.append(r)
     if not results:
@@ -104,19 +114,25 @@ def critique_render_multi(
 
 
 def apply_hints_to_preprocess(hints: SourceHints | None) -> tuple[int, float, int, float] | None:
-    """Return (upscale, blur, threshold, min_area) override if hints specify preprocess."""
+    """Return (upscale, blur, threshold, min_area) override if hints specify preprocess.
+
+    Never accept an AI hint that would *weaken* offline defaults (lower upscale
+    or heavier blur) — out-of-token / partial JSON must not make the engine worse.
+    """
     if not hints or not hints.recommended_preprocess:
         return None
     p = hints.recommended_preprocess
     try:
-        return (
-            int(p.get("upscale", 4)),
-            float(p.get("blur_radius", 1.2)),
-            int(p.get("alpha_threshold", 80)),
-            float(p.get("min_area", 500)),
-        )
+        upscale = int(p.get("upscale", 4))
+        blur = float(p.get("blur_radius", 1.2))
+        threshold = int(p.get("alpha_threshold", 80))
+        min_area = float(p.get("min_area", 500))
     except (TypeError, ValueError):
         return None
+    # Floor at the historical offline defaults used by DEFAULT_VARIANTS.
+    upscale = max(upscale, 4)
+    blur = min(blur, 1.2)
+    return (upscale, blur, threshold, min_area)
 
 
 def backend_priority(hints: SourceHints | None) -> list[str]:

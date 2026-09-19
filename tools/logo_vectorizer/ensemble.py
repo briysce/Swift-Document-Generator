@@ -145,12 +145,17 @@ def vectorize_ensemble(
     ai_providers: list[str] = []
 
     if ai.enabled:
-        ai_providers = resolve_providers(ai.providers)
-        if ai_providers:
-            ai_ctx.providers_used = ai_providers
-            ai_ctx.hints = analyze_source_multi(img, ai_providers)
-        else:
-            print("[ai] enabled but no API keys found — running offline ensemble", file=sys.stderr)
+        try:
+            ai_providers = resolve_providers(ai.providers)
+            if ai_providers:
+                ai_ctx.providers_used = ai_providers
+                ai_ctx.hints = analyze_source_multi(img, ai_providers)
+            else:
+                print("[ai] enabled but no API keys found — running offline ensemble", file=sys.stderr)
+        except Exception as exc:  # noqa: BLE001 — never let AI kill the local path
+            print(f"[ai] assist skipped (offline ensemble): {exc}", file=sys.stderr)
+            ai_providers = []
+            ai_ctx.hints = None
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")

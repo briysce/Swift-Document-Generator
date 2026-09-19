@@ -169,6 +169,47 @@ def extract_json(text: str) -> dict[str, Any]:
         raise
 
 
+def env_key(*names: str) -> str | None:
+    for name in names:
+        val = os.environ.get(name, "").strip()
+        if val:
+            return val
+    return None
+
+
+class AiQuotaExhausted(RuntimeError):
+    """API key missing, billed quota empty, or token budget exhausted."""
+
+
+_QUOTA_MARKERS = (
+    "resource_exhausted",
+    "insufficient_quota",
+    "quota exceeded",
+    "quota_exceeded",
+    "rate_limit_exceeded",
+    "billing",
+    "out of tokens",
+    "token limit",
+    "context_length_exceeded",
+    "max_tokens",
+    "credit",
+    "payment required",
+)
+
+
+def looks_like_quota_or_token_error(status: int | None, body: str = "") -> bool:
+    """True when the provider refused the call for quota/token/billing reasons."""
+    if status in (401, 402, 403):
+        return True
+    blob = (body or "").lower()
+    if status == 429 and any(m in blob for m in _QUOTA_MARKERS):
+        return True
+    if status == 429 and not blob:
+        # Bare 429: treat as rate-limit (retryable), not hard quota.
+        return False
+    return any(m in blob for m in _QUOTA_MARKERS)
+
+
 def http_post_json(
     url: str,
     payload: dict[str, Any],
@@ -177,7 +218,12 @@ def http_post_json(
     *,
     max_retries: int = 3,
 ) -> dict[str, Any]:
-    """POST JSON with retries on rate-limit (429) and transient 5xx errors."""
+    """POST JSON with retries on rate-limit (429) and transient 5xx errors.
+
+    Quota / token exhaustion (402/403, RESOURCE_EXHAUSTED, insufficient_quota)
+    fails immediately so callers can fall open to the local engine — never
+    burn the restore path waiting on a dead key.
+    """
     body = json.dumps(payload).encode("utf-8")
     last_err: Exception | None = None
     for attempt in range(max_retries):
@@ -192,6 +238,10 @@ def http_post_json(
                 return json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")[:500]
+            if looks_like_quota_or_token_error(exc.code, detail):
+                raise AiQuotaExhausted(
+                    f"AI quota/token exhausted (HTTP {exc.code}): {detail}"
+                ) from exc
             last_err = RuntimeError(f"HTTP {exc.code}: {detail}")
             if exc.code in (429, 500, 502, 503, 504) and attempt + 1 < max_retries:
                 # Honor Retry-After when present; otherwise exponential backoff.
@@ -207,6 +257,8 @@ def http_post_json(
                 continue
             raise last_err from exc
         except Exception as exc:  # noqa: BLE001 — network blips
+            if isinstance(exc, AiQuotaExhausted):
+                raise
             last_err = exc
             if attempt + 1 < max_retries:
                 import time
@@ -215,11 +267,3 @@ def http_post_json(
                 continue
             raise
     raise last_err or RuntimeError("http_post_json failed")
-
-
-def env_key(*names: str) -> str | None:
-    for name in names:
-        val = os.environ.get(name, "").strip()
-        if val:
-            return val
-    return None
