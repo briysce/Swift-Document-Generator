@@ -1656,8 +1656,69 @@
         "esrgan": 0.7361,
         "vectorize": 0.7433
       }
+    },
+    {
+      "ts": "2026-09-19T23:33:24Z",
+      "run_id": "20260919T233324Z",
+      "mean_composite": 0.7384,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "esrgan",
+          "composite": 0.4242,
+          "ink_iou": 0.2207,
+          "palette_fidelity": 0.0,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0802
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9118,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "esrgan": 0.7361,
+        "vectorize": 0.7433
+      }
     }
   ],
-  "updated_at": "2026-09-19T23:10:55Z",
+  "updated_at": "2026-09-19T23:45:07Z",
   "entries": []
 }
