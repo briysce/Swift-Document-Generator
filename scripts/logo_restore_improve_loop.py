@@ -68,6 +68,7 @@ def _run_script(script: Path, src: Path, dest: Path, min_h: int) -> tuple[bool, 
         cmd.extend(["--min-height", str(min_h)])
     elif script.name == "logo_restorer.py":
         cmd.extend(["--min-dimension", str(min_h)])
+    env = {**dict(__import__("os").environ), "LOGO_NO_CHROME": "1"}
     try:
         r = subprocess.run(
             cmd,
@@ -75,6 +76,7 @@ def _run_script(script: Path, src: Path, dest: Path, min_h: int) -> tuple[bool, 
             text=True,
             timeout=600,
             cwd=str(ROOT),
+            env=env,
         )
         if r.returncode == 0 and dest.is_file() and dest.stat().st_size > 0:
             return True, "ok"

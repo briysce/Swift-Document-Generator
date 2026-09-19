@@ -296,38 +296,40 @@ def rasterize_svg(
     *,
     width: int | None = None,
     background: str = "white",
-    prefer_chrome: bool = True,
+    prefer_chrome: bool = False,
 ) -> Path:
     """
     Render an SVG to PNG.
 
-    When *prefer_chrome* is True and Chrome is available (best evenodd /
-    sectional fidelity for document export):
-        headless Chrome → cairosvg → PyMuPDF.
-    Otherwise (restore improve-loop parity):
-        cairosvg → PyMuPDF → Chrome.
+    Default order (portable, no Chrome dependency):
+        cairosvg → PyMuPDF → optional headless Chrome last resort.
 
-    *background* controls the backdrop:
-        - "transparent": alpha channel preserved when the backend supports it.
-        - CSS color string ("white", "#000", etc.): flat backdrop when using Chrome.
+    Chrome is intentionally not preferred: cloud/CI wrappers hang, and the
+    approved Swift restore mean (0.9269) was proven with cairosvg. Pass
+    prefer_chrome=True only for explicit experiments. Set LOGO_NO_CHROME=1
+    to skip Chrome entirely.
     """
+    import os
+
     png_path.parent.mkdir(parents=True, exist_ok=True)
     errors: list[str] = []
-    chrome_exe = _find_chrome() if prefer_chrome else None
 
-    # Chrome first when requested — cairosvg/PyMuPDF under-render complex
-    # evenodd sectional lockups on some document SVGs.
-    if chrome_exe is not None:
-        try:
-            if background == "transparent":
-                return _render_svg_transparent_via_chrome(
-                    svg_path, png_path, width=width
+    # Optional experimental Chrome-first path (off by default).
+    if prefer_chrome and os.environ.get("LOGO_NO_CHROME", "").strip().lower() not in {
+        "1", "true", "yes",
+    }:
+        chrome_exe = _find_chrome()
+        if chrome_exe is not None:
+            try:
+                if background == "transparent":
+                    return _render_svg_transparent_via_chrome(
+                        svg_path, png_path, width=width
+                    )
+                return _render_svg_chrome_html(
+                    svg_path, png_path, width=width, background=background
                 )
-            return _render_svg_chrome_html(
-                svg_path, png_path, width=width, background=background
-            )
-        except Exception as e:
-            errors.append(f"chrome: {e}")
+            except Exception as e:
+                errors.append(f"chrome: {e}")
 
     if background == "transparent":
         try:
@@ -349,18 +351,19 @@ def rasterize_svg(
     except Exception as e:
         errors.append(f"pymupdf: {e}")
 
-    # Chrome as last resort when prefer_chrome was False or first attempt failed.
-    if _find_chrome() is not None:
-        try:
-            if background == "transparent":
-                return _render_svg_transparent_via_chrome(
-                    svg_path, png_path, width=width
+    if os.environ.get("LOGO_NO_CHROME", "").strip().lower() not in {"1", "true", "yes"}:
+        chrome_exe = _find_chrome()
+        if chrome_exe is not None:
+            try:
+                if background == "transparent":
+                    return _render_svg_transparent_via_chrome(
+                        svg_path, png_path, width=width
+                    )
+                return _render_svg_chrome_html(
+                    svg_path, png_path, width=width, background=background
                 )
-            return _render_svg_chrome_html(
-                svg_path, png_path, width=width, background=background
-            )
-        except Exception as e:
-            errors.append(f"chrome: {e}")
+            except Exception as e:
+                errors.append(f"chrome: {e}")
 
     raise RuntimeError("SVG rasterize failed (" + "; ".join(errors) + ")")
 
