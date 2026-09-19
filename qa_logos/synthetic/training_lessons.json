@@ -267,6 +267,15 @@
         "training",
         "honest-limit"
       ]
+    },
+    {
+      "id": "20260919T214517Z",
+      "ts": "2026-09-19T21:45:17Z",
+      "title": "Full-suite loop holds anchors at 0.927; trialta/arc blur_crush are honest limits",
+      "lesson": "Run 20260919T214003Z: anchor_mean=0.927, swift_vectorize_mean=0.9269, full mean=0.7395, 0 engine fails. Top failures trialta/arc blur_crush (palette_fidelity\u22480) are crush recipes that wipe brand chroma \u2014 do not invent colors. Further mean gains need softer recipes or neural, not gate loosening.",
+      "do_not_regress": "Swift vectorize mean>=0.9269; anchor_mean>=0.92; no invented Arc/Trialta colors from gray crush",
+      "case_ids": [],
+      "tags": []
     }
   ],
   "run_snapshots": [
@@ -1361,6 +1370,6 @@
       }
     }
   ],
-  "updated_at": "2026-09-19T21:44:45Z",
+  "updated_at": "2026-09-19T21:45:17Z",
   "entries": []
 }
