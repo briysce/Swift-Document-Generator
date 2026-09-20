@@ -48,6 +48,7 @@ element as ordinary geometry.
 
 from __future__ import annotations
 
+import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
@@ -156,12 +157,112 @@ def _render_glyph(font_path: Path, ch: str, px: int = 256) -> np.ndarray | None:
 
 _GLYPH_CACHE: dict[tuple[str, str], tuple[np.ndarray, float] | None] = {}
 
+# Normalized glyphs, kept on disk between processes.
+#
+# Matching a wordmark means comparing it against every character of every font
+# in the corpus, and rendering those is what the work actually is: on a cold
+# cache a single image spends 265s of a 265s run rasterizing 1,562 fonts across
+# a 66-character alphabet, and only seconds comparing them. The in-process dict
+# above makes the second image in a batch cheap, but logo_vectorize.py is a
+# fresh process per logo, so in production every logo paid the full 265s.
+#
+# Rendering smaller is not the way out. Glyphs are compared on a GRID x GRID
+# grid, so 256px looks like wasted precision, but dropping to 128px moves the
+# normalized bitmap by enough to change matches — self-agreement against the
+# 256px render is 0.9603 mean, 0.8510 at the 1st percentile, against a
+# MIN_RUN_SCORE of 0.86 and a winning run score of 0.9545 — and buys only 2.1x.
+# The antialiasing that a large render puts into the downsample is doing real
+# work in the soft-IoU comparison.
+#
+# So render once, at full quality, and keep the result. The store is memory
+# mapped, so a process reads only the glyphs it actually touches.
+_STORE_DIR = Path(__file__).resolve().parent / ".cache" / "glyphs"
+_STORE_GRID = _STORE_DIR / f"grid{GRID}.npy"
+_STORE_META = _STORE_DIR / f"grid{GRID}.json"
+_STORE: tuple[dict, object, list] | None = None
+# One build attempt per process. A failed build leaves the store absent, and
+# without this every run in the image would try again and fail again.
+_STORE_BUILD_TRIED = False
+
+
+def _store_key(font_path: Path, ch: str) -> str:
+    return f"{Path(font_path).name}|{ch}"
+
+
+def _load_store() -> tuple[dict, object, list]:
+    """Index, memory-mapped grids, aspects. Empty triple when unavailable."""
+    global _STORE
+    if _STORE is not None:
+        return _STORE
+    try:
+        meta = json.loads(_STORE_META.read_text(encoding="utf-8"))
+        grids = np.load(_STORE_GRID, mmap_mode="r")
+        _STORE = (meta["index"], grids, meta["aspect"])
+    except Exception:
+        _STORE = ({}, None, [])
+    return _STORE
+
+
+def build_glyph_store(
+    fonts: "list[Path] | None" = None, alphabet: str = ALPHABET
+) -> int:
+    """Render the corpus once and write it where later processes can read it.
+
+    Returns the number of glyphs stored. Safe to re-run: it rebuilds from
+    scratch, so adding fonts to the corpus means rebuilding, and a stale store
+    simply misses and falls back to rendering.
+    """
+    fonts = list(fonts if fonts is not None else font_corpus())
+    index: dict[str, int] = {}
+    aspects: list[float] = []
+    grids: list[np.ndarray] = []
+    for fp in fonts:
+        for ch in alphabet:
+            key = _store_key(fp, ch)
+            if key in index:
+                continue
+            g = _render_glyph(fp, ch)
+            n = _normalize(g) if g is not None else None
+            if n is None:
+                continue
+            index[key] = len(grids)
+            # Lossless, despite appearing not to be. _normalize divides a uint8
+            # bilinear resize by 255, so every value is exactly k/255 for an
+            # integer k, and k/255*255 recovers k for all 256 of them in
+            # float32. Checked rather than assumed: a store that shifted a
+            # glyph by one level could move a match, and nothing would say so.
+            grids.append((n[0] * 255.0).astype(np.uint8))
+            aspects.append(float(n[1]))
+    if not grids:
+        return 0
+    _STORE_DIR.mkdir(parents=True, exist_ok=True)
+    # Write then rename. A reader that catches a half-written store would not
+    # fail loudly — it would match against whatever glyphs happened to be in
+    # it, and quietly choose a different font.
+    tmp_grid = _STORE_GRID.with_suffix(".npy.tmp")
+    tmp_meta = _STORE_META.with_suffix(".json.tmp")
+    np.save(tmp_grid, np.stack(grids))
+    tmp_meta.write_text(
+        json.dumps({"index": index, "aspect": aspects}), encoding="utf-8"
+    )
+    tmp_grid.replace(_STORE_GRID)
+    tmp_meta.replace(_STORE_META)
+    global _STORE
+    _STORE = None
+    return len(grids)
+
 
 def _glyph_norm(font_path: Path, ch: str) -> tuple[np.ndarray, float] | None:
     key = (str(font_path), ch)
     if key not in _GLYPH_CACHE:
-        g = _render_glyph(font_path, ch)
-        _GLYPH_CACHE[key] = _normalize(g) if g is not None else None
+        index, grids, aspects = _load_store()
+        row = index.get(_store_key(font_path, ch)) if grids is not None else None
+        if row is not None:
+            arr = np.asarray(grids[row], dtype=np.float32) / 255.0
+            _GLYPH_CACHE[key] = (arr, float(aspects[row]))
+        else:
+            g = _render_glyph(font_path, ch)
+            _GLYPH_CACHE[key] = _normalize(g) if g is not None else None
     return _GLYPH_CACHE[key]
 
 
@@ -264,6 +365,18 @@ def match_run(
         if n is None:
             return None
         norms.append(n)
+
+    # First run on a machine pays to render the corpus; every run after it
+    # reads the store instead. Without this the store only ever exists if
+    # somebody builds it by hand, and logo_vectorize.py — a fresh process per
+    # logo — would keep paying full price forever.
+    global _STORE_BUILD_TRIED
+    if not _STORE_BUILD_TRIED and _load_store()[1] is None:
+        _STORE_BUILD_TRIED = True
+        try:
+            build_glyph_store(fonts, alphabet)
+        except Exception:
+            pass
 
     best: RunMatch | None = None
     n = len(norms)
