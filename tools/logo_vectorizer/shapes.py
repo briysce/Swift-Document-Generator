@@ -37,6 +37,10 @@ Two rules, in order:
    noise decides, and a circle degrades into an ellipse that merely remembers
    the wobble.
 
+   "When both fit" is the load-bearing clause, and it is enforced — see
+   `best_fit`. Clearing the coverage floor is not the same as fitting: the
+   floor is a minimum, and on small elements it drops to 0.80.
+
 Everything fails open: no confident fit returns None and the caller falls back
 to tracing the element normally.
 """
@@ -60,6 +64,22 @@ COVERAGE_SLACK = 1.6
 # loss" to explain a poor fit, so it must clear STRICT_COVERAGE instead.
 COMPLEXITY_LIMIT = 2.2
 STRICT_COVERAGE = 0.985
+# How much of the boundary, at each end of each axis, a consensus rectangle may
+# leave outside itself. Several are tried and coverage picks the winner, which
+# is what makes this safe: a trim that cuts into a real side loses ink and is
+# rejected on the spot.
+#
+# A ladder rather than one value, because a handful of crumbs is a handful
+# whether the bar is 300px or 3000px long, while a *fraction* of the outline is
+# not. At 0.004 the Swift bar's 6,150-point outline discards 24 points and
+# sheds its 3 crumbs, but the same fraction of a 680-point outline is fewer
+# points than those crumbs contribute, and the trim silently does nothing.
+RECT_TRIMS = (0.0, 0.002, 0.005, 0.012, 0.025)
+# How much of a constrained shape's leftover error a freer shape must remove
+# before it is allowed to outrank it, and how much error there has to be before
+# the question is worth asking at all. See `rank`.
+ERROR_REDUCTION_TO_OUTRANK = 0.70
+MATERIAL_ERROR = 0.02
 # Free parameters per shape — the tie-break toward the stronger claim.
 _DOF = {
     "circle": 3,
@@ -350,8 +370,81 @@ def fit_ellipse(mask: np.ndarray) -> ShapeFit | None:
     return ShapeFit("ellipse", markup, _coverage(mask, rendered), residual)
 
 
+def _principal_angle(mask: np.ndarray) -> float | None:
+    """Orientation of the element's own mass, in degrees.
+
+    `cv2.minAreaRect` derives its angle from the *extremes* of the boundary, so
+    a few stray pixels tilt it: three crumbs on a 300px bar rotated it by 0.28
+    degrees, which is 1.5px of smear across its length — enough to blur the
+    edges together and defeat any attempt to find them.
+
+    Second moments are mass-weighted instead, so those same three pixels move
+    this estimate by 0.02%. It is meaningless on a square, where the axes are
+    degenerate, but that costs nothing: every candidate angle is judged by the
+    coverage it achieves, and a degenerate one simply loses.
+    """
+    ys, xs = np.nonzero(mask)
+    if len(xs) < 8:
+        return None
+    x = xs.astype(np.float64) - xs.mean()
+    y = ys.astype(np.float64) - ys.mean()
+    cov = np.cov(np.vstack([x, y]))
+    if not np.isfinite(cov).all():
+        return None
+    evals, evecs = np.linalg.eigh(cov)
+    vec = evecs[:, int(np.argmax(evals))]
+    ang = math.degrees(math.atan2(vec[1], vec[0]))
+    # A principal axis is a line, not an arrow: it points the same way at 0 and
+    # at 180 degrees. Returning the raw atan2 handed back -179.998 for a plainly
+    # horizontal bar, which then failed the axis-aligned test below and emitted
+    # a four-point <polygon> where a <rect> was sitting right there.
+    while ang <= -90.0:
+        ang += 180.0
+    while ang > 90.0:
+        ang -= 180.0
+    return float(ang)
+
+
+def _rect_corners(
+    ang_deg: float, u0: float, u1: float, v0: float, v1: float
+) -> np.ndarray:
+    """Corners of an axis-extent box, rotated back into image coordinates."""
+    t = math.radians(ang_deg)
+    c, s = math.cos(t), math.sin(t)
+    return np.array(
+        [
+            [u * c - v * s, u * s + v * c]
+            for u, v in ((u0, v0), (u1, v0), (u1, v1), (u0, v1))
+        ],
+        dtype=np.float64,
+    )
+
+
 def fit_rotated_rect(mask: np.ndarray) -> ShapeFit | None:
-    """Rectangle at any angle — covers bars, slabs and diagonal stripes."""
+    """Rectangle at any angle — covers bars, slabs and diagonal stripes.
+
+    Two estimates are tried, for the same reason `fit_circle` tries two.
+    `cv2.minAreaRect` is a *bounding* operation: it must enclose every last
+    boundary pixel, so a few antialiasing crumbs set the size of the whole
+    rectangle. On the solid Swift lockup the top bar is a clean 2980x89 slab
+    carrying two stray pixels one row above it and one row below — 3 pixels out
+    of 268,100 — and bounding them stretched the rectangle to 2980x91 down its
+    entire length, adding 6,152 phantom pixels and dropping coverage from
+    0.9993 to 0.9776. That fell under the gate, so the bar was refused and went
+    off to be traced as a curve instead of emitted as the rectangle it plainly
+    is. The identical bar in the non-solid variant, which happens to carry no
+    crumbs, was snapped correctly — the fit was passing by luck.
+
+    Crumbs are execution, not intent, so the other estimates take the extent
+    the *bulk* of the boundary agrees on and let the outliers fall outside.
+    The angle needs the same treatment: on a 300px bar those same three crumbs
+    tilt `minAreaRect` by 0.28 degrees, which smears its edges across 1.5px and
+    hides them from any trim taken in that frame.
+
+    The trimmed fit is kept only when it covers the element better. On a
+    genuine rectangle trimming can only cut real ink, so coverage drops and the
+    bounding fit stands.
+    """
     import cv2
 
     out = _outline(mask)
@@ -363,6 +456,45 @@ def fit_rotated_rect(mask: np.ndarray) -> ShapeFit | None:
         return None
     box = cv2.boxPoints(rect).astype(np.float64)
     rendered = _render_poly(mask.shape, box)
+    coverage = _coverage(mask, rendered)
+
+    # Candidate orientations: the bounding fit's own, the robust one, and a
+    # square-on snap. Extents are then read off at several trims. Nothing here
+    # is a decision — coverage picks the winner, and the bounding fit above is
+    # already in the running, so a genuine rectangle cannot be talked out of
+    # its real size.
+    angles = [ang]
+    pca = _principal_angle(mask)
+    if pca is not None:
+        angles.append(pca)
+    snapped = round(ang / 90.0) * 90.0
+    if abs(snapped - ang) > 1e-6:
+        angles.append(snapped)
+
+    seen: set[tuple[int, ...]] = set()
+    for cand_ang in angles:
+        t = math.radians(cand_ang)
+        cs, sn = math.cos(t), math.sin(t)
+        u = out[:, 0] * cs + out[:, 1] * sn
+        v = -out[:, 0] * sn + out[:, 1] * cs
+        for trim in RECT_TRIMS:
+            u0, u1 = float(np.quantile(u, trim)), float(np.quantile(u, 1.0 - trim))
+            v0, v1 = float(np.quantile(v, trim)), float(np.quantile(v, 1.0 - trim))
+            if (u1 - u0) < 3.0 or (v1 - v0) < 3.0:
+                continue
+            key = tuple(int(round(z * 4)) for z in (cand_ang, u0, u1, v0, v1))
+            if key in seen:
+                continue
+            seen.add(key)
+            trimmed = _rect_corners(cand_ang, u0, u1, v0, v1)
+            trendered = _render_poly(mask.shape, trimmed)
+            tcov = _coverage(mask, trendered)
+            if tcov > coverage:
+                box, rendered, coverage = trimmed, trendered, tcov
+                w, h = u1 - u0, v1 - v0
+                ang = cand_ang
+                mu, mv = (u0 + u1) / 2.0, (v0 + v1) / 2.0
+                cx, cy = mu * cs - mv * sn, mu * sn + mv * cs
 
     axis_aligned = (abs(ang) < 0.75) or (abs(abs(ang) - 90.0) < 0.75)
     square = abs(w - h) / max(w, h) < 0.02
@@ -385,7 +517,7 @@ def fit_rotated_rect(mask: np.ndarray) -> ShapeFit | None:
         kind = "rotated_rect"
 
     residual = _boundary_residual(out, box)
-    return ShapeFit(kind, markup, _coverage(mask, rendered), residual)
+    return ShapeFit(kind, markup, coverage, residual)
 
 
 def fit_regular_polygon(mask: np.ndarray) -> ShapeFit | None:
@@ -569,14 +701,66 @@ def best_fit(
     if not keep:
         return None
 
+    return rank(keep)
+
+
+def rank(cands: list[ShapeFit]) -> ShapeFit:
+    """Pick the winner among fits that have already passed the gates.
+
+    Split out from `best_fit` because this is a rule about evidence rather than
+    about geometry, and it is worth being able to exercise it on its own.
+    """
     # Most constrained first; coverage only breaks ties among equals.
-    keep.sort(key=lambda f: (f.dof, -f.coverage))
-    return keep[0]
+    keep = sorted(cands, key=lambda f: (f.dof, -f.coverage))
+    champion = keep[0]
+
+    # ...but "prefer the more constrained shape" is only sound between
+    # candidates that explain the element comparably, and clearing the coverage
+    # floor does not establish that — the floor is a minimum, and on a small
+    # element it relaxes all the way to 0.80. Ranking on degrees of freedom
+    # alone therefore let a rectangle covering 0.8000 beat a polygon covering
+    # 0.9728 on the same GCM element, and a rectangle covering 0.9611 beat a
+    # polygon that fitted *exactly*. That is not a stronger claim about intent,
+    # it is inventing regularity that was not there — the failure this module
+    # exists to avoid.
+    #
+    # So a freer shape outranks a tighter one only when it removes most of the
+    # error the tighter one leaves behind. Measuring the reduction as a
+    # fraction of that leftover, rather than as an absolute coverage gap, keeps
+    # the test meaningful at every element size: a 97px blurred dot where a
+    # circle reaches 0.8198 and a polygon 0.9406 is a polygon fitting blur, and
+    # the circle keeps it, while a rectangle at 0.9501 against a polygon at
+    # 0.9957 is a genuine misnaming and loses.
+    # The reduction is a fraction of what is left over, so it turns hair-trigger
+    # as that leftover approaches nothing: a rectangle covering 0.994 would be
+    # unseated by a polygon covering 0.9995, which is noise deciding again, in
+    # the other direction. A shape already covering better than MIN_COVERAGE has
+    # no material error left to explain, so the question is not asked.
+    for _ in range(len(keep)):
+        err = 1.0 - champion.coverage
+        if err < MATERIAL_ERROR:
+            break
+        better = [
+            f
+            for f in keep
+            if (f.coverage - champion.coverage) / err
+            >= ERROR_REDUCTION_TO_OUTRANK
+        ]
+        if not better:
+            break
+        better.sort(key=lambda f: (f.dof, -f.coverage))
+        if better[0] is champion:
+            break
+        champion = better[0]
+    return champion
 
 
 __all__ = [
+    "ERROR_REDUCTION_TO_OUTRANK",
+    "MATERIAL_ERROR",
     "ShapeFit",
     "best_fit",
+    "rank",
     "fit_circle",
     "fit_ellipse",
     "fit_rotated_rect",
