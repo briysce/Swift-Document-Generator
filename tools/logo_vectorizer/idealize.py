@@ -400,6 +400,41 @@ def _residual_is_tremor(
 # --------------------------------------------------------------------------
 
 
+def match_glyphs(els: list) -> dict[int, tuple[object, str]]:
+    """Name the letters, across the whole image at once.
+
+    A wordmark is set in one face, so deciding per element would throw away
+    the strongest evidence available — that six neighbours all agree on the
+    same font.
+
+    Separate from `_compose` because it is by far the most expensive thing in
+    the pipeline and it does not depend on how the unnamed elements are then
+    drawn. On a 301x77 mark a full pass costs 284s of a 284s run, and
+    `idealize_layered` builds two compositions, so leaving it inline meant
+    scanning the whole corpus twice to reach the same answer. Keys are indices
+    into `els` as given, so pass the list in its final order.
+    """
+    glyphs: dict[int, tuple[object, str]] = {}
+    try:
+        from .glyph_match import font_corpus, group_runs, match_run
+
+        corpus = font_corpus()
+        masks = [e.mask for e in els]
+        boxes = [e.bbox for e in els]
+        for run in group_runs(boxes):
+            if len(run) < 3:
+                continue
+            m = match_run(masks, run, corpus)
+            if m is None:
+                continue
+            for idx, ch in zip(m.indices, m.chars):
+                if ch:
+                    glyphs[idx] = (m.font, ch)
+    except Exception:
+        return {}
+    return glyphs
+
+
 def _compose(
     arr: np.ndarray,
     *,
@@ -415,6 +450,8 @@ def _compose(
     rdp_factor: float = 0.0025,
     adapt_to_damage: bool = True,
     source_path: "Path | None" = None,
+    els: "list | None" = None,
+    glyphs: "dict | None" = None,
 ) -> str | None:
     """One composition pass. `idealize_layered` picks between two of these."""
     if not have_potrace():
@@ -437,36 +474,21 @@ def _compose(
         except Exception:
             pass
 
-    els = elements_of(arr, max_layers=max_layers)
+    if els is None:
+        els = elements_of(arr, max_layers=max_layers)
+        if not els:
+            return None
+        # Back to front: within a layer, bigger first so shadows sit under
+        # letters. Glyph indices are positions in THIS order, so anything
+        # reusing a prepared list must sort before matching, not after.
+        els.sort(key=lambda e: (e.layer, -e.area))
     if not els:
         return None
 
     h, w = arr.shape[:2]
-    # Back to front: within a layer, bigger first so shadows sit under letters.
-    els.sort(key=lambda e: (e.layer, -e.area))
 
-    # Recognize letters across the whole image first. A wordmark is set in one
-    # face, so deciding per element would throw away the strongest evidence
-    # available — that six neighbours all agree on the same font.
-    glyphs: dict[int, tuple[object, str]] = {}
-    if match_fonts:
-        try:
-            from .glyph_match import font_corpus, group_runs, match_run
-
-            corpus = font_corpus()
-            masks = [e.mask for e in els]
-            boxes = [e.bbox for e in els]
-            for run in group_runs(boxes):
-                if len(run) < 3:
-                    continue
-                m = match_run(masks, run, corpus)
-                if m is None:
-                    continue
-                for idx, ch in zip(m.indices, m.chars):
-                    if ch:
-                        glyphs[idx] = (m.font, ch)
-        except Exception:
-            glyphs = {}
+    if glyphs is None:
+        glyphs = match_glyphs(els) if match_fonts else {}
 
     groups: list[str] = []
     for pos, el in enumerate(els):
@@ -618,6 +640,18 @@ def idealize_layered(arr: np.ndarray, **kw) -> str | None:
     form and is refused.
     """
     smooth_on = kw.pop("smooth_fit", True)
+
+    # Decompose and name the letters once. Both candidates draw the same
+    # elements and differ only in how the *unnamed* ones are fitted, so doing
+    # this per candidate scans the font corpus twice for one answer — 98% of
+    # the runtime on a small mark, paid twice.
+    els = elements_of(arr, max_layers=kw.get("max_layers", 6))
+    if not els:
+        return None
+    els.sort(key=lambda e: (e.layer, -e.area))
+    glyphs = match_glyphs(els) if kw.get("match_fonts", True) else {}
+    kw = {**kw, "els": els, "glyphs": glyphs}
+
     if not smooth_on:
         return _compose(arr, smooth_fit=False, **kw)
 
