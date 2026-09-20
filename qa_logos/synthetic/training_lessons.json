@@ -457,6 +457,20 @@
         "measurement",
         "improve-loop"
       ]
+    },
+    {
+      "id": "20260920T145300Z",
+      "ts": "2026-09-20T14:53:00Z",
+      "title": "Reconstruction clearing its gate does not mean it beats the alternative",
+      "lesson": "Ran the whole 18-pair corpus with LOGO_IDEALIZE=1 at --min-height 1200, against the confirmed 20260920T123110Z vectorize baseline. 14 of 18 were untouched (idealize declined and fell through). Of the 4 it accepted, all Swift: swift_orange_solid__blur_crush improved on both scales (+0.010 composite, +0.020 v2), swift_orange__import_combo got WORSE on both (-0.033, -0.038), and two improved composite while losing v2 (solid__downscale_jpeg +0.005/-0.033, solid__import_combo +0.017/-0.053). Swift anchors net: composite 0.9269 -> 0.9268 flat, composite_v2 0.9356 -> 0.9183, a 0.017 LOSS on the scale the suite says to judge 0.99-class fidelity on. The reconstruction path must stay opt-in.",
+      "do_not_regress": "An absolute IoU-vs-source gate does not predict the final score: candidates cleared 0.90 and still finished below what vtracer produced for the same pair. Accepting a reconstruction because it agrees with the source is not the same as it being the better restoration. The gate has to compare against the alternative actually available, which means building both candidates and scoring them, not thresholding one.",
+      "case_ids": [
+        "swift_orange"
+      ],
+      "tags": [
+        "idealize",
+        "gating"
+      ]
     }
   ],
   "run_snapshots": [
@@ -2025,8 +2039,71 @@
         "baseline": 0.7357,
         "vectorize": 0.7433
       }
+    },
+    {
+      "ts": "2026-09-20T14:20:01Z",
+      "run_id": "20260920T142001Z",
+      "min_height": 1200,
+      "engines": [
+        "vectorize"
+      ],
+      "mean_composite": 0.7432,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "vectorize",
+          "composite": 0.5045,
+          "ink_iou": 0.2249,
+          "palette_fidelity": 0.387,
+          "alpha_clean": 0.9977,
+          "aspect_drift": 0.0621
+        },
+        {
+          "pair_id": "trialta__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.5373,
+          "ink_iou": 0.2688,
+          "palette_fidelity": 0.3123,
+          "alpha_clean": 0.9705,
+          "aspect_drift": 0.0241
+        },
+        {
+          "pair_id": "propak__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.6542,
+          "ink_iou": 0.5901,
+          "palette_fidelity": 0.2258,
+          "alpha_clean": 0.9965,
+          "aspect_drift": 0.0404
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9268,
+      "engine_mean_composite": {
+        "vectorize": 0.7432
+      }
     }
   ],
-  "updated_at": "2026-09-20T12:38:19Z",
+  "updated_at": "2026-09-20T14:53:00Z",
   "entries": []
 }
