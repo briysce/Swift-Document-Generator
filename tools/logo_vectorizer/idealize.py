@@ -96,6 +96,10 @@ DEFAULT_DENOISE = 3           # median window at supersampled resolution
 # 0.0025 keeps the notch detail in the Swift S while removing the stair-steps;
 # larger rounds real form, smaller keeps the jaggedness it exists to remove.
 DEFAULT_RDP = 0.0025
+# Ceiling on RDP epsilon as a fraction of a contour's thinnest dimension.
+# Above roughly this, simplification starts removing the feature rather than
+# the noise on it.
+RDP_THIN_FRACTION = 0.02
 MIN_COMPONENT_PX = 24
 RECT_SNAP_TOLERANCE = 0.012   # fraction of the element's own bounding box
 
@@ -283,6 +287,21 @@ def _smooth_trace(
         if area < 24:
             continue
         factor = rdp_factor if rdp_factor > 0 else adaptive_rdp_factor(area, total)
+
+        # Simplification tolerance must stay well below the feature size, or it
+        # eats the feature. RDP is a fraction of *perimeter*, which is the wrong
+        # yardstick for a long thin shape: the Swift bars are 2981x93, so a
+        # perimeter-based epsilon lands near 4% of their height, and with the
+        # corner-cutting pass on top the bar leaves as a tapered wedge instead
+        # of a bar. Cap against the contour's own thinnest dimension so a bar
+        # keeps its parallel edges.
+        _x, _y, cw, ch = cv2.boundingRect(c)
+        thin = float(min(cw, ch))
+        if thin > 0:
+            peri = float(cv2.arcLength(c, True))
+            if peri > 0:
+                factor = min(factor, (thin * RDP_THIN_FRACTION) / peri)
+
         d = smooth_contour(c, rdp_factor=factor, chaikin_iters=2)
         if d:
             parts.append(d + " Z")
