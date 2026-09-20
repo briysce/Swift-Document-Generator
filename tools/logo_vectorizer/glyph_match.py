@@ -266,10 +266,32 @@ def match_run(
         norms.append(n)
 
     best: RunMatch | None = None
+    n = len(norms)
     for fp in fonts:
         chars: list[str] = []
-        scores: list[float] = []
-        for target, aspect in norms:
+        total = 0.0
+        pruned = False
+        for k, (target, aspect) in enumerate(norms):
+            # Branch and bound. The run's score is the mean over its elements,
+            # so a perfect 1.0 on every element still to come caps what this
+            # font can finish at. Once that cap cannot beat the incumbent —
+            # or cannot clear the threshold that would let any font be
+            # returned — the rest of the run is wasted work.
+            #
+            # This changes no answer, only how long it takes to reach it. It
+            # matters because the corpus is 1,459 fonts and most of them are
+            # hopeless on the first letter, while the loop was scoring all 66
+            # characters against every element of the run regardless: on a
+            # 301x77 mark, 284s of a 284s run, to match nothing.
+            cap = (total + (n - k)) / n
+            if best is not None:
+                if cap <= best.mean_score:
+                    pruned = True
+                    break
+            elif cap < min_run_score:
+                pruned = True
+                break
+
             bs, bc = 0.0, ""
             for ch in alphabet:
                 g = _glyph_norm(fp, ch)
@@ -284,10 +306,10 @@ def match_run(
                 if sc > bs:
                     bs, bc = sc, ch
             chars.append(bc)
-            scores.append(bs)
-        if not scores:
+            total += bs
+        if pruned or not chars:
             continue
-        mean = float(np.mean(scores))
+        mean = total / n
         if best is None or mean > best.mean_score:
             best = RunMatch(fp, chars, indices, mean)
     if best is None or best.mean_score < min_run_score:
