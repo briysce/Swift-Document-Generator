@@ -16,6 +16,7 @@ import argparse
 import os
 import sys
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -189,16 +190,101 @@ def _is_plate_mush(arr: np.ndarray) -> bool:
     return dens > 0.70
 
 
-def _try_idealize(
+AGREEMENT_BUDGET = 0.02
+"""How much agreement with the source a reconstruction may give up.
+
+Some loss is the point — the stair-steps and antialiasing crumbs it discards
+were never design, and they are still in the source it is measured against.
+Past this it is not cleaning the mark up, it is drawing a different one.
+"""
+
+
+@dataclass
+class Candidate:
+    """One finished restoration, with the two numbers that decide between them."""
+
+    name: str
+    finished: np.ndarray
+    svg: Path | None
+    agreement: float
+    ideality: float
+
+
+def _agreement(finished: np.ndarray, prepared: np.ndarray) -> float:
+    """Ink IoU against the source, measured at the source's own scale."""
+    h0, w0 = prepared.shape[:2]
+    small = np.asarray(
+        Image.fromarray(finished, "RGBA").resize((w0, h0), Image.Resampling.LANCZOS)
+    )
+    return float(ink_mask_iou(prepared, small))
+
+
+def _ideality(svg: Path | None) -> float:
+    """Reference-free vector quality, or 0.0 when there is no vector at all."""
+    if svg is None or not svg.is_file() or svg.stat().st_size < 32:
+        return 0.0
+    try:
+        from tools.logo_vectorizer.ideality import score_svg
+
+        return float(score_svg(svg).ideality)
+    except Exception:
+        return 0.0
+
+
+def _candidate(
+    name: str, png: Path, svg: Path | None, prepared: np.ndarray
+) -> Candidate:
+    finished = load_rgba(png)
+    return Candidate(
+        name=name,
+        finished=finished,
+        svg=svg if (svg is not None and svg.is_file() and svg.stat().st_size >= 32) else None,
+        agreement=_agreement(finished, prepared),
+        ideality=_ideality(svg),
+    )
+
+
+def _prefer_reconstruction(ideal: Candidate, traced: Candidate) -> bool:
+    """Should the reconstruction ship instead of the trace?
+
+    The gate this replaces asked one candidate a question about itself: does it
+    agree with its source by at least 0.90? Measured across the corpus that
+    answered wrong. Candidates cleared it and still finished below what the
+    tracing path produced for the same pair — swift_orange__import_combo went
+    0.9218 to 0.8889 — because agreeing with the source is simply not the same
+    question as being the better restoration, and no absolute threshold on the
+    first can answer the second.
+
+    An absolute bar is also unfair in the other direction. On a badly degraded
+    import the trace itself only reaches 0.26 to 0.59 agreement, so demanding
+    0.90 of the reconstruction refused it on exactly the inputs it was built
+    for.
+
+    Both problems come from judging one candidate alone, so judge them against
+    each other, on the two things that can be measured without the original
+    artwork:
+
+      * agreement — does it still say what the source said
+      * ideality  — is it built like something a designer drew
+
+    The reconstruction has to be better built AND not materially further from
+    the source. This is the same rule `idealize_layered` already uses to choose
+    between its own two fitters.
+    """
+    if ideal.ideality <= traced.ideality:
+        return False
+    return ideal.agreement >= traced.agreement - AGREEMENT_BUDGET
+
+
+def _build_idealize(
     prepared: np.ndarray,
-    dest: Path,
+    source: np.ndarray,
+    out_dir: Path,
     *,
     min_height: int,
-    svg_out: Path | None,
     source_path: Path | None = None,
-    target_iou: float = 0.90,
-) -> bool:
-    """Reconstruction path — rebuild the mark as designed geometry.
+) -> Candidate | None:
+    """Reconstruction candidate — rebuild the mark as designed geometry.
 
     Every other path in this file traces the boundary it is given: vtracer and
     potrace both answer "what curve follows these pixels?". That question has a
@@ -206,25 +292,20 @@ def _try_idealize(
     drawn as a rectangle arrives with a ragged edge, and a faithful trace
     faithfully reproduces the rag.
 
-    This path asks the other question — "what did someone draw?" — and emits
-    that instead: a rectangle as `<rect>`, a circle as `<circle>`, a letter as
-    the real outline from the font it was set in, and only what it cannot name
-    as a fitted curve. On the Swift lockup that replaces 28,643 traced anchors
-    with roughly 2,600, and the bars stop being curves that happen to look
-    straight.
+    This asks the other question — "what did someone draw?" — and emits that
+    instead: a rectangle as `<rect>`, a circle as `<circle>`, a letter as the
+    real outline from the font it was set in, and only what it cannot name as a
+    fitted curve.
 
-    When enabled it runs ahead of the sectional and vtracer paths, because
-    where it can name the geometry it is strictly the better answer. It
-    declines cleanly when it cannot, and those paths are untouched and still
-    run. It is off by default for now: the restore baseline this repo measures
-    against is a raster-similarity score, and a reconstruction is not built to
-    win a raster-similarity contest — it is built to be the drawing the raster
-    was a picture of.
-
-    The gate is the same one sectional must clear: the reconstruction has to
-    agree with the source ink. Reconstruction is allowed to discard flaws, not
-    to redraw the mark, and IoU against the prepared source is what tells those
-    two apart.
+    It is built from both the prepared raster and the untouched source, and the
+    closer of the two is kept. `prepare_for_engine` is tuned for tracing — it
+    knocks out plates, punches counters, strips halos and re-snaps the palette
+    — and that preprocessing cuts both ways here. On gcm__downscale_jpeg it
+    costs the reconstruction 0.9894 agreement down to 0.7835, because this
+    engine does its own layer decomposition and would rather have the original.
+    On propak and trialta, whose degraded alpha is genuinely broken, removing
+    the knockout collapses the result to near zero. Neither input wins
+    everywhere, so both are built and measured.
     """
     root = Path(__file__).resolve().parents[1]
     if str(root) not in sys.path:
@@ -232,19 +313,18 @@ def _try_idealize(
     try:
         from tools.logo_vectorizer.idealize import idealize_layered
         from tools.logo_vectorizer.sectional import rasterize_svg  # type: ignore
-    except Exception as e:  # noqa: BLE001 — fail-open, the old paths still run
+    except Exception as e:  # noqa: BLE001 — fail-open, tracing still runs
         print(f"idealize unavailable ({e})", file=sys.stderr)
-        return False
+        return None
 
-    with tempfile.TemporaryDirectory(prefix="swift_idealize_") as td:
-        td_path = Path(td)
-        svg_path = td_path / "out.svg"
-        png_path = td_path / "out.png"
+    best: Candidate | None = None
+    for tag, arr in (("prepared", prepared), ("source", source)):
+        svg_path = out_dir / f"ideal_{tag}.svg"
+        png_path = out_dir / f"ideal_{tag}.png"
         try:
-            svg = idealize_layered(prepared, source_path=source_path)
+            svg = idealize_layered(arr, source_path=source_path)
             if not svg:
-                print("idealize declined; fall through", file=sys.stderr)
-                return False
+                continue
             svg_path.write_text(svg, encoding="utf-8")
             rasterize_svg(
                 svg_path,
@@ -253,39 +333,30 @@ def _try_idealize(
                 background="transparent",
                 prefer_chrome=False,
             )
-            restored = load_rgba(png_path)
             finished = finalize_restore(
-                restored,
+                load_rgba(png_path),
                 prepared,
                 min_palette=0.14,
                 max_aspect_drift=0.20,
             )
-            h0, w0 = prepared.shape[:2]
-            small = np.asarray(
-                Image.fromarray(finished, "RGBA").resize(
-                    (w0, h0), Image.Resampling.LANCZOS
-                )
-            )
-            iou = float(ink_mask_iou(prepared, small))
-            if iou < target_iou:
-                print(
-                    f"idealize IoU {iou:.3f} < {target_iou}; fall through",
-                    file=sys.stderr,
-                )
-                return False
             if finished.shape[0] < min_height:
                 finished = _lanczos_to_height(finished, min_height)
                 finished = finalize_restore(
                     finished, prepared, min_palette=0.10, max_aspect_drift=0.25
                 )
-            save_rgba(dest, finished)
-            if svg_out is not None:
-                svg_out.write_text(svg, encoding="utf-8")
-            print(f"idealize accepted (iou={iou:.3f})", file=sys.stderr)
-            return True
+            save_rgba(png_path, finished)
+            cand = _candidate(f"idealize/{tag}", png_path, svg_path, prepared)
         except Exception as e:  # noqa: BLE001 — fail-open
-            print(f"idealize failed ({e}); fall through", file=sys.stderr)
-            return False
+            print(f"idealize from {tag} failed ({e})", file=sys.stderr)
+            continue
+        print(
+            f"idealize/{tag}: agreement={cand.agreement:.4f} "
+            f"ideality={cand.ideality:.4f}",
+            file=sys.stderr,
+        )
+        if best is None or cand.agreement > best.agreement:
+            best = cand
+    return best
 
 
 def _try_sectional_briyszier(
@@ -437,25 +508,50 @@ def convert(
         except Exception as exc:  # noqa: BLE001 — fail-open
             print(f"pre-polish skipped ({exc})", file=sys.stderr)
 
-    # Reconstruction first: when the engine can name the geometry it emits the
-    # shape a designer drew instead of a trace of what survived the raster.
-    # Off by default so the measured restore baseline cannot regress silently;
-    # --idealize or LOGO_IDEALIZE=1 turns it on.
-    if idealize or os.environ.get("LOGO_IDEALIZE", "").strip() in {
-        "1",
-        "true",
-        "yes",
-    }:
-        if _try_idealize(
-            prepared,
-            dest,
-            min_height=min_height,
-            svg_out=svg_out,
-            source_path=src,
-        ):
-            return dest
+    if not (
+        idealize
+        or os.environ.get("LOGO_IDEALIZE", "").strip() in {"1", "true", "yes"}
+    ):
+        return _build_traced(prepared, dest, min_height=min_height, svg_out=svg_out)
 
-    # briyszier sectional next for Swift / flat multi-color lockups (restore-
+    # Both candidates, then pick. See `_prefer_reconstruction`.
+    with tempfile.TemporaryDirectory(prefix="swift_compare_") as cmp_td:
+        cmp_path = Path(cmp_td)
+        t_png, t_svg = cmp_path / "traced.png", cmp_path / "traced.svg"
+        _build_traced(prepared, t_png, min_height=min_height, svg_out=t_svg)
+        traced = _candidate("traced", t_png, t_svg, prepared)
+
+        ideal = _build_idealize(
+            prepared,
+            source,
+            cmp_path,
+            min_height=min_height,
+            source_path=src,
+        )
+
+        winner = traced
+        if ideal is not None and _prefer_reconstruction(ideal, traced):
+            winner = ideal
+        print(
+            f"shipping {winner.name} "
+            f"(agreement={winner.agreement:.4f} ideality={winner.ideality:.4f})",
+            file=sys.stderr,
+        )
+        save_rgba(dest, winner.finished)
+        if svg_out is not None and winner.svg is not None:
+            svg_out.write_bytes(winner.svg.read_bytes())
+    return dest
+
+
+def _build_traced(
+    prepared: np.ndarray,
+    dest: Path,
+    *,
+    min_height: int,
+    svg_out: Path | None,
+) -> Path:
+    """The tracing path, exactly as it was: sectional, then vtracer, then Lanczos."""
+    # briyszier sectional first for Swift / flat multi-color lockups (restore-
     # safe settings). AI advisors are never required here — local vtracer +
     # Inkscape (ensemble) are the fallbacks when sectional declines.
     if _try_sectional_briyszier(
