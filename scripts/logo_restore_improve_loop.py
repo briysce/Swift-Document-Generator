@@ -301,6 +301,32 @@ def run_loop(
     summary_path = SYN / "improve_summary_latest.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
+    # Hand the run to Meedo-Me. Recording has to be automatic to compound: an
+    # advisor that only learns when someone remembers to tell it is an advisor
+    # that mostly does not learn. It reads the log we just appended to, judges
+    # any advice it gave on earlier runs, and records this one against the
+    # commit it ran on. Fail-open — a ledger problem must never fail a run that
+    # already produced its scores.
+    try:
+        # Running as `python scripts/logo_restore_improve_loop.py` puts
+        # scripts/ on sys.path, not the repo root, so the package import needs
+        # ROOT added explicitly. Without this the import fails and the
+        # fail-open below hides it — recording would silently never happen.
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from tools.logo_vectorizer.meedo_ledger import observe as _meedo_observe
+
+        led = _meedo_observe(note=f"improve loop {', '.join(engines)}")
+        if led.get("recorded"):
+            print(
+                f"\nMeedo-Me: recorded {led['run_id']} — "
+                f"{led.get('moved', 0)} case(s) moved, "
+                f"{led.get('resolved_proposals', 0)} earlier proposal(s) judged",
+                flush=True,
+            )
+    except Exception as e:  # pragma: no cover - never fail a scored run
+        print(f"\nMeedo-Me ledger skipped ({e})", flush=True)
+
     print("\n=== improve loop summary ===", flush=True)
     print(json.dumps({k: summary[k] for k in summary if k != "next"}, indent=2), flush=True)
     print("\nTop failures (fix next):", flush=True)
