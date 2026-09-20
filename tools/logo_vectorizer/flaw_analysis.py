@@ -23,9 +23,10 @@ on this repo's own anchors it ranks them backwards:
 
 Lower is supposed to mean better, and 0-100 is the nominal range. It calls the
 pristine logo the worst of the three. The package also needs three separate
-compatibility shims to run at all on current scikit-image and scipy. It is
-available through `brisque_score()` for comparison, but it is deliberately NOT
-part of the degradation score — a backwards signal is worse than no signal.
+compatibility shims to run at all on current scikit-image and scipy. It was
+removed outright rather than kept behind a flag: a signal nobody should act on
+is not worth the dependency, and leaving it reachable invites someone to wire it
+in later.
 
 Choosing the measures empirically
 ---------------------------------
@@ -203,45 +204,6 @@ def edge_softness(arr: np.ndarray) -> float:
 # --------------------------------------------------------------------------
 
 
-def brisque_score(arr: np.ndarray) -> float | None:
-    """imquality's BRISQUE, with the shims it needs on current deps.
-
-    Provided for comparison only. See the module docstring: it ranks flat
-    artwork backwards and is not part of `degradation`.
-    """
-    try:
-        import scipy
-        import skimage.color as C
-        import skimage.transform as T
-
-        if not hasattr(scipy, "ndarray"):
-            scipy.ndarray = np.ndarray  # libsvm predates its removal
-
-        _rs = T.rescale
-
-        def _rescale(image, scale, **kw):
-            if "multichannel" in kw:
-                mc = kw.pop("multichannel")
-                kw["channel_axis"] = -1 if (mc and getattr(image, "ndim", 2) == 3) else None
-            return _rs(image, scale, **kw)
-
-        T.rescale = _rescale
-        _g = C.rgb2gray
-
-        def _rgb2gray(a, *ar, **kw):
-            a = np.asarray(a)
-            return a if a.ndim == 2 else _g(a, *ar, **kw)
-
-        C.rgb2gray = _rgb2gray
-
-        import imquality.brisque as brisque
-
-        rgb = arr[:, :, :3] if arr.ndim == 3 else np.dstack([arr] * 3)
-        return float(brisque.score(Image.fromarray(rgb.astype(np.uint8), "RGB")))
-    except Exception:
-        return None
-
-
 def provenance(path: Path | None) -> dict:
     """ExifTool metadata: how this file was actually produced."""
     if path is None or not Path(path).is_file():
@@ -268,25 +230,6 @@ def provenance(path: Path | None) -> dict:
         "EncodingProcess", "YCbCrSubSampling", "Compression",
     )
     return {k: d[k] for k in keep if k in d}
-
-
-def detect_logo_regions(path: Path) -> list | None:
-    """Optional Logodetect pass — locate logo regions inside a larger image.
-
-    Fail-open by design, exactly like the Real-ESRGAN / GFPGAN hooks in
-    `raster_polish`. Logodetect needs torch plus pretrained weights that it does
-    not bundle (its `models/` directory ships empty), so on a checkout without
-    them this returns None and the caller proceeds with the whole image.
-    """
-    try:
-        from logodetect.recognizer import Recognizer  # type: ignore
-    except Exception:
-        return None
-    try:
-        rec = Recognizer()
-        return rec.predict_image(str(path))  # pragma: no cover - needs weights
-    except Exception:
-        return None
 
 
 # --------------------------------------------------------------------------
@@ -346,7 +289,5 @@ __all__ = [
     "jpeg_blockiness",
     "ela_energy",
     "edge_softness",
-    "brisque_score",
     "provenance",
-    "detect_logo_regions",
 ]

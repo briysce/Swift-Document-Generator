@@ -222,6 +222,63 @@ def _paths_with_scale(text: str) -> list[tuple[str, float]]:
     return out
 
 
+
+_RECT = re.compile(r"<rect\b([^>]*)>")
+_CIRCLE = re.compile(r"<circle\b([^>]*)>")
+_ELLIPSE = re.compile(r"<ellipse\b([^>]*)>")
+_POLY = re.compile(r"<polygon\b([^>]*)>")
+
+
+def _attr(tag: str, name: str) -> float | None:
+    m = re.search(rf'\b{name}\s*=\s*"([-\d.eE]+)"', tag)
+    if not m:
+        return None
+    try:
+        return float(m.group(1))
+    except ValueError:
+        return None
+
+
+def _primitives(text: str, scale: float) -> list[tuple[int, float]]:
+    """Native primitive elements as (anchors, perimeter) in normalized units.
+
+    `<rect>`, `<circle>`, `<ellipse>` and `<polygon>` carry no `d` attribute, so
+    a path-only parser cannot see them at all. That is not a cosmetic gap: these
+    are the *most* ideal geometry the engine can emit — a rectangle is four
+    exact corners, a circle is one radius — and leaving them uncounted made
+    ideality DROP when a traced bar was replaced by a perfect rect, penalizing
+    precisely the outcome we want.
+    """
+    out: list[tuple[int, float]] = []
+    for tag in _RECT.findall(text):
+        w, h = _attr(tag, "width"), _attr(tag, "height")
+        if w and h:
+            out.append((4, 2.0 * (w + h) * scale))
+    for tag in _CIRCLE.findall(text):
+        r = _attr(tag, "r")
+        if r:
+            # Four on-curve anchors is how a circle is actually drawn in a
+            # vector editor (four quarter arcs).
+            out.append((4, 2.0 * math.pi * r * scale))
+    for tag in _ELLIPSE.findall(text):
+        rx, ry = _attr(tag, "rx"), _attr(tag, "ry")
+        if rx and ry:
+            out.append((4, math.pi * (3 * (rx + ry) - math.sqrt(
+                max((3 * rx + ry) * (rx + 3 * ry), 0.0))) * scale))
+    for tag in _POLY.findall(text):
+        m = re.search(r'\bpoints\s*=\s*"([^"]*)"', tag)
+        if not m:
+            continue
+        nums = [float(v) for v in re.findall(r"-?\d*\.?\d+", m.group(1))]
+        pts = np.asarray(nums[: len(nums) // 2 * 2], dtype=np.float64).reshape(-1, 2)
+        if len(pts) < 3:
+            continue
+        closed = np.vstack([pts, pts[:1]]) * scale
+        perim = float(np.hypot(*np.diff(closed, axis=0).T).sum())
+        out.append((len(pts), perim))
+    return out
+
+
 @dataclass
 class IdealityReport:
     anchors: int
@@ -258,11 +315,14 @@ def score_svg(svg_path: Path) -> IdealityReport:
             if len(poly) >= 3:
                 subpaths.append(np.asarray(poly, dtype=np.float64) * scale * local)
 
-    if not subpaths:
+    if not subpaths and not _primitives(text, scale):
         return IdealityReport(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
-    total_anchors = sum(len(p) for p in subpaths)
-    total_len = float(sum(_seg_lengths(p).sum() for p in subpaths))
+    prims = _primitives(text, scale)
+    total_anchors = sum(len(p) for p in subpaths) + sum(n for n, _ in prims)
+    total_len = float(sum(_seg_lengths(p).sum() for p in subpaths)) + float(
+        sum(L for _, L in prims)
+    )
     per_1k = (total_anchors / total_len * 1000.0) if total_len > 1e-9 else 0.0
 
     # --- anchor economy -------------------------------------------------
@@ -309,6 +369,9 @@ def score_svg(svg_path: Path) -> IdealityReport:
         if len(soft) >= 2:
             curv_jumps.append(float(np.abs(np.diff(soft)).mean()))
 
+    # Native primitives are exact by construction — a rect has no staircase and
+    # perfectly straight sides — so they count as clean boundary length.
+    prim_len = float(sum(L for _, L in prims))
     no_staircase = 1.0 - (step_hits / step_total) if step_total else 1.0
     straightness = (
         1.0 - min(1.0, float(np.mean(straight_res)) / math.radians(8.0))
@@ -320,6 +383,13 @@ def score_svg(svg_path: Path) -> IdealityReport:
         if curv_jumps
         else 1.0
     )
+    # Blend the traced measures toward perfect in proportion to how much of the
+    # drawing is native primitives rather than traced contour.
+    if total_len > 1e-9 and prim_len > 0:
+        w = min(1.0, prim_len / total_len)
+        straightness = straightness * (1.0 - w) + 1.0 * w
+        smoothness = smoothness * (1.0 - w) + 1.0 * w
+        no_staircase = no_staircase * (1.0 - w) + 1.0 * w
 
     ideality = float(
         0.35 * no_staircase

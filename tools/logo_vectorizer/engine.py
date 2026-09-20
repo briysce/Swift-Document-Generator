@@ -55,23 +55,32 @@ whole foreign packages. What was measured and kept:
   * potrace — corner detection plus Bézier fitting with curve optimization; the
     same engine behind Inkscape's Trace Bitmap.
   * Google Fonts — you can only recognize a face you have. `font_fetch` pulls a
-    real corpus; it lifted the Swift SUPPLY run from 0.608 to 0.851.
+    real corpus; with ~1,460 families cached the Swift SUPPLY run reads
+    correctly as "SUPPLY" in Orbitron.
   * Error Level Analysis (Forensically) — recompress and difference.
   * ExifTool — how the file was actually produced.
 
 What was measured and rejected, deliberately:
 
+  * LIVE / DiffVG / DeepSVG layer budget — built, measured, and removed. A
+    subtractive path budget dropped 13 paths out of 20,333 anchors and moved
+    mean ideality by -0.00012 across the degraded corpus: it was not earning
+    its place. Anchor economy is dominated by within-path node density, which
+    is `refine` and `smooth`'s job, not path removal. The render/compare/refine
+    idea from DiffVG survives where it actually pays — placing recognized
+    glyphs, in `glyph_match`.
+
   * BRISQUE (imquality) — trained on natural photographs; on this repo's own
     anchors it scores the clean logo 171.46 and the degraded ones 93.68/96.88,
-    ranking pristine artwork as the worst. A backwards signal is worse than
-    none. Reachable via `flaw_analysis.brisque_score` for comparison only.
+    ranking pristine artwork as the worst. Removed outright, along with the
+    package: a signal nobody should act on is not worth carrying.
   * YOLOv8 / Ultralytics — a COCO-pretrained detector cannot find circles,
     rectangles or glyphs without training. 1.2GB of torch for no gain here.
   * LogoGuard — a fake-logo classifier. Its task is brand authenticity, not
     raster reconstruction.
   * Logodetect — useful in principle for locating a logo inside a photo, but it
-    ships no weights (its `models/` is empty) and needs torch. Wired fail-open
-    in `flaw_analysis.detect_logo_regions` for a checkout that has them.
+    ships no weights (its `models/` is empty) and needs torch. The fail-open
+    stub was removed too; a hook that can never fire is documentation, not code.
 
 Legacy paths (still live)
 -------------------------
@@ -213,7 +222,6 @@ def reconstruct(
     match_fonts: bool = True,
     snap_primitives: bool = True,
     adapt_to_damage: bool = True,
-    compact_layers: bool = True,
     use_memory: bool = False,
     store_memory: bool = False,
 ) -> Reconstruction:
@@ -260,17 +268,6 @@ def reconstruct(
         )
     except Exception:
         svg = None
-
-    # Layer budget: drop anything that does not pay for itself, then settle
-    # placement against the source. Reverts itself if it would cost agreement.
-    if svg and compact_layers:
-        try:
-            from .layerwise import compact
-
-            res = compact(svg, arr)
-            svg = res.svg
-        except Exception:
-            pass
 
     ideality = 0.0
     if svg:

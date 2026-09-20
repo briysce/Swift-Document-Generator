@@ -56,6 +56,10 @@ import numpy as np
 MIN_COVERAGE = 0.972
 # How much of the theoretical boundary loss we tolerate on top of itself.
 COVERAGE_SLACK = 1.6
+# Above this isoperimetric ratio an element is too convoluted for "rasterization
+# loss" to explain a poor fit, so it must clear STRICT_COVERAGE instead.
+COMPLEXITY_LIMIT = 2.2
+STRICT_COVERAGE = 0.985
 # Free parameters per shape — the tie-break toward the stronger claim.
 _DOF = {
     "circle": 3,
@@ -111,20 +115,49 @@ def _boundary_residual(outline: np.ndarray, poly: np.ndarray) -> float:
     return float(np.mean(dists)) if dists else 0.0
 
 
-def _coverage_floor(mask: np.ndarray, pixel: float) -> float:
-    """Best coverage a *correct* primitive could reach on an element this size.
-
-    Rasterizing any smooth boundary costs roughly half a pixel along its whole
-    perimeter, so the achievable ceiling is 1 - (perimeter * 0.5 * pixel / area).
-    On a 400px circle that is a fraction of a percent; on a 44px circle it is
-    about 6%. Gate against this, not a constant, so small and large elements are
-    held to the same standard of fit rather than the same number.
-    """
+def _complexity(mask: np.ndarray) -> float:
+    """Isoperimetric ratio: 1.0 for a disc, higher the more convoluted."""
     import cv2
 
     area = float(mask.sum())
     if area <= 0:
+        return 99.0
+    cnts, _ = cv2.findContours(
+        mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+    )
+    if not cnts:
+        return 99.0
+    perim = float(max(cv2.arcLength(c, True) for c in cnts))
+    return (perim * perim) / (4.0 * math.pi * area)
+
+
+def _coverage_floor(mask: np.ndarray, pixel: float) -> float:
+    """The bar a primitive must clear before we believe it names this element.
+
+    Rasterizing a smooth boundary costs roughly half a pixel along its whole
+    perimeter, so a *correct* primitive on a small element cannot reach a high
+    coverage no matter how good the fit — a 44px circle tops out near 0.94.
+    That is why the bar is size-aware.
+
+    But that allowance only makes sense when the shortfall really is boundary
+    rasterization. On a convoluted element the shortfall is genuine shape
+    disagreement, and granting the same relaxation lets a crude polygon claim a
+    letterform: on the clean Swift lockup this accepted the S, W and T at
+    coverage 0.956-0.983 and destroyed 38% of the drawing's agreement with the
+    source (IoU 0.9998 -> 0.6128), flattening rounded terminals into straight
+    edges.
+
+    So the relaxation is granted only to elements that are actually simple,
+    judged by isoperimetric ratio. Anything convoluted must clear a high
+    absolute bar instead, which a genuine rectangle still does easily (the Swift
+    bars measure 0.9993) while an approximated letter does not.
+    """
+    area = float(mask.sum())
+    if area <= 0:
         return MIN_COVERAGE
+
+    import cv2
+
     cnts, _ = cv2.findContours(
         mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
     )
@@ -132,7 +165,13 @@ def _coverage_floor(mask: np.ndarray, pixel: float) -> float:
         return MIN_COVERAGE
     perim = float(max(cv2.arcLength(c, True) for c in cnts))
     loss = (perim * 0.5 * pixel) / area
-    return max(0.80, 1.0 - COVERAGE_SLACK * loss)
+    relaxed = max(0.80, 1.0 - COVERAGE_SLACK * loss)
+
+    # Simple enough for the rasterization allowance to be the honest
+    # explanation? A disc is 1.0; a rounded rect or regular polygon stays low.
+    if _complexity(mask) <= COMPLEXITY_LIMIT:
+        return relaxed
+    return max(relaxed, STRICT_COVERAGE)
 
 
 def _coverage(mask: np.ndarray, rendered: np.ndarray) -> float:
@@ -328,6 +367,13 @@ def fit_rotated_rect(mask: np.ndarray) -> ShapeFit | None:
     axis_aligned = (abs(ang) < 0.75) or (abs(abs(ang) - 90.0) < 0.75)
     square = abs(w - h) / max(w, h) < 0.02
     if axis_aligned:
+        # cv2.minAreaRect reports (w, h) in the rectangle's OWN frame, so at
+        # +/-90 degrees they are swapped relative to the screen axes. Emitting
+        # them unswapped turned the Swift bars — 2981x90 horizontals — into
+        # 89x2980 verticals positioned off-canvas at y=-1441, which quietly
+        # destroyed 38% of the drawing's agreement with the source.
+        if abs(abs(ang) - 90.0) < 0.75:
+            w, h = h, w
         x0, y0 = cx - w / 2.0, cy - h / 2.0
         markup = (
             f'<rect x="{_fmt(x0)}" y="{_fmt(y0)}" '
@@ -486,7 +532,12 @@ def best_fit(
     if mask.sum() < 40:
         return None
     scale = math.sqrt(float(mask.sum()))
-    min_coverage = min(min_coverage, _coverage_floor(mask, pixel))
+    # The floor already weighs both considerations — rasterization allowance for
+    # simple elements, a strict absolute bar for convoluted ones — so it IS the
+    # gate. Taking min() with the default picked the LOOSER of the two and
+    # defeated the strict branch entirely, which is how a Swift letter kept
+    # passing at 0.9831 against a 0.985 requirement.
+    min_coverage = _coverage_floor(mask, pixel)
 
     cands: list[ShapeFit] = []
     for fn in (

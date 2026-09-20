@@ -274,6 +274,8 @@ def _trace_mask(
 # --------------------------------------------------------------------------
 
 
+# Kept and exported for `shapes.best_fit`, which uses it as the last-resort
+# test when no primitive can be named.
 def _residual_is_tremor(
     residual: np.ndarray, scale: float, pixel: float = 1.0
 ) -> bool:
@@ -305,57 +307,6 @@ def _residual_is_tremor(
     # Lag-1 autocorrelation: high means smooth/systematic, low means noise.
     ac1 = float((r[:-1] * r[1:]).sum()) / denom
     return ac1 < 0.72
-
-
-def _circle_snap(el: Element) -> str | None:
-    """Emit an exact circle for an element a machine would have cut as one.
-
-    Fits a circle to the element's boundary and asks whether what is left over
-    is tremor. If so the intent was a circle, and a circle is what we emit —
-    every radius identical, rather than a Bézier chain that remembers the shake.
-    """
-    from scipy import ndimage
-
-    x0, y0, x1, y1 = el.bbox
-    bw, bh = (x1 - x0 + 1), (y1 - y0 + 1)
-    if bw < 8 or bh < 8:
-        return None
-    # A circle's bounding box is square; bail early otherwise.
-    if abs(bw - bh) / float(max(bw, bh)) > 0.06:
-        return None
-
-    edge = el.mask & ~ndimage.binary_erosion(el.mask, np.ones((3, 3), dtype=bool))
-    ys, xs = np.where(edge)
-    if len(xs) < 24:
-        return None
-    cx, cy = float(xs.mean()), float(ys.mean())
-    radii = np.hypot(xs - cx, ys - cy)
-    r_mean = float(radii.mean())
-    if r_mean <= 1e-6:
-        return None
-    # Order the boundary by angle so "consecutive" means adjacent on the rim;
-    # otherwise the autocorrelation test reads raster order, which is meaningless.
-    order = np.argsort(np.arctan2(ys - cy, xs - cx))
-    if not _residual_is_tremor(radii[order] - r_mean, r_mean):
-        return None
-    return f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r_mean:.2f}"/>'
-
-
-def _rect_snap(el: Element) -> str | None:
-    """Emit an exact rectangle for an element that is one in all but noise.
-
-    A bar traced as "nearly straight" still shows wobble at high zoom. When the
-    element genuinely fills its bounding box, the honest reconstruction is an
-    exact rectangle: mathematically straight edges rather than a Bézier
-    approximation of them.
-    """
-    x0, y0, x1, y1 = el.bbox
-    bw, bh = (x1 - x0 + 1), (y1 - y0 + 1)
-    if bw < 4 or bh < 4:
-        return None
-    if el.area / float(bw * bh) < (1.0 - RECT_SNAP_TOLERANCE):
-        return None
-    return f'<rect x="{x0}" y="{y0}" width="{bw}" height="{bh}"/>'
 
 
 # --------------------------------------------------------------------------
@@ -503,15 +454,9 @@ def idealize_layered(
     )
 
 
-def idealize_rgba(arr: np.ndarray, **kw) -> str | None:
-    """Alias for callers that do not care about the layering detail."""
-    return idealize_layered(arr, **kw)
-
-
 __all__ = [
     "Element",
     "have_potrace",
     "elements_of",
     "idealize_layered",
-    "idealize_rgba",
 ]

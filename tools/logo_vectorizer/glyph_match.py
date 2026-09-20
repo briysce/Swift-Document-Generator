@@ -22,9 +22,19 @@ Per-glyph matching alone is fragile — at low resolution an 'O' and a '0', or a
 'I' and an 'l', are genuinely ambiguous. Two things make it reliable:
 
 * **Scale-normalized shape comparison.** Both the element and the candidate
-  glyph are cropped to their ink and resampled to a common grid, so matching
-  does not depend on guessing point size, and a soft (anti-aliased) comparison
-  is used so a one-pixel boundary disagreement does not dominate the score.
+  glyph are cropped to their ink and resampled to a common *square* grid, so
+  matching depends on neither point size nor proportion, and a soft
+  (anti-aliased) comparison keeps a one-pixel boundary disagreement from
+  dominating the score.
+
+  This is also why aspect ratio must not be used as a hard reject. An earlier
+  version prefiltered candidates whose proportions differed by more than 0.22
+  in log space, which sounds harmless and was not: logos stretch and condense
+  type constantly, and the filter threw away correct glyphs on a dimension the
+  scorer had already normalized away. On the Swift SUPPLY lockup it dropped the
+  run from 0.9094 to 0.8538 and turned a correct "SUPPLY" into "suPPLY", by
+  rejecting the true uppercase match and leaving a wrong-case lookalike as the
+  best survivor. Aspect is now only a very loose sanity bound.
 
 * **Run-level agreement.** A wordmark is set in *one* face. Elements that share
   a baseline and cap height are grouped into a run, and the font is chosen to
@@ -54,6 +64,10 @@ GRID = 64
 MIN_GLYPH_SCORE = 0.82
 # Score a run must average before we replace traced geometry with font outlines.
 MIN_RUN_SCORE = 0.86
+# Loose sanity bound on proportion difference (log ratio). Comparison is already
+# scale- and proportion-normalized, so this only skips absurd candidates; a tight
+# value here silently rejects correct glyphs in stretched or condensed lockups.
+MAX_ASPECT_LOG_RATIO = 0.95
 ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&.-+"
 
 
@@ -181,11 +195,12 @@ def match_glyph(
             if g is None:
                 continue
             gnorm, gaspect = g
-            # Aspect is a cheap, strong prefilter: a glyph whose proportions are
-            # far off cannot be the same letter regardless of grid similarity.
+            # Loose sanity bound only — see the module docstring. Comparison is
+            # already proportion-independent, so this exists purely to skip
+            # absurd mismatches, not to judge shape.
             if aspect <= 0 or gaspect <= 0:
                 continue
-            if abs(math.log(aspect / gaspect)) > 0.22:
+            if abs(math.log(aspect / gaspect)) > MAX_ASPECT_LOG_RATIO:
                 continue
             sc = _soft_score(target, gnorm)
             if best is None or sc > best.score:
@@ -263,7 +278,7 @@ def match_run(
                 gnorm, gaspect = g
                 if aspect <= 0 or gaspect <= 0:
                     continue
-                if abs(math.log(aspect / gaspect)) > 0.22:
+                if abs(math.log(aspect / gaspect)) > MAX_ASPECT_LOG_RATIO:
                     continue
                 sc = _soft_score(target, gnorm)
                 if sc > bs:
@@ -330,18 +345,21 @@ def glyph_outline(
     x0, y0, x1, y1 = bbox
     tw, th = (x1 - x0 + 1), (y1 - y0 + 1)
     if refine_against is not None:
-        off = _refine_placement(refine_against, bbox, d, (gx0, gy0, gx1, gy1))
+        dx, dy, kx, ky, ang = _refine_placement(
+            refine_against, bbox, d, (gx0, gy0, gx1, gy1)
+        )
     else:
-        off = (0.0, 0.0, 1.0)
-    dx, dy, k = off
-    sx, sy = (tw * k) / gw, (th * k) / gh
+        dx, dy, kx, ky, ang = 0.0, 0.0, 1.0, 1.0, 0.0
+    sx, sy = (tw * kx) / gw, (th * ky) / gh
     # Font space is y-up with the origin on the baseline; SVG is y-down. Flip,
     # then map the glyph's own ink box onto the element's box.
     tx = x0 - gx0 * sx + dx
     ty = y0 + gy1 * sy + dy
+    cx, cy = x0 + tw / 2.0, y0 + th / 2.0
+    rot = f"rotate({ang:.3f} {cx:.3f} {cy:.3f}) " if abs(ang) > 1e-6 else ""
     return (
-        f'<path transform="translate({tx:.3f} {ty:.3f}) scale({sx:.5f} {-sy:.5f})" '
-        f'd="{d}"/>'
+        f'<path transform="{rot}translate({tx:.3f} {ty:.3f}) '
+        f'scale({sx:.5f} {-sy:.5f})" d="{d}"/>'
     )
 
 
@@ -376,41 +394,84 @@ def _refine_placement(
     bbox: tuple[int, int, int, int],
     d: str,
     gbounds: tuple[float, float, float, float],
-) -> tuple[float, float, float]:
-    """Nudge the glyph so it sits where the ink actually is.
+) -> tuple[float, float, float, float, float]:
+    """Overlay the real glyph on the raster and adjust until it fits.
 
-    Mapping the glyph's ink box onto the element's bounding box is a good first
-    guess, but the element's box came from a degraded raster whose edges have
-    bled or eroded by a pixel or two. Left uncorrected that shows up as a small
-    but real loss of agreement against the true artwork, so search a short
-    range of offsets and scales and keep whichever overlaps best.
+    This is the step a designer does by hand: drop the letter in the identified
+    face on top of the locked raster, then nudge, resize and re-angle it until
+    it sits exactly over the original, and only then throw the raster away. We
+    are not tracing the pixels — the geometry is already correct, drawn by a
+    type designer — so all that is left is to find the transform that lands it
+    in the right place.
+
+    The search covers translation, independent horizontal and vertical scale,
+    and rotation. Independent scale matters because logos stretch and condense
+    type constantly; rotation matters because plenty of lockups set text on an
+    angle, and without it a slanted wordmark can never be seated properly no
+    matter how good the glyph match is.
+
+    Coordinate descent over a handful of parameters, scored by overlap against
+    the element. Cheap enough to run per glyph, and it needs no autograd.
+
+    Returns (dx, dy, kx, ky, angle_degrees).
     """
     x0, y0, x1, y1 = bbox
     tw, th = (x1 - x0 + 1), (y1 - y0 + 1)
     gx0, gy0, gx1, gy1 = gbounds
     gw, gh = (gx1 - gx0), (gy1 - gy0)
     if gw <= 0 or gh <= 0:
-        return (0.0, 0.0, 1.0)
+        return (0.0, 0.0, 1.0, 1.0, 0.0)
+
+    cx, cy = x0 + tw / 2.0, y0 + th / 2.0
+    best = (0.0, 0.0, 1.0, 1.0, 0.0)
+
+    def score(params) -> float:
+        dx, dy, kx, ky, ang = params
+        sx, sy = (tw * kx) / gw, (th * ky) / gh
+        tx = x0 - gx0 * sx + dx
+        ty = y0 + gy1 * sy + dy
+        xf = (
+            (f"rotate({ang:.3f} {cx:.3f} {cy:.3f}) " if abs(ang) > 1e-6 else "")
+            + f"translate({tx:.3f} {ty:.3f}) scale({sx:.6f} {-sy:.6f})"
+        )
+        r = _render_path(d, xf, mask.shape)
+        if r is None:
+            return -1.0
+        union = np.logical_or(mask, r).sum()
+        return float(np.logical_and(mask, r).sum() / union) if union else 0.0
+
+    best_score = score(best)
+    if best_score < 0:
+        return best
 
     step = max(0.5, min(tw, th) * 0.02)
-    best = (0.0, 0.0, 1.0)
-    best_score = -1.0
-    for k in (0.97, 0.985, 1.0, 1.015, 1.03):
-        sx, sy = (tw * k) / gw, (th * k) / gh
-        for dx in (-step, 0.0, step):
-            for dy in (-step, 0.0, step):
-                tx = x0 - gx0 * sx + dx
-                ty = y0 + gy1 * sy + dy
-                r = _render_path(
-                    d, f"translate({tx:.3f} {ty:.3f}) scale({sx:.5f} {-sy:.5f})",
-                    mask.shape,
-                )
-                if r is None:
-                    return (0.0, 0.0, 1.0)
-                union = np.logical_or(mask, r).sum()
-                score = float(np.logical_and(mask, r).sum() / union) if union else 0.0
-                if score > best_score:
-                    best_score, best = score, (dx, dy, k)
+    # Order matters: seat the letter before stretching or turning it.
+    schedule = [
+        (0, step), (1, step),            # translate
+        (2, 0.03), (3, 0.03),            # stretch each axis
+        (4, 2.0),                        # rotate
+        (0, step / 2), (1, step / 2),
+        (2, 0.015), (3, 0.015),
+        (4, 0.75),
+    ]
+    for idx, delta in schedule:
+        improved = True
+        rounds = 0
+        while improved and rounds < 6:
+            improved = False
+            rounds += 1
+            for sign in (1.0, -1.0):
+                trial = list(best)
+                trial[idx] += sign * delta
+                # Keep the search physically sensible.
+                if idx in (2, 3) and not (0.75 <= trial[idx] <= 1.35):
+                    continue
+                if idx == 4 and abs(trial[idx]) > 30.0:
+                    continue
+                sc = score(tuple(trial))
+                if sc > best_score + 1e-6:
+                    best_score, best = sc, tuple(trial)
+                    improved = True
     return best
 
 
