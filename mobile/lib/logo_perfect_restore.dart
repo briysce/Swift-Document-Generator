@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'claude_client.dart';
+import 'restore_critic.dart';
 import 'gemini_client.dart';
 import 'logo_image_process.dart';
 import 'logo_vectorize.dart';
@@ -49,12 +50,17 @@ drop shadows, or stylized enhancements.
         'perfect_restore: no Claude key configured — Gemini self-critique only',
       );
     }
+    // Meedo-Me is a third, local opinion. It only votes when it actually
+    // answers: an unreachable runtime must not block a redraw that the hosted
+    // critics already agree on, and a missing verdict is never a pass.
+    final meedo = RestoreCritic();
 
     Uint8List? best;
     var bestScoreSum = -1;
     var verified = false;
     var geminiCritiqued = false;
     var claudeCritiqued = false;
+    var meedoCritiqued = false;
     var feedback = '';
     var attemptsUsed = 0;
     final startedEpoch = epoch;
@@ -81,17 +87,25 @@ drop shadows, or stylized enhancements.
 
       final geminiVerdict = await gemini.critiqueRestoreMatch(source, candidate);
       final claudeVerdict = await claude?.critiqueRestoreMatch(source, candidate);
+      final meedoVerdict = await meedo.critique(source, candidate);
       if (geminiVerdict != null) geminiCritiqued = true;
       if (claudeVerdict != null) claudeCritiqued = true;
+      if (meedoVerdict != null) meedoCritiqued = true;
 
       final geminiOk = geminiVerdict?.pass ?? false;
       // Claude is optional: when no key is configured, Gemini alone can verify.
       // When Claude is configured, both must pass.
       final claudeOk = !claudeConfigured || (claudeVerdict?.pass ?? false);
-      final scoreSum = (geminiVerdict?.score ?? -1) + (claudeVerdict?.score ?? 0);
+      // Meedo-Me only gets a vote when it answered. Adding a local critic must
+      // not make verification harder than it was before it existed.
+      final meedoOk = meedoVerdict == null || meedoVerdict.pass;
+      final scoreSum = (geminiVerdict?.score ?? -1) +
+          (claudeVerdict?.score ?? 0) +
+          (meedoVerdict?.score ?? 0);
       onLog?.call(
         'perfect_restore: gemini=${geminiVerdict?.score}/${geminiVerdict?.pass} '
-        'claude=${claudeConfigured ? '${claudeVerdict?.score}/${claudeVerdict?.pass}' : 'skipped'}',
+        'claude=${claudeConfigured ? '${claudeVerdict?.score}/${claudeVerdict?.pass}' : 'skipped'} '
+        'meedo=${meedoVerdict != null ? '${meedoVerdict.score}/${meedoVerdict.pass}' : 'unavailable'}',
       );
 
       if (scoreSum > bestScoreSum) {
@@ -99,7 +113,7 @@ drop shadows, or stylized enhancements.
         bestScoreSum = scoreSum;
       }
 
-      if (geminiOk && claudeOk) {
+      if (geminiOk && claudeOk && meedoOk) {
         best = candidate;
         verified = true;
         break;
@@ -108,6 +122,7 @@ drop shadows, or stylized enhancements.
       feedback = [
         ...?geminiVerdict?.issues,
         ...?claudeVerdict?.issues,
+        ...?meedoVerdict?.issues,
       ].where((e) => e.trim().isNotEmpty).join('; ');
       if (feedback.isEmpty) {
         feedback = 'Restored version drifted from the original — match it '
@@ -146,6 +161,7 @@ drop shadows, or stylized enhancements.
       attempts: attemptsUsed,
       geminiCritiqued: geminiCritiqued,
       claudeCritiqued: claudeCritiqued,
+      meedoCritiqued: meedoCritiqued,
       claudeConfigured: claudeConfigured,
     );
   }
@@ -160,6 +176,7 @@ class LogoPerfectRestoreResult {
     this.geminiCritiqued = false,
     this.claudeCritiqued = false,
     this.claudeConfigured = false,
+    this.meedoCritiqued = false,
   });
 
   /// Final raster — vectorized when possible, the accepted Gemini redraw
@@ -186,9 +203,18 @@ class LogoPerfectRestoreResult {
   /// Whether a Claude API key was available when the run started.
   final bool claudeConfigured;
 
+  /// True if Meedo-Me, the local critic, returned at least one verdict this
+  /// run. False simply means no runtime was reachable — it is not a failure,
+  /// and the hosted critics carry the decision on their own.
+  final bool meedoCritiqued;
+
   /// Short snack / UI label for which critics participated.
   String get criticsLabel {
+    if (claudeCritiqued && geminiCritiqued && meedoCritiqued) {
+      return 'Gemini + Claude + Meedo-Me';
+    }
     if (claudeCritiqued && geminiCritiqued) return 'Gemini + Claude';
+    if (geminiCritiqued && meedoCritiqued) return 'Gemini + Meedo-Me';
     if (geminiCritiqued && !claudeConfigured) return 'Gemini';
     if (geminiCritiqued) return 'Gemini (Claude unavailable)';
     return 'no critic response';
