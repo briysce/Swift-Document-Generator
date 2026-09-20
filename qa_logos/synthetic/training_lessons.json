@@ -382,6 +382,39 @@
         "ransac",
         "font-corpus"
       ]
+    },
+    {
+      "id": "20260920T071537Z",
+      "ts": "2026-09-20T07:15:37Z",
+      "title": "Simplify-then-fit beats tracing on clean bold artwork, and loses everywhere else",
+      "lesson": "potrace follows the pixel boundary faithfully, which means faithfully reproducing stair-steps: the Swift lockup traced to 28,643 anchors at 196.9 per 1k contour against 57 for the hand-built briysce wordmark. Replacing the tracer with RDP simplify -> Chaikin -> Catmull-Rom (smooth.py, which already existed and named SWIFT in its docstring but was never called by idealize) gives ~2,600 anchors at ~32/1k and ideality 0.5985 -> 0.8691 on swift_orange, 0.6277 -> 0.8502 on swift_orange_solid. Rendered at 3x the S becomes one continuous sweep where the source and potrace are both visibly staircased. BUT it wins only 1-2 cases in 17: on arc/gcm/propak (all <720px) it LOSES 0.08-0.11 because corner-cutting adds points on short contours RDP barely reduced, and on every degraded input it is far worse (0.55-0.70 vs potrace 0.75-0.84) because RDP+Chaikin on a noisy contour makes mush. So build both and keep the measured winner, guarded by shape agreement with a 0.06 budget.",
+      "do_not_regress": "never declare one fitter the winner from the Swift result alone; keep the build-both-and-measure chooser",
+      "case_ids": [
+        "swift_orange",
+        "swift_orange_solid",
+        "arc",
+        "propak"
+      ],
+      "tags": [
+        "idealize",
+        "smooth-fit",
+        "craftsmanship"
+      ]
+    },
+    {
+      "id": "20260920T071537Z",
+      "ts": "2026-09-20T07:15:37Z",
+      "title": "Simplification tolerance must never approach the feature size",
+      "lesson": "RDP epsilon in smooth.py is a fraction of PERIMETER, which is the wrong yardstick for a long thin shape. The Swift bars are 2981x93, so a perimeter-based epsilon lands near 4% of their height; with the corner-cutting pass on top the parallel edges converge and the bar leaves as a tapered wedge. Shape agreement caught it (0.893 vs potrace 0.9957) and the chooser refused the candidate, costing a real +0.22 ideality win until the cause was found. Fix: cap epsilon at 2% of each contour's own thinnest bounding dimension (RDP_THIN_FRACTION). swift_orange_solid smooth IoU then went 0.893 -> 0.9625 and the chooser accepted it. Related: the same bars ARE rect-snapped in swift_orange (2981x91) but not in swift_orange_solid (2981x93) because the letters touch them there and coverage drops below the strict gate \u2014 worth fixing separately so bars never reach the fitter at all. Also note potrace scored 0.996 raster agreement on that logo with visibly jagged edges: high raster agreement and good craftsmanship are different things.",
+      "do_not_regress": "RDP epsilon capped against contour thinnest dimension; bars must keep parallel edges",
+      "case_ids": [
+        "swift_orange_solid"
+      ],
+      "tags": [
+        "idealize",
+        "honest-limit",
+        "metric"
+      ]
     }
   ],
   "run_snapshots": [
@@ -1841,6 +1874,6 @@
       }
     }
   ],
-  "updated_at": "2026-09-20T04:54:33Z",
+  "updated_at": "2026-09-20T07:15:37Z",
   "entries": []
 }
