@@ -2116,8 +2116,71 @@
       "engine_mean_composite": {
         "vectorize": 0.7432
       }
+    },
+    {
+      "ts": "2026-09-20T17:45:11Z",
+      "run_id": "20260920T174511Z",
+      "min_height": 1200,
+      "engines": [
+        "vectorize"
+      ],
+      "mean_composite": 0.7567,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "vectorize",
+          "composite": 0.5045,
+          "ink_iou": 0.2249,
+          "palette_fidelity": 0.387,
+          "alpha_clean": 0.9977,
+          "aspect_drift": 0.0621
+        },
+        {
+          "pair_id": "trialta__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.5937,
+          "ink_iou": 0.279,
+          "palette_fidelity": 0.6436,
+          "alpha_clean": 0.9539,
+          "aspect_drift": 0.0494
+        },
+        {
+          "pair_id": "propak__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.6592,
+          "ink_iou": 0.4966,
+          "palette_fidelity": 0.3684,
+          "alpha_clean": 0.9917,
+          "aspect_drift": 0.0251
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9285,
+      "engine_mean_composite": {
+        "vectorize": 0.7567
+      }
     }
   ],
-  "updated_at": "2026-09-20T17:46:04Z",
+  "updated_at": "2026-09-20T18:34:02Z",
   "entries": []
 }
