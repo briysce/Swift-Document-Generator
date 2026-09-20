@@ -268,6 +268,73 @@
         "trialta__import_combo::vectorize": 0.5045,
         "trialta__import_combo::esrgan": 0.5228
       }
+    },
+    {
+      "run_id": "20260920T044325Z",
+      "ts": "2026-09-20T04:54:33Z",
+      "git_sha": "c5e6b02",
+      "git_subject": "Record every improve-loop run to Meedo-Me's ledger automatically",
+      "note": "improve loop baseline, vectorize, esrgan",
+      "mean_composite": 0.7384,
+      "anchor_mean": 0.9118,
+      "n_scored": 54,
+      "moved": {},
+      "cases": {
+        "arc__downscale_jpeg::baseline": 0.6431,
+        "arc__downscale_jpeg::vectorize": 0.717,
+        "arc__downscale_jpeg::esrgan": 0.6381,
+        "arc__blur_crush::baseline": 0.4463,
+        "arc__blur_crush::vectorize": 0.4461,
+        "arc__blur_crush::esrgan": 0.4722,
+        "arc__import_combo::baseline": 0.6628,
+        "arc__import_combo::vectorize": 0.6913,
+        "arc__import_combo::esrgan": 0.6691,
+        "gcm__downscale_jpeg::baseline": 0.8346,
+        "gcm__downscale_jpeg::vectorize": 0.8373,
+        "gcm__downscale_jpeg::esrgan": 0.797,
+        "gcm__blur_crush::baseline": 0.7299,
+        "gcm__blur_crush::vectorize": 0.733,
+        "gcm__blur_crush::esrgan": 0.7148,
+        "gcm__import_combo::baseline": 0.7505,
+        "gcm__import_combo::vectorize": 0.7513,
+        "gcm__import_combo::esrgan": 0.7839,
+        "propak__downscale_jpeg::baseline": 0.8018,
+        "propak__downscale_jpeg::vectorize": 0.7975,
+        "propak__downscale_jpeg::esrgan": 0.8347,
+        "propak__blur_crush::baseline": 0.6564,
+        "propak__blur_crush::vectorize": 0.6542,
+        "propak__blur_crush::esrgan": 0.7074,
+        "propak__import_combo::baseline": 0.6806,
+        "propak__import_combo::vectorize": 0.746,
+        "propak__import_combo::esrgan": 0.8163,
+        "swift_orange__downscale_jpeg::baseline": 0.9283,
+        "swift_orange__downscale_jpeg::vectorize": 0.9179,
+        "swift_orange__downscale_jpeg::esrgan": 0.6678,
+        "swift_orange__blur_crush::baseline": 0.9316,
+        "swift_orange__blur_crush::vectorize": 0.9312,
+        "swift_orange__blur_crush::esrgan": 0.9417,
+        "swift_orange__import_combo::baseline": 0.9117,
+        "swift_orange__import_combo::vectorize": 0.9218,
+        "swift_orange__import_combo::esrgan": 0.8843,
+        "swift_orange_solid__downscale_jpeg::baseline": 0.9275,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9313,
+        "swift_orange_solid__downscale_jpeg::esrgan": 0.9312,
+        "swift_orange_solid__blur_crush::baseline": 0.93,
+        "swift_orange_solid__blur_crush::vectorize": 0.9302,
+        "swift_orange_solid__blur_crush::esrgan": 0.9408,
+        "swift_orange_solid__import_combo::baseline": 0.933,
+        "swift_orange_solid__import_combo::vectorize": 0.9292,
+        "swift_orange_solid__import_combo::esrgan": 0.9231,
+        "trialta__downscale_jpeg::baseline": 0.531,
+        "trialta__downscale_jpeg::vectorize": 0.5373,
+        "trialta__downscale_jpeg::esrgan": 0.5803,
+        "trialta__blur_crush::baseline": 0.4419,
+        "trialta__blur_crush::vectorize": 0.4021,
+        "trialta__blur_crush::esrgan": 0.4242,
+        "trialta__import_combo::baseline": 0.5016,
+        "trialta__import_combo::vectorize": 0.5045,
+        "trialta__import_combo::esrgan": 0.5228
+      }
     }
   ],
   "proposals": [
@@ -465,7 +532,9 @@
       "headline": "arc__blur_crush::baseline has not moved and sits at 0.4463",
       "case": "arc__blur_crush::baseline",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     },
     {
       "run_id": "20260920T004154Z",
@@ -474,7 +543,9 @@
       "headline": "arc__blur_crush::esrgan has not moved and sits at 0.4722",
       "case": "arc__blur_crush::esrgan",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     },
     {
       "run_id": "20260920T004154Z",
@@ -483,7 +554,9 @@
       "headline": "arc__blur_crush::vectorize has not moved and sits at 0.4461",
       "case": "arc__blur_crush::vectorize",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     },
     {
       "run_id": "20260920T004154Z",
@@ -492,7 +565,9 @@
       "headline": "trialta__blur_crush::baseline has not moved and sits at 0.4419",
       "case": "trialta__blur_crush::baseline",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     },
     {
       "run_id": "20260920T004154Z",
@@ -501,7 +576,9 @@
       "headline": "trialta__blur_crush::esrgan has not moved and sits at 0.4242",
       "case": "trialta__blur_crush::esrgan",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     },
     {
       "run_id": "20260920T004154Z",
@@ -510,7 +587,9 @@
       "headline": "trialta__blur_crush::vectorize has not moved and sits at 0.4021",
       "case": "trialta__blur_crush::vectorize",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     },
     {
       "run_id": "20260920T004154Z",
@@ -519,7 +598,9 @@
       "headline": "trialta__import_combo::baseline has not moved and sits at 0.5016",
       "case": "trialta__import_combo::baseline",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     },
     {
       "run_id": "20260920T004154Z",
@@ -528,7 +609,9 @@
       "headline": "trialta__import_combo::vectorize has not moved and sits at 0.5045",
       "case": "trialta__import_combo::vectorize",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     },
     {
       "run_id": "20260920T004154Z",
@@ -537,7 +620,9 @@
       "headline": "trialta__blur_crush::vectorize: palette is gone, geometry survived",
       "case": "trialta__blur_crush::vectorize",
       "rationale": "palette_fidelity=0.003, ink_iou=0.2638. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     },
     {
       "run_id": "20260920T004154Z",
@@ -546,7 +631,9 @@
       "headline": "trialta__blur_crush::esrgan: palette is gone, geometry survived",
       "case": "trialta__blur_crush::esrgan",
       "rationale": "palette_fidelity=0.0, ink_iou=0.2207. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     },
     {
       "run_id": "20260920T004154Z",
@@ -555,7 +642,9 @@
       "headline": "trialta__blur_crush::baseline: palette is gone, geometry survived",
       "case": "trialta__blur_crush::baseline",
       "rationale": "palette_fidelity=0.0037, ink_iou=0.2712. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "open"
+      "status": "no_change",
+      "delta": 0.0,
+      "resolved_run": "20260920T044325Z"
     }
   ]
 }
