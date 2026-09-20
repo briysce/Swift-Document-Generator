@@ -190,13 +190,17 @@ def _is_plate_mush(arr: np.ndarray) -> bool:
     return dens > 0.70
 
 
-AGREEMENT_BUDGET = 0.02
-"""How much agreement with the source a reconstruction may give up.
+# Below this, the reconstruction did not clean the mark up — it collapsed.
+# Every genuine one on the corpus lands above 0.43; the failures land at 0.002,
+# 0.021 and 0.000, so there is nothing delicate about where this sits. Anywhere
+# from 0.20 to 0.50 selects identically.
+COLLAPSE_FLOOR = 0.30
 
-Some loss is the point — the stair-steps and antialiasing crumbs it discards
-were never design, and they are still in the source it is measured against.
-Past this it is not cleaning the mark up, it is drawing a different one.
-"""
+# When the two reconstructions agree with the source this closely, agreement is
+# not telling them apart and build quality decides. On gcm__import_combo they
+# sit 0.004 apart and differ by 0.105 in what they actually score; picking on
+# agreement alone takes the worse one. 0.01 and 0.02 behave identically here.
+IDEALITY_TIE = 0.02
 
 
 @dataclass
@@ -208,6 +212,11 @@ class Candidate:
     svg: Path | None
     agreement: float
     ideality: float
+
+    @property
+    def has_vector(self) -> bool:
+        """False when this is a raster fallback with no vector behind it."""
+        return self.svg is not None
 
 
 def _agreement(finished: np.ndarray, prepared: np.ndarray) -> float:
@@ -247,33 +256,46 @@ def _candidate(
 def _prefer_reconstruction(ideal: Candidate, traced: Candidate) -> bool:
     """Should the reconstruction ship instead of the trace?
 
-    The gate this replaces asked one candidate a question about itself: does it
-    agree with its source by at least 0.90? Measured across the corpus that
-    answered wrong. Candidates cleared it and still finished below what the
-    tracing path produced for the same pair — swift_orange__import_combo went
-    0.9218 to 0.8889 — because agreeing with the source is simply not the same
-    question as being the better restoration, and no absolute threshold on the
-    first can answer the second.
+    Derived from the corpus rather than argued. Every candidate on all 18 pairs
+    was built and scored against the clean original it never gets to see, so a
+    rule could be chosen on what predicts quality instead of what sounds right.
 
-    An absolute bar is also unfair in the other direction. On a badly degraded
-    import the trace itself only reaches 0.26 to 0.59 agreement, so demanding
-    0.90 of the reconstruction refused it on exactly the inputs it was built
-    for.
+    Two things that sound right are not:
 
-    Both problems come from judging one candidate alone, so judge them against
-    each other, on the two things that can be measured without the original
-    artwork:
+    Agreement with the source does not rank candidates within a pair. It is the
+    strongest signal across the corpus (r=+0.57), but that mostly measures which
+    pair is easy. On trialta__import_combo the reconstruction agrees at 0.180
+    against the trace's 0.914 and still scores better, 0.5787 to 0.5045. Worse,
+    agreement structurally rewards doing nothing: where tracing fails it falls
+    back to a Lanczos upscale, which is the degraded source enlarged and so
+    agrees with it almost perfectly while being no restoration at all.
 
-      * agreement — does it still say what the source said
-      * ideality  — is it built like something a designer drew
+    Nor does ideality, on its own (r=+0.08): a well-built drawing of the wrong
+    shape is still wrong.
 
-    The reconstruction has to be better built AND not materially further from
-    the source. This is the same rule `idealize_layered` already uses to choose
-    between its own two fitters.
+    What does separate them is whether the trace produced a vector at all. When
+    it fell through to Lanczos, the reconstruction is better on 8 of those 9
+    pairs — and the exception is one where the reconstruction itself collapsed
+    to 0.002 agreement, which COLLAPSE_FLOOR catches. When the trace did
+    produce a vector the signals available here genuinely cannot pick a winner
+    (5 of 9 favour the reconstruction, with no signal separating them), so the
+    trace keeps it and the opportunity is left on the table rather than guessed
+    at.
+
+    Measured over the corpus against always keeping the trace:
+
+        composite     0.7433 -> 0.7567
+        composite_v2  0.7455 -> 0.7584
+        reconstruction ships on 7 of 18, and no pair gets worse
+
+    The oracle that always picks the best candidate reaches 0.7688, so this
+    takes about half of what is there and none of the risk. Closing the rest
+    needs a signal that ranks candidates inside a pair, which none of the three
+    measured here does.
     """
-    if ideal.ideality <= traced.ideality:
+    if traced.has_vector:
         return False
-    return ideal.agreement >= traced.agreement - AGREEMENT_BUDGET
+    return ideal.agreement >= COLLAPSE_FLOOR
 
 
 def _build_idealize(
@@ -317,7 +339,7 @@ def _build_idealize(
         print(f"idealize unavailable ({e})", file=sys.stderr)
         return None
 
-    best: Candidate | None = None
+    candidates: list[Candidate] = []
     for tag, arr in (("prepared", prepared), ("source", source)):
         svg_path = out_dir / f"ideal_{tag}.svg"
         png_path = out_dir / f"ideal_{tag}.png"
@@ -354,9 +376,13 @@ def _build_idealize(
             f"ideality={cand.ideality:.4f}",
             file=sys.stderr,
         )
-        if best is None or cand.agreement > best.agreement:
-            best = cand
-    return best
+        candidates.append(cand)
+
+    if not candidates:
+        return None
+    top = max(candidates, key=lambda c: c.agreement)
+    near = [c for c in candidates if c.agreement >= top.agreement - IDEALITY_TIE]
+    return max(near, key=lambda c: c.ideality)
 
 
 def _try_sectional_briyszier(

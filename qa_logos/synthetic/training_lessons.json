@@ -471,6 +471,20 @@
         "idealize",
         "gating"
       ]
+    },
+    {
+      "id": "20260920T174604Z",
+      "ts": "2026-09-20T17:46:04Z",
+      "title": "Agreement with the source cannot rank restorations within a pair",
+      "lesson": "Built every candidate on all 18 pairs and scored each against the clean original, to choose the idealize gate on evidence. Agreement-vs-source is the strongest signal ACROSS the corpus (r=+0.57) and nearly useless WITHIN a pair: trialta__import_combo's reconstruction agrees at 0.180 against the trace's 0.914 and scores better (0.5787 vs 0.5045). It is also structurally biased toward doing nothing, because when tracing fails it falls back to a Lanczos upscale -- the degraded source enlarged -- which agrees with that source almost perfectly while being no restoration at all. Ideality alone is worse (r=+0.08). What separates them is whether the trace produced a vector at all: where it fell through to Lanczos the reconstruction wins 8 of 9, the exception being one where the reconstruction itself collapsed to 0.002 agreement. Rule: trace has no vector AND reconstruction did not collapse -> ship the reconstruction. Corpus composite 0.7433 -> 0.7567, v2 0.7455 -> 0.7584, 7 of 18, zero regressions, against an oracle ceiling of 0.7688.",
+      "do_not_regress": "Where the trace DID produce a vector, none of agreement, ideality or edge-ratio separates the winner (5 of 9 favour the reconstruction with no signal distinguishing them). Do not add a rule for that case without a signal that ranks candidates inside a pair -- guessing there costs real pairs.",
+      "case_ids": [
+        "gcm"
+      ],
+      "tags": [
+        "idealize",
+        "gating"
+      ]
     }
   ],
   "run_snapshots": [
@@ -2104,6 +2118,6 @@
       }
     }
   ],
-  "updated_at": "2026-09-20T14:53:00Z",
+  "updated_at": "2026-09-20T17:46:04Z",
   "entries": []
 }
