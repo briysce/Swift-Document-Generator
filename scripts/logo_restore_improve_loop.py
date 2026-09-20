@@ -159,6 +159,14 @@ def run_loop(
                 "recipe": pair.get("recipe"),
                 "seed": pair.get("seed"),
                 "engine": engine,
+                # Settings that change the numbers, recorded beside them.
+                # Without these a run is not comparable to any other run, and
+                # nothing says so: a re-run at --min-height 3000 read as a
+                # 0.0035 regression against a 1200 baseline until the configs
+                # were checked by hand. A score is only a score next to what
+                # produced it.
+                "min_height": int(min_h),
+                "engines": list(engines),
                 "anchor": bool(pair.get("anchor")),
                 "clean": pair["clean"],
                 "degraded": pair["degraded"],
@@ -236,6 +244,10 @@ def run_loop(
     summary = {
         "run_id": run_id,
         "ts": ts,
+        # See the per-row note: comparing two runs means nothing unless these
+        # match.
+        "min_height": int(min_h),
+        "engines": list(engines),
         "n_pairs": len(pairs),
         "n_rows": len(rows),
         "n_scored": len(scored),

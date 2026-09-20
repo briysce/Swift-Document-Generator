@@ -443,6 +443,20 @@
         "shapes",
         "ranking"
       ]
+    },
+    {
+      "id": "20260920T123213Z",
+      "ts": "2026-09-20T12:32:13Z",
+      "title": "A score is only a score next to the settings that produced it",
+      "lesson": "The improve loop recorded composite scores but nothing about the configuration behind them. Re-running with --engines baseline,vectorize --min-height 3000 and comparing against a history of --engines baseline,esrgan,vectorize --min-height 1200 runs showed Swift vectorize anchors at 0.9234 vs 0.9269 and read as a 0.0035 regression in the default path. It was not one: min_height feeds the Lanczos target, the SVG rasterize width and the scale the metrics are measured at, and the engine set changes anchor_mean_composite because that mean averages across engines. Nothing in the log said so, so the two runs looked comparable. min_height and the engine list are now recorded on every row and in the summary.",
+      "do_not_regress": "Never compare improve-loop runs without checking min_height and engines match; the loop's --min-height default is 1200 and the historical anchor baseline (vectorize Swift = 0.9269 composite / 0.9356 v2) was measured there.",
+      "case_ids": [
+        "swift_orange"
+      ],
+      "tags": [
+        "measurement",
+        "improve-loop"
+      ]
     }
   ],
   "run_snapshots": [
@@ -1900,8 +1914,68 @@
         "esrgan": 0.7361,
         "vectorize": 0.7433
       }
+    },
+    {
+      "ts": "2026-09-20T11:49:09Z",
+      "run_id": "20260920T114909Z",
+      "mean_composite": 0.7388,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.402,
+          "ink_iou": 0.2639,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9953,
+          "aspect_drift": 0.1264
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.271,
+          "palette_fidelity": 0.0041,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0065
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4459,
+          "ink_iou": 0.1904,
+          "palette_fidelity": 0.0424,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0805
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.446,
+          "ink_iou": 0.1904,
+          "palette_fidelity": 0.0427,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0805
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5017,
+          "ink_iou": 0.2247,
+          "palette_fidelity": 0.386,
+          "alpha_clean": 0.9973,
+          "aspect_drift": 0.0611
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9251,
+      "engine_mean_composite": {
+        "baseline": 0.7356,
+        "vectorize": 0.742
+      }
     }
   ],
-  "updated_at": "2026-09-20T11:25:43Z",
+  "updated_at": "2026-09-20T12:32:13Z",
   "entries": []
 }
