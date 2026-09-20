@@ -415,6 +415,34 @@
         "honest-limit",
         "metric"
       ]
+    },
+    {
+      "id": "20260920T112543Z",
+      "ts": "2026-09-20T11:25:43Z",
+      "title": "A bounding fit is the wrong estimator for a shape that carries damage",
+      "lesson": "cv2.minAreaRect must enclose every boundary pixel, so a handful of antialiasing crumbs sets the size AND the angle of the whole rectangle. Three stray pixels out of 268,100 stretched the solid Swift top bar from 2980x89 to 2980x91 down its entire length (coverage 0.9993 -> 0.9776, under the gate, bar refused and traced as a curve); on a shorter 300px bar the same three crumbs also tilted it 0.28 degrees, which smears the edges across 1.5px and defeats any trim taken in that frame. Fix both with consensus estimates -- extents from quantiles of the boundary, orientation from the element's own second moments -- and let rendered coverage pick among them with the bounding fit still in the running, so a genuine rectangle cannot be talked out of its real size. Same argument fit_circle already made for RANSAC over least squares.",
+      "do_not_regress": "Trim fractions do not scale down: 0.4% of a 6150-point outline sheds 3 crumbs, but 0.4% of a 680-point outline is fewer points than those crumbs contribute and the trim silently no-ops. Try a ladder of trims and let coverage choose.",
+      "case_ids": [
+        "swift_orange_solid"
+      ],
+      "tags": [
+        "shapes",
+        "consensus-fit"
+      ]
+    },
+    {
+      "id": "20260920T112543Z",
+      "ts": "2026-09-20T11:25:43Z",
+      "title": "Clearing the coverage floor is not the same as fitting",
+      "lesson": "best_fit ranked candidates by degrees of freedom on the principle that the more constrained shape is the stronger claim about intent -- but that principle is stated as 'when both fit within tolerance', and the code read it as 'both cleared the coverage floor'. The floor is a MINIMUM and relaxes to 0.80 on small elements, so a rect covering 0.8000 outranked a polygon covering 0.9728, and a rect covering 0.9611 outranked a polygon that fitted exactly. Gate the dof preference on the freer shape failing to remove most of the tighter one's leftover error, measured as a FRACTION of that leftover so the test means the same thing at every element size, and only while there is material error left -- otherwise it turns hair-trigger as coverage approaches 1 and noise decides in the other direction.",
+      "do_not_regress": "A relative-error criterion is meaningless once the leftover error is tiny; require the constrained shape to be leaving at least MATERIAL_ERROR uncovered before asking the question at all.",
+      "case_ids": [
+        "gcm"
+      ],
+      "tags": [
+        "shapes",
+        "ranking"
+      ]
     }
   ],
   "run_snapshots": [
@@ -1874,6 +1902,6 @@
       }
     }
   ],
-  "updated_at": "2026-09-20T07:15:37Z",
+  "updated_at": "2026-09-20T11:25:43Z",
   "entries": []
 }

@@ -189,6 +189,105 @@ def _is_plate_mush(arr: np.ndarray) -> bool:
     return dens > 0.70
 
 
+def _try_idealize(
+    prepared: np.ndarray,
+    dest: Path,
+    *,
+    min_height: int,
+    svg_out: Path | None,
+    source_path: Path | None = None,
+    target_iou: float = 0.90,
+) -> bool:
+    """Reconstruction path — rebuild the mark as designed geometry.
+
+    Every other path in this file traces the boundary it is given: vtracer and
+    potrace both answer "what curve follows these pixels?". That question has a
+    ceiling built into it, because the pixels carry the flaws. A bar that was
+    drawn as a rectangle arrives with a ragged edge, and a faithful trace
+    faithfully reproduces the rag.
+
+    This path asks the other question — "what did someone draw?" — and emits
+    that instead: a rectangle as `<rect>`, a circle as `<circle>`, a letter as
+    the real outline from the font it was set in, and only what it cannot name
+    as a fitted curve. On the Swift lockup that replaces 28,643 traced anchors
+    with roughly 2,600, and the bars stop being curves that happen to look
+    straight.
+
+    When enabled it runs ahead of the sectional and vtracer paths, because
+    where it can name the geometry it is strictly the better answer. It
+    declines cleanly when it cannot, and those paths are untouched and still
+    run. It is off by default for now: the restore baseline this repo measures
+    against is a raster-similarity score, and a reconstruction is not built to
+    win a raster-similarity contest — it is built to be the drawing the raster
+    was a picture of.
+
+    The gate is the same one sectional must clear: the reconstruction has to
+    agree with the source ink. Reconstruction is allowed to discard flaws, not
+    to redraw the mark, and IoU against the prepared source is what tells those
+    two apart.
+    """
+    root = Path(__file__).resolve().parents[1]
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    try:
+        from tools.logo_vectorizer.idealize import idealize_layered
+        from tools.logo_vectorizer.sectional import rasterize_svg  # type: ignore
+    except Exception as e:  # noqa: BLE001 — fail-open, the old paths still run
+        print(f"idealize unavailable ({e})", file=sys.stderr)
+        return False
+
+    with tempfile.TemporaryDirectory(prefix="swift_idealize_") as td:
+        td_path = Path(td)
+        svg_path = td_path / "out.svg"
+        png_path = td_path / "out.png"
+        try:
+            svg = idealize_layered(prepared, source_path=source_path)
+            if not svg:
+                print("idealize declined; fall through", file=sys.stderr)
+                return False
+            svg_path.write_text(svg, encoding="utf-8")
+            rasterize_svg(
+                svg_path,
+                png_path,
+                width=max(min_height, prepared.shape[1]),
+                background="transparent",
+                prefer_chrome=False,
+            )
+            restored = load_rgba(png_path)
+            finished = finalize_restore(
+                restored,
+                prepared,
+                min_palette=0.14,
+                max_aspect_drift=0.20,
+            )
+            h0, w0 = prepared.shape[:2]
+            small = np.asarray(
+                Image.fromarray(finished, "RGBA").resize(
+                    (w0, h0), Image.Resampling.LANCZOS
+                )
+            )
+            iou = float(ink_mask_iou(prepared, small))
+            if iou < target_iou:
+                print(
+                    f"idealize IoU {iou:.3f} < {target_iou}; fall through",
+                    file=sys.stderr,
+                )
+                return False
+            if finished.shape[0] < min_height:
+                finished = _lanczos_to_height(finished, min_height)
+                finished = finalize_restore(
+                    finished, prepared, min_palette=0.10, max_aspect_drift=0.25
+                )
+            save_rgba(dest, finished)
+            if svg_out is not None:
+                svg_out.write_text(svg, encoding="utf-8")
+            print(f"idealize accepted (iou={iou:.3f})", file=sys.stderr)
+            return True
+        except Exception as e:  # noqa: BLE001 — fail-open
+            print(f"idealize failed ({e}); fall through", file=sys.stderr)
+            return False
+
+
 def _try_sectional_briyszier(
     prepared: np.ndarray,
     dest: Path,
@@ -288,6 +387,7 @@ def convert(
     svg_out: Path | None = None,
     *,
     polish: bool = False,
+    idealize: bool = False,
 ) -> Path:
     if not src.is_file():
         raise FileNotFoundError(src)
@@ -337,7 +437,25 @@ def convert(
         except Exception as exc:  # noqa: BLE001 — fail-open
             print(f"pre-polish skipped ({exc})", file=sys.stderr)
 
-    # briyszier sectional first for Swift / flat multi-color lockups (restore-
+    # Reconstruction first: when the engine can name the geometry it emits the
+    # shape a designer drew instead of a trace of what survived the raster.
+    # Off by default so the measured restore baseline cannot regress silently;
+    # --idealize or LOGO_IDEALIZE=1 turns it on.
+    if idealize or os.environ.get("LOGO_IDEALIZE", "").strip() in {
+        "1",
+        "true",
+        "yes",
+    }:
+        if _try_idealize(
+            prepared,
+            dest,
+            min_height=min_height,
+            svg_out=svg_out,
+            source_path=src,
+        ):
+            return dest
+
+    # briyszier sectional next for Swift / flat multi-color lockups (restore-
     # safe settings). AI advisors are never required here — local vtracer +
     # Inkscape (ensemble) are the fallbacks when sectional declines.
     if _try_sectional_briyszier(
@@ -429,6 +547,14 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     p.add_argument(
+        "--idealize",
+        action="store_true",
+        help=(
+            "Reconstruct named geometry (rects, circles, real glyph outlines) "
+            "instead of tracing the boundary. Also via LOGO_IDEALIZE=1."
+        ),
+    )
+    p.add_argument(
         "--svg-out",
         type=str,
         default=None,
@@ -442,6 +568,7 @@ def main(argv: list[str] | None = None) -> int:
             args.min_height,
             Path(args.svg_out) if args.svg_out else None,
             polish=bool(args.polish),
+            idealize=bool(args.idealize),
         )
         print(out)
         return 0
