@@ -93,6 +93,39 @@ class AppConfig {
     defaultValue: '',
   );
 
+  /// Meedo-Me — our fork of Jan (Apache-2.0) and its Tokamak agent runtime.
+  /// Exposes an OpenAI-compatible API, so any compatible endpoint works.
+  ///
+  /// Desktop runs it locally. A phone has no local server, so Android builds
+  /// must point this at a reachable host, e.g.
+  /// `--dart-define=MEEDO_ME_BASE_URL=http://192.168.1.50:1337/v1`, or the
+  /// model-assisted features stay unavailable. No document generation depends
+  /// on them.
+  static const meedoMeBaseUrl = String.fromEnvironment(
+    'MEEDO_ME_BASE_URL',
+    defaultValue: '',
+  );
+
+  /// Optional bearer token. Not needed for a local runtime; set it when
+  /// Meedo-Me is shared over the network.
+  static const meedoMeApiKey = String.fromEnvironment(
+    'MEEDO_ME_API_KEY',
+    defaultValue: '',
+  );
+
+  /// Text model for Order Acknowledgement extraction.
+  static const meedoMeModel = String.fromEnvironment(
+    'MEEDO_ME_MODEL',
+    defaultValue: '',
+  );
+
+  /// Vision model for logo candidate judging. Kept separate so a text-only
+  /// install does not have to load a multimodal model it will never use.
+  static const meedoMeVisionModel = String.fromEnvironment(
+    'MEEDO_ME_VISION_MODEL',
+    defaultValue: '',
+  );
+
   /// Resolved Gemini API key for local recreate process env injection.
   /// Prefer [GeminiClient.resolveApiKey] at call sites.
   static String get geminiApiKey => geminiApiKeyDefine.trim();
