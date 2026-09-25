@@ -214,3 +214,14 @@ def test_accepting_advice_on_an_engine_lifts_the_block(tmp_path):
     decide(ids[1], "reject", "raster", path=led)
     decide(ids[2], "accept", "changed my mind", path=led)
     assert propose([Suggestion(2, "Fix d::esrgan", "x")], "r1", path=led) == 1
+
+
+def test_runs_can_be_rebuilt_from_the_ledger_when_the_log_is_gone(tmp_path):
+    """Fresh clones have no improve_log.jsonl; propose must not go silent."""
+    from tools.logo_vectorizer.meedo_ledger import _runs_from_ledger
+
+    led = tmp_path / "ledger.json"
+    observe(_runs(0.50, 0.60), path=led)
+    rebuilt = _runs_from_ledger(led)
+    assert [r.run_id for r in rebuilt] == ["r0", "r1"]
+    assert abs(rebuilt[-1].mean_composite() - 0.60) < 1e-9

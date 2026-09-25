@@ -381,6 +381,23 @@ def run_loop(
                 f"{led.get('resolved_proposals', 0)} earlier proposal(s) judged",
                 flush=True,
             )
+        # Fresh advice against this run so the next standup has something to
+        # decide. Without propose, Meedo-Me only judges old acceptances and
+        # never queues the next experiment — it cannot grow.
+        try:
+            from tools.logo_vectorizer.meedo_advisor import analyse, load_lessons, suggest
+            from tools.logo_vectorizer.meedo_advisor import load_runs as _meedo_runs
+            from tools.logo_vectorizer.meedo_ledger import propose as _meedo_propose
+
+            runs = _meedo_runs()
+            if runs:
+                n = _meedo_propose(
+                    suggest(analyse(runs, load_lessons()), load_lessons()),
+                    runs[-1].run_id,
+                )
+                print(f"Meedo-Me: queued {n} proposal(s) for standup", flush=True)
+        except Exception as e:  # pragma: no cover
+            print(f"Meedo-Me propose skipped ({e})", flush=True)
     except Exception as e:  # pragma: no cover - never fail a scored run
         print(f"\nMeedo-Me ledger skipped ({e})", flush=True)
 

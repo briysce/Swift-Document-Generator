@@ -627,6 +627,38 @@ def knowledge_report(path: Path | None = None) -> dict:
     }
 
 
+def _runs_from_ledger(path: Path | None = None) -> list[Run]:
+    """Rebuild Run objects from ledger observations when improve_log is absent.
+
+    The log is gitignored; agents on a fresh clone still need propose/standup.
+    Each observation's per-case composites become scored rows for analyse().
+    """
+    data = load(path)
+    out: list[Run] = []
+    for o in data.get("observations") or []:
+        rid = o.get("run_id") or ""
+        rows = []
+        for case, comp in (o.get("cases") or {}).items():
+            if "::" not in str(case):
+                continue
+            pair, engine = str(case).rsplit("::", 1)
+            slug = pair.split("__", 1)[0]
+            rows.append(
+                {
+                    "run_id": rid,
+                    "pair_id": pair,
+                    "slug": slug,
+                    "engine": engine,
+                    "anchor": slug.startswith("swift_orange"),
+                    "ok": True,
+                    "composite": float(comp),
+                }
+            )
+        if rows:
+            out.append(Run(rid, rows))
+    return out
+
+
 # --------------------------------------------------------------------------
 # cli
 # --------------------------------------------------------------------------
@@ -698,6 +730,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if a.command == "propose":
         runs = load_runs()
+        if not runs:
+            # Cloud/CI checkouts often lack gitignored improve_log.jsonl.
+            # Rebuild thin Run rows from the ledger so Meedo-Me can still
+            # advise instead of going silent ("no runs yet").
+            runs = _runs_from_ledger()
         if not runs:
             print("no runs yet")
             return 0

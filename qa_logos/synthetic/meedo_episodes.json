@@ -424,6 +424,27 @@
       ],
       "cases": [],
       "source": "manual"
+    },
+    {
+      "id": "E0020",
+      "ts": "2026-09-25T04:46:24Z",
+      "commit": "5d42fb4",
+      "workstream": "process",
+      "outcome": "success",
+      "problem": "Agents treated Meedo-Me as optional post-hoc critic; advice sat unread",
+      "first_read": "Meedo-Me is just another tool to call when convenient",
+      "evidence": "User directive 2026-09-25: keep Meedo-Me heavily involved so it can learn, grow, adapt, adjust, and experiment as project manager/assistant. Historical 28 ignored proposals scored hit-rate 0% while correct.",
+      "cause": "No standing rule forced standup\u2192decide\u2192recall\u2192review\u2192propose every cycle; improve loop observed but did not propose",
+      "fix": "",
+      "verified": "",
+      "method": "Always-apply cursor rule meedo-me-pm.mdc; CLAUDE.md cycle; improve loop auto-propose after observe; never leave open proposals undecided; accept only what will be acted on now.",
+      "tags": [
+        "meedo",
+        "pm",
+        "process"
+      ],
+      "cases": [],
+      "source": "manual"
     }
   ]
 }

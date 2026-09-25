@@ -158,3 +158,20 @@ triple when an icon shares the baseline.
 ### Element-count refinement
 Satellite check now ignores fragmented sketches (>4 compact crumbs) so JPEG
 noise cannot block a reconstruction Meedo-Me should prefer.
+
+
+---
+
+## 2026-09-25 — Meedo-Me as standing PM
+
+User: keep Meedo-Me heavily involved so it can learn, grow, adapt, adjust, and
+experiment as project manager / assistant.
+
+### Changes
+- `.cursor/rules/meedo-me-pm.mdc` (alwaysApply): standup→decide→recall→review→propose
+- `CLAUDE.md` cycle expanded; no undecided open proposals at cycle end
+- Improve loop auto-`propose` after `observe`
+- `propose` falls back to ledger observations when `improve_log.jsonl` is missing
+- Episode E0020 records the process rule
+- Standup cleared: accepted Swift solid import_combo bisect (e7f95947) as next;
+  rejected noise/deferred Arc/PROPAK with reasons so Meedo-Me learns
