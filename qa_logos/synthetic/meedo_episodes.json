@@ -314,6 +314,116 @@
       ],
       "cases": [],
       "source": "manual"
+    },
+    {
+      "id": "E0015",
+      "ts": "2026-09-25T04:23:50Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__downscale_jpeg/traced: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 32 ink elements, output has 8 (24 dropped) \u2014 small same-colour pieces are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0016",
+      "ts": "2026-09-25T04:25:02Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__plate_halo/traced: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 28 ink elements, output has 7 (21 dropped) \u2014 small same-colour pieces are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0017",
+      "ts": "2026-09-25T04:38:37Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__downscale_jpeg/idealize/prepared: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 4 small ink satellites, output has 1 (3 dropped) \u2014 dots/accents are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0018",
+      "ts": "2026-09-25T04:40:59Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__plate_halo/idealize/prepared: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 14 small ink satellites, output has 2 (12 dropped) \u2014 dots/accents are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0019",
+      "ts": "2026-09-25T04:44:28Z",
+      "commit": "bb2359c",
+      "workstream": "logo",
+      "outcome": "success",
+      "problem": "Trialta letterforms collapse to blobs; font match named nothing on clean TRIALTA",
+      "first_read": "glyph matching broken or fonts missing",
+      "evidence": "mixed-colour run gray TRI+green ALTA scored 0.807 < MIN_RUN_SCORE 0.86; colour-segregated runs scored 0.87\u20130.95 Oswald; icon fragments diluted gray TRI until contiguous subsequences recovered T,R,I",
+      "cause": "group_runs ignored fill colour, so two designed words were scored as one typesetting pass; baseline-sharing icon scrap diluted TRI",
+      "fix": "",
+      "verified": "",
+      "method": "Segregate glyph runs by colour family; filter hairlines; on failed runs try contiguous subsequences. Keep element_count on compact satellites only and skip when sketch has >4 (JPEG crumbs).",
+      "tags": [
+        "colour-run",
+        "font",
+        "glyph",
+        "trialta"
+      ],
+      "cases": [],
+      "source": "manual"
     }
   ]
 }

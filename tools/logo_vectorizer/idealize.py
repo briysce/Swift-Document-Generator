@@ -755,12 +755,15 @@ def match_glyphs(els: list) -> dict[int, tuple[object, str]]:
     the strongest evidence available — that six neighbours all agree on the
     same font.
 
-    Separate from `_compose` because it is by far the most expensive thing in
-    the pipeline and it does not depend on how the unnamed elements are then
-    drawn. On a 301x77 mark a full pass costs 284s of a 284s run, and
-    `idealize_layered` builds two compositions, so leaving it inline meant
-    scanning the whole corpus twice to reach the same answer. Keys are indices
-    into `els` as given, so pass the list in its final order.
+    Runs are segregated by colour family before matching. Trialta's "TRIALTA"
+    is gray TRI + green ALTA on one baseline; mixing them into a single run
+    dropped the mean below MIN_RUN_SCORE (0.807) and named nothing, while each
+    colour alone matches Oswald at 0.87–0.95. Colour is the designer's own
+    partition.
+
+    Hairline noise is filtered out, and if a run still fails (icon fragments
+    sharing the baseline), contiguous letter subsequences are tried — that is
+    what recovers gray TRI beside the Trialta mark.
     """
     glyphs: dict[int, tuple[object, str]] = {}
     try:
@@ -769,18 +772,93 @@ def match_glyphs(els: list) -> dict[int, tuple[object, str]]:
         corpus = font_corpus()
         masks = [e.mask for e in els]
         boxes = [e.bbox for e in els]
-        for run in group_runs(boxes):
-            if len(run) < 3:
+        for family in _colour_run_families(els):
+            fam = [i for i in family if _letterlike_element(els[i])]
+            if len(fam) < 3:
                 continue
-            m = match_run(masks, run, corpus)
-            if m is None:
-                continue
-            for idx, ch in zip(m.indices, m.chars):
-                if ch:
-                    glyphs[idx] = (m.font, ch)
+            fam_boxes = [boxes[i] for i in fam]
+            for local_run in group_runs(fam_boxes):
+                run = [fam[j] for j in local_run]
+                m = _best_run_match(masks, run, corpus, match_run)
+                if m is None:
+                    continue
+                for idx, ch in zip(m.indices, m.chars):
+                    if ch:
+                        glyphs[idx] = (m.font, ch)
     except Exception:
         return {}
     return glyphs
+
+
+def _letterlike_element(el) -> bool:
+    """Skip hairlines and scrap that share a baseline with real letters."""
+    x0, y0, x1, y1 = el.bbox
+    w, h = x1 - x0 + 1, y1 - y0 + 1
+    if w <= 2 or h <= 2:
+        return False
+    aspect = w / float(h)
+    if aspect >= 8.0 or aspect <= 0.12:
+        return False
+    return True
+
+
+def _best_run_match(masks, indices, corpus, match_run):
+    """Match a run; if polluted, try contiguous letter subsequences.
+
+    Trialta's gray family groups the logo icon with TRI. The full run fails
+    the score floor; the contiguous TRI triple alone clears it at ~0.95.
+    """
+    m = match_run(masks, indices, corpus)
+    if m is not None:
+        return m
+    if len(indices) <= 3:
+        return None
+    best = None
+    for i in range(len(indices)):
+        for j in range(i + 3, len(indices) + 1):
+            cand = match_run(masks, indices[i:j], corpus)
+            if cand is None:
+                continue
+            if best is None or cand.mean_score > best.mean_score:
+                best = cand
+    return best
+
+
+def _colour_run_families(els: list) -> list[list[int]]:
+    """Partition element indices into hue/neutral families for text runs."""
+    families: list[tuple[tuple[int, int, int], list[int]]] = []
+    for i, el in enumerate(els):
+        c = tuple(int(v) for v in el.colour[:3])
+        placed = False
+        for rep, members in families:
+            if _colours_same_family(rep, c):
+                members.append(i)
+                placed = True
+                break
+        if not placed:
+            families.append((c, [i]))
+    return [members for _rep, members in families]
+
+
+def _colours_same_family(a: tuple[int, int, int], b: tuple[int, int, int]) -> bool:
+    """Same brand fill for run grouping — hue family, or both near-neutral."""
+    import colorsys
+
+    def hsv(c):
+        r, g, b = (v / 255.0 for v in c)
+        return colorsys.rgb_to_hsv(r, g, b)
+
+    ha, sa, va = hsv(a)
+    hb, sb, vb = hsv(b)
+    # Neutrals: tight on value so gray TRI does not absorb near-black scrap
+    # (Trialta (96,96,96) vs (50,50,50) is Δv≈0.18).
+    if sa < 0.12 and sb < 0.12:
+        return abs(va - vb) <= 0.12
+    if sa < 0.12 or sb < 0.12:
+        return False
+    d = abs(ha - hb) * 360.0
+    d = min(d, 360.0 - d)
+    return d <= 28.0
 
 
 def _compose(

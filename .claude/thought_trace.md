@@ -130,3 +130,31 @@ is ready for that client.
 3. Outlines lumpy / wrong corners (GCM) — ideality-driven primitives.
 4. Trace wins over better reconstruction on PROPAK — selection signal.
 5. Oracle headroom — within-pair ranking when trace already produced a vector.
+
+
+---
+
+## 2026-09-25 — Anomaly #1 (Trialta letterforms)
+
+### Observation
+`match_glyphs` returned {} on clean Trialta despite Oswald matching TRI and ALTA
+perfectly in isolation. One baseline run mixed gray TRI + green ALTA + icon scrap;
+mean 0.807 < 0.86 floor.
+
+### Deduction
+Colour is the designer's partition of a wordmark. Runs must be colour-family
+segregated before font agreement. Contiguous subsequences recover a correct
+triple when an icon shares the baseline.
+
+### Experiment
+- `_colour_run_families` + hairline filter + `_best_run_match` subsequences.
+- Clean Trialta now names **TRIALTA** (7 glyphs). Idealize SVG emits `data-glyph`.
+- `LOGO_IDEALIZE=1` on `trialta__plate_halo`: composite **0.536 → 0.630**, palette
+  **0.370 → 0.906**. import_combo still keeps the trace (ideal agreement 0.229
+  below collapse floor; traced has a vector). downscale: ideal agrees more
+  (0.849 vs 0.829) but `_prefer_reconstruction` correctly keeps the vectorized
+  trace per the corpus-derived rule — within-pair ranking remains anomaly #5.
+
+### Element-count refinement
+Satellite check now ignores fragmented sketches (>4 compact crumbs) so JPEG
+noise cannot block a reconstruction Meedo-Me should prefer.
