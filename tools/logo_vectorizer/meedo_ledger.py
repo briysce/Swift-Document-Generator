@@ -115,6 +115,8 @@ def load(path: Path | None = None) -> dict:
     data.setdefault("observations", [])
     data.setdefault("proposals", [])
     _migrate(data)
+    if path is not None:
+        data["_path"] = str(path)
     return data
 
 
@@ -178,6 +180,7 @@ def _migrate(data: dict) -> None:
 
 def save(data: dict, path: Path | None = None) -> None:
     p = path or LEDGER
+    data.pop("_path", None)
     data["observations"] = data.get("observations", [])[-MAX_OBSERVATIONS:]
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
@@ -434,7 +437,21 @@ def _resolve_proposals(data: dict, current: Run) -> int:
         else:
             prop["status"] = "no_change"
         resolved += 1
+        # Every judged piece of advice becomes an episode on its own, so
+        # Meedo-Me learns what its advice does without anyone writing it down.
+        try:
+            from .meedo_episodes import from_judged_proposal
+
+            from_judged_proposal(prop, path=_episodes_path(data))
+        except Exception:
+            pass
     return resolved
+
+
+def _episodes_path(data: dict) -> Path | None:
+    """Episodes live beside whichever ledger is in use (tests use a temp one)."""
+    lp = data.get("_path")
+    return Path(lp).parent / "meedo_episodes.json" if lp else None
 
 
 def _score_at(data: dict, run_id: str, case: str) -> float | None:
@@ -647,10 +664,20 @@ def main(argv: list[str] | None = None) -> int:
             print("Meedo-Me standup: nothing awaiting a decision")
             return 0
         print(f"Meedo-Me standup — {len(waiting)} proposal(s) awaiting a decision")
+        try:
+            from .meedo_episodes import recall
+        except Exception:
+            recall = None
         for q in waiting:
             flag = "ESCALATED " if q.get("escalated") else ""
             print(f"  [{q['id']}] {flag}P{q.get('priority')} x{q.get('raised', 1)}  {q['headline']}")
             print(f"           {q.get('rationale', '')}")
+            # What Meedo-Me remembers about problems like this one.
+            if recall is not None:
+                for ep in recall(q["headline"] + " " + q.get("rationale", ""),
+                                 cases=[q.get("case", "")], top=1):
+                    if ep.get("method"):
+                        print(f"           remembered {ep['id']} ({ep['outcome']}): {ep['method'][:180]}")
         print("\ndecide with: python -m tools.logo_vectorizer.meedo_ledger decide <id> accept|reject \"<reason>\"")
         return 0
 

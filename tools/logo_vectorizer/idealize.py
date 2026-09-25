@@ -299,6 +299,84 @@ def _interior(mask: np.ndarray) -> float:
     return float(kept.sum()) / n
 
 
+# A layer whose average sits this far (L1 over RGB) from its densest ink is a
+# washed mixture, not a flat fill. On the corpus the washed layers measure 130
+# to 283 and the solid ones 19 to 84, and every gate from 90 to 130 selects the
+# same six layers.
+WASH_GAP = 110
+# How close to the page an element's average must sit to count as washed at all
+# (L1 over RGB, measured against the page colour, so it holds on a dark page as
+# well as a white one). Washed layers on the corpus sit 123-288 from the page;
+# every solid fill, clean or degraded, sits 405 or more.
+WASHED_NEAR_PAGE = 340
+
+
+def _unwash(rgb: np.ndarray, mask: np.ndarray, colour, paper) -> tuple[int, int, int]:
+    """The colour a designer would sample from a faded element: its densest ink.
+
+    Blur mixes ink with the page, and a layer's colour is the average of all
+    its pixels — edges included. A thick fill is mostly interior, so the average
+    is right. A thin element is mostly edge, so the average is washed toward the
+    page: PROPAK's red rule averages to (231,200,200), TRIALTA's green to
+    (65,248,164). Neutral elements are left as they are.
+
+    So, for an element that really is washed toward the page, the fill is taken
+    from its pixels furthest from the page — only among pixels of its own hue. Unconstrained, the densest pixels in
+    PROPAK's washed rule were bleed from the neighbouring BLUE letters, and the
+    "restored" red came out bluish grey. A neutral element may only get darker
+    or lighter, never gain a hue: a colour invented from grey is a recorded
+    failure of this engine.
+
+    Applied only when the average and the densest ink genuinely differ
+    (WASH_GAP). On a solid fill the densest pixels are JPEG darkening, and
+    sampling them pushed GCM's already-exact navy from 4 off to 86 off.
+
+    Measured against the clean masters: six layers change, mean error to the
+    intended colour falls from 55.5 to 39.8, none gets worse. What it cannot do
+    is recover a colour where no pixel is pure — PROPAK's rule is blurred below
+    full coverage everywhere, and goes from 337 off to 224, not to zero.
+    """
+    c = np.asarray(colour, dtype=np.int32)
+    to_page = int(np.abs(c - np.asarray(paper)).sum())
+    if to_page < 90:
+        return tuple(int(v) for v in colour)  # a counter or the page, not ink
+    if to_page > WASHED_NEAR_PAGE:
+        # Not washed: the average already sits well away from the page. Two
+        # tempting ways to find "purer" ink both fail on solid fills. The
+        # pixels furthest from the page include edges mixed with a DARK
+        # neighbour — on the clean PROPAK master that turned (199,48,47) into
+        # (50,15,14). The most chromatic pixels include the halos that
+        # prepare_for_engine oversaturates — that turned GCM's navy cyan. A
+        # solid fill's average is its colour; leave it.
+        return tuple(int(v) for v in colour)
+    px = rgb[mask].astype(np.int32)
+    if len(px) < 20:
+        return tuple(int(v) for v in colour)
+    hue0, chroma0 = _hue(colour)
+    mx, mn = px.max(axis=1), px.min(axis=1)
+    chroma = (mx - mn) / 255.0
+    if chroma0 < 0.06:
+        # Neutrals are left alone. None of the washed layers on the corpus is
+        # neutral, so a lightness restoration would have no evidence behind it
+        # — and leaving greys untouched keeps "never invent a colour from grey"
+        # true without exception.
+        return tuple(int(v) for v in colour)
+    r, g, b = (px[:, i].astype(np.float64) for i in range(3))
+    d = np.maximum(mx - mn, 1e-6)
+    h = np.where(mx == px[:, 0], ((g - b) / d) % 6,
+                 np.where(mx == px[:, 1], (b - r) / d + 2, (r - g) / d + 4)) * 60.0
+    dh = np.minimum(np.abs(h - hue0), 360.0 - np.abs(h - hue0))
+    own = (dh <= 30.0) & (chroma >= 0.06)
+    if own.sum() < 20:
+        return tuple(int(v) for v in colour)
+    px = px[own]
+    dist = np.abs(px - np.asarray(paper)).sum(axis=1)
+    core = np.median(px[dist >= np.quantile(dist, 0.80)], axis=0)
+    if int(np.abs(core - c).sum()) < WASH_GAP:
+        return tuple(int(v) for v in colour)
+    return tuple(int(round(v)) for v in core)
+
+
 def _quantize_layers(
     arr: np.ndarray, max_layers: int = 6, alpha_threshold: int = 128
 ) -> list[tuple[np.ndarray, tuple[int, int, int], int]]:
@@ -427,6 +505,9 @@ def _quantize_layers(
             m[ys[sel], xs[sel]] = True
             new_layers.append((m, c, int(m.sum())))
         layers = new_layers
+
+    # Faded elements get the colour their densest ink shows, not their average.
+    layers = [(m, _unwash(rgb, m, c, paper), n) for m, c, n in layers]
 
     layers.sort(key=lambda t: -t[2])
     return layers

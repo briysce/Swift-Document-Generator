@@ -348,6 +348,11 @@ def record(
         )
         data["reviews"] = reviews[-MAX_REVIEWS:]
         save(data, path)
+        if not rv.passed:
+            from .meedo_episodes import from_review_block
+
+            ep_path = Path(path).parent / "meedo_episodes.json" if path else None
+            from_review_block(case, candidate, [f.as_dict() for f in rv.findings], path=ep_path)
     except Exception:
         pass
 
