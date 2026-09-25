@@ -831,5 +831,34 @@
       "delta": 0.0,
       "resolved_run": "20260920T044325Z"
     }
+  ],
+  "reviews": [
+    {
+      "ts": "2026-09-25T03:09:17Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T03:09:17Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T03:09:18Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    }
   ]
 }

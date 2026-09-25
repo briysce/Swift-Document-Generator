@@ -115,6 +115,31 @@ def restore(engine: str, src: Path, dest: Path, min_h: int) -> tuple[bool, str]:
     raise ValueError(engine)
 
 
+def _meedo_review_final(out: Path, degraded: Path, *, case: str, engine: str, run_id: str) -> dict:
+    """Meedo-Me's verdict on a finished restoration, before it is reported.
+
+    The loop's own scores cannot be trusted to notice a deleted element: on the
+    three degraded GCM variants the reconstruction dropped the red monogram and
+    `composite` ranked those outputs ABOVE the correct ones, so they were
+    reported as the run's largest wins. Every output is now reviewed against the
+    sketch it came from, raw and prepared, and a blocked one says so on its row.
+
+    Fails open to "not reviewed" — never to "passed" and never by stopping a run.
+    """
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from logo_raster_finish import load_rgba, prepare_for_engine
+        from tools.logo_vectorizer.meedo_review import record, review
+
+        raw = load_rgba(degraded)
+        rv = review(out, prepare_for_engine(raw), raw)
+        record(rv, case=case, candidate=engine, run_id=run_id, context="report")
+        return {"passed": rv.passed, "findings": [f.as_dict() for f in rv.findings]}
+    except Exception as e:  # noqa: BLE001
+        return {"passed": None, "findings": [], "error": repr(e)[:160]}
+
+
 def run_loop(
     engines: list[str],
     min_h: int = 1200,
@@ -182,11 +207,16 @@ def run_loop(
                 # == 1.0) is what "0.99 fidelity" is actually measured on.
                 # Legacy `composite` stays untouched as the continuity guard.
                 entry.update(score_pair_v2(clean, out, metrics))
+                entry["meedo_review"] = _meedo_review_final(
+                    out, deg, case=str(pair.get("id")), engine=engine, run_id=run_id
+                )
             rows.append(entry)
             status = "ok" if ok else "FAIL"
             comp = entry.get("composite", "-")
+            mr = entry.get("meedo_review") or {}
+            flag = "  [BLOCKED by Meedo-Me]" if mr.get("passed") is False else ""
             print(
-                f"[{status}] {pair['id']} engine={engine} composite={comp} ({note})",
+                f"[{status}] {pair['id']} engine={engine} composite={comp} ({note}){flag}",
                 flush=True,
             )
 
@@ -252,6 +282,21 @@ def run_loop(
         "n_rows": len(rows),
         "n_scored": len(scored),
         "n_engine_fail": len(failed),
+        # A score next to a blocked output is not a result. These are listed
+        # so a "win" that deleted part of the logo is never read as one.
+        "meedo_blocked": [
+            {
+                "pair_id": r.get("pair_id"),
+                "engine": r.get("engine"),
+                "composite": r.get("composite"),
+                "why": [f["detail"] for f in (r.get("meedo_review") or {}).get("findings", [])],
+            }
+            for r in scored
+            if (r.get("meedo_review") or {}).get("passed") is False
+        ],
+        "meedo_reviewed": sum(
+            1 for r in scored if (r.get("meedo_review") or {}).get("passed") is not None
+        ),
         "mean_composite": round(float(np.mean([r["composite"] for r in scored])), 4)
         if scored
         else None,
@@ -348,6 +393,16 @@ def run_loop(
             f"iou={w['ink_iou']} palette={w['palette_fidelity']} alpha={w['alpha_clean']}",
             flush=True,
         )
+    blocked = summary.get("meedo_blocked") or []
+    print(
+        f"\nMeedo-Me review: {len(blocked)} of {summary.get('meedo_reviewed', 0)} "
+        "outputs blocked — their scores are not results",
+        flush=True,
+    )
+    for b in blocked:
+        print(f"  {b['pair_id']} / {b['engine']} (composite {b['composite']}):", flush=True)
+        for why in b["why"]:
+            print(f"      {why}", flush=True)
     print(f"\nAppended {len(rows)} rows -> {LOG.relative_to(ROOT)}", flush=True)
     print(summary["next"], flush=True)
     return summary

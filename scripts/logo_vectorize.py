@@ -212,6 +212,12 @@ class Candidate:
     svg: Path | None
     agreement: float
     ideality: float
+    review: object | None = None
+
+    @property
+    def passed_review(self) -> bool:
+        """Meedo-Me found nothing that disqualifies it (fails open if it could not look)."""
+        return self.review is None or bool(getattr(self.review, "passed", True))
 
     @property
     def has_vector(self) -> bool:
@@ -251,6 +257,28 @@ def _candidate(
         agreement=_agreement(finished, prepared),
         ideality=_ideality(svg),
     )
+
+
+def _meedo_review(cand: Candidate, prepared: np.ndarray, source: np.ndarray, case: str) -> Candidate:
+    """Have Meedo-Me check a candidate against the sketch it came from.
+
+    Failing open: if the reviewer cannot run, the candidate is judged as it
+    would have been without it. A missing reviewer must never block a restore.
+    """
+    root = Path(__file__).resolve().parents[1]
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    try:
+        from tools.logo_vectorizer.meedo_review import record, review
+
+        rv = review(cand.finished, prepared, source)
+        cand.review = rv
+        record(rv, case=case, candidate=cand.name, context="convert")
+        if not rv.passed:
+            print(f"{cand.name}: {rv.summary()}", file=sys.stderr)
+    except Exception as e:  # noqa: BLE001 — fail open
+        print(f"Meedo-Me review unavailable ({e})", file=sys.stderr)
+    return cand
 
 
 def _prefer_reconstruction(ideal: Candidate, traced: Candidate) -> bool:
@@ -380,6 +408,15 @@ def _build_idealize(
 
     if not candidates:
         return None
+    # Meedo-Me first. On gcm__downscale_jpeg the variant built from the raw
+    # source agreed with its sketch better (0.858 against 0.767) and had
+    # deleted the red monogram; agreement alone chose it. A variant that has
+    # dropped an element does not get to compete with one that has not.
+    case = source_path.stem if source_path is not None else "unknown"
+    candidates = [_meedo_review(c, prepared, source, case) for c in candidates]
+    clean = [c for c in candidates if c.passed_review]
+    if clean:
+        candidates = clean
     top = max(candidates, key=lambda c: c.agreement)
     near = [c for c in candidates if c.agreement >= top.agreement - IDEALITY_TIE]
     return max(near, key=lambda c: c.ideality)
@@ -555,9 +592,26 @@ def convert(
             source_path=src,
         )
 
+        _meedo_review(traced, prepared, source, src.stem)
+
+        # Identity first. A candidate Meedo-Me passed beats one it blocked,
+        # whatever the metric says: on arc__downscale_jpeg the trace drops the
+        # whole "RESOURCES LTD." line and still out-scores the reconstruction
+        # that kept it, because the score blends a missing element into one
+        # term among five. Only between two candidates that are both still the
+        # logo does the derived rule decide.
         winner = traced
-        if ideal is not None and _prefer_reconstruction(ideal, traced):
-            winner = ideal
+        if ideal is not None:
+            if ideal.passed_review and not traced.passed_review:
+                winner = ideal
+            elif ideal.passed_review and _prefer_reconstruction(ideal, traced):
+                winner = ideal
+        if not winner.passed_review:
+            print(
+                f"Meedo-Me: no candidate passed review; shipping {winner.name} "
+                "as the conservative default",
+                file=sys.stderr,
+            )
         print(
             f"shipping {winner.name} "
             f"(agreement={winner.agreement:.4f} ideality={winner.ideality:.4f})",

@@ -421,12 +421,21 @@ def knowledge_report(path: Path | None = None) -> dict:
         (k for k in knowledge.values() if k.never_moved),
         key=lambda k: k.latest,
     )
+    try:
+        from .meedo_review import catches
+
+        caught = catches(path)
+    except Exception:
+        caught = {"reviewed": 0, "blocked": 0, "by_check": {}, "recent_blocks": []}
     return {
         "cases_tracked": len(knowledge),
         "observations": len(load(path)["observations"]),
         "trend": trend(path),
         "hit_rate": hit_rate(path),
         "never_moved": [k.as_dict() for k in never[:10]],
+        # What Meedo-Me has stopped from shipping or being reported. The
+        # measure of the reviewer is here, not in any score.
+        "review": caught,
     }
 
 

@@ -211,6 +211,11 @@ HALO_ATTACHED = 0.60
 # Hue distance, in degrees, within which a rim counts as a fringe of the colour
 # it hugs rather than a colour of its own.
 HALO_HUE = 40.0
+# Chroma below which a colour has no hue worth grouping by. Above JPEG noise on
+# black, which reaches about 0.07 — (20,5,3) is still black — and below the
+# dark brand colours, whose chroma is low only because they are dark: GCM's deep
+# navy (1,12,38) is 0.145 and PROPAK's dark red edge (46,8,8) is 0.149.
+CHROMATIC = 0.10
 
 
 def _ramp_distance(colour: tuple[int, int, int], ends: list) -> float:
@@ -251,12 +256,20 @@ def _attached(mask: np.ndarray, others: np.ndarray) -> float:
 
 
 def _hue(colour) -> tuple[float, float]:
-    """(hue in degrees, saturation 0-1) of an RGB colour."""
+    """(hue in degrees, chroma 0-1) of an RGB colour.
+
+    Chroma, not HSV saturation. Saturation is (max-min)/max, which explodes as
+    a colour approaches black: (2,0,0) — black with a speck of noise — has
+    saturation 1.0 and hue 0, a "fully saturated red". Filed by hue, a thin
+    black shadow would join the orange family of the letters it sits under and
+    be absorbed as their fringe. Chroma is (max-min)/255, and near black it is
+    near zero, which is the truth.
+    """
     import colorsys
 
     r, g, b = (float(v) / 255.0 for v in colour)
-    h, s, _v = colorsys.rgb_to_hsv(r, g, b)
-    return h * 360.0, s
+    h, _s, _v = colorsys.rgb_to_hsv(r, g, b)
+    return h * 360.0, (max(colour) - min(colour)) / 255.0
 
 
 def _same_family(a, b) -> bool:
@@ -270,7 +283,7 @@ def _same_family(a, b) -> bool:
     """
     ha, sa = _hue(a)
     hb, sb = _hue(b)
-    if sa < 0.25 or sb < 0.25:
+    if sa < CHROMATIC or sb < CHROMATIC:
         return False
     d = abs(ha - hb) % 360.0
     return min(d, 360.0 - d) <= HALO_HUE
@@ -364,7 +377,7 @@ def _quantize_layers(
     )
     interiors = [_interior(m) for m, _, _ in field]
     keep = [True] * len(field)
-    chroma = [i for i in range(len(field)) if _hue(field[i][1])[1] >= 0.25]
+    chroma = [i for i in range(len(field)) if _hue(field[i][1])[1] >= CHROMATIC]
     cored = [i for i in chroma if interiors[i] >= MIN_INTERIOR]
     for i in chroma:
         if i in cored:
