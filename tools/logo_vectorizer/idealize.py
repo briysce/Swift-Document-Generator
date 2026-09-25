@@ -113,10 +113,189 @@ def have_potrace() -> bool:
 # --------------------------------------------------------------------------
 
 
+# Two bins closer than this, summed across channels, are the same colour. It is
+# the same radius every layer mask already uses, so a colour is grouped exactly
+# as widely as it is later collected.
+CLUSTER_RADIUS = 60
+
+
+def _colour_clusters(
+    vals: np.ndarray, counts: np.ndarray
+) -> list[tuple[np.ndarray, int]]:
+    """Group quantized colour bins into the colours a person would name.
+
+    Seeding layers from individual bins is what deleted the GCM monogram. JPEG
+    mottle smears a flat fill across dozens of neighbouring 5-bit bins, so the
+    red C — 3.1% of the image as a colour — arrived as dozens of bins that were
+    each under the 1% seed threshold, and none of them was ever allowed to start
+    a layer. A flat background, meanwhile, is one enormous bin. The rule was
+    rewarding flatness, not importance, and the paper won.
+
+    So bins are pooled first, heaviest first, each joining the nearest existing
+    colour within CLUSTER_RADIUS or starting its own. Weight is what a colour
+    adds up to, not what its single largest bin happens to hold.
+    """
+    order = np.argsort(-counts)
+    sums: list[np.ndarray] = []
+    totals: list[int] = []
+    for i in order:
+        key = int(vals[i])
+        col = np.array(
+            [(key >> 16) & 0xFF, (key >> 8) & 0xFF, key & 0xFF], dtype=np.float64
+        )
+        c = int(counts[i])
+        best, bd = -1, float("inf")
+        for j in range(len(sums)):
+            d = float(np.abs(sums[j] / totals[j] - col).sum())
+            if d < bd:
+                best, bd = j, d
+        if best >= 0 and bd <= CLUSTER_RADIUS:
+            sums[best] += col * c
+            totals[best] += c
+        else:
+            sums.append(col * c)
+            totals.append(c)
+    return [(s / t, t) for s, t in zip(sums, totals)]
+
+
+def _plate_colour(
+    rgb: np.ndarray, ink: np.ndarray, clusters: list[tuple[np.ndarray, int]]
+) -> int | None:
+    """Index of the cluster that is the paper, not the drawing — or None.
+
+    A logo flattened onto an opaque background arrives with that background
+    counted as ink. On gcm__downscale_jpeg the white page was 73% of all "ink"
+    and took the largest layer, which is how a 3% brand colour lost its place.
+
+    Paper is recognized by where it is and what it is: it owns most of the
+    image border, and it is nearly achromatic and near white or near black.
+    Both conditions matter. A brand colour can fill a background rectangle
+    that bleeds to the edge — that is design, and it is not near-white — so
+    only a neutral that runs around the frame is treated as the page.
+    """
+    h, w = ink.shape
+    if not clusters or h < 8 or w < 8:
+        return None
+    b = max(1, min(h, w) // 40)
+    ring = np.zeros_like(ink)
+    ring[:b, :] = True
+    ring[-b:, :] = True
+    ring[:, :b] = True
+    ring[:, -b:] = True
+    edge = ring & ink
+    if edge.sum() < 0.5 * ring.sum():
+        return None
+    px = rgb[edge].astype(np.float64)
+    centres = np.array([c for c, _ in clusters])
+    near = np.abs(px[:, None, :] - centres[None, :, :]).sum(axis=2).argmin(axis=1)
+    share = np.bincount(near, minlength=len(clusters)) / float(len(px))
+    j = int(share.argmax())
+    if share[j] < 0.55:
+        return None
+    c = centres[j]
+    lum = float(c.mean())
+    sat = float(c.max() - c.min())
+    if sat <= 30 and (lum >= 225 or lum <= 30):
+        return j
+    return None
+
+
+# A colour this close to the line between two others is a blend of them.
+RAMP_TOLERANCE = 45
+# Share of a layer that must survive a one-pixel erosion for it to count as a
+# fill rather than a rim.
+MIN_INTERIOR = 0.35
+# Share of a thin layer's pixels that touch another colour for it to count as a
+# halo hugging that colour, rather than a stroke sitting on the page.
+HALO_ATTACHED = 0.60
+# Hue distance, in degrees, within which a rim counts as a fringe of the colour
+# it hugs rather than a colour of its own.
+HALO_HUE = 40.0
+
+
+def _ramp_distance(colour: tuple[int, int, int], ends: list) -> float:
+    """How far a colour sits from being a mix of two others.
+
+    Antialiasing is linear blending: an edge pixel half-covered by navy on
+    white is literally the average of navy and white. So a colour that lies on
+    the segment between two real colours — not near either end — is the
+    signature of a soft edge, not of a colour anyone chose. On gcm the "layer"
+    (101,122,149) is navy (17,62,114) carried 36% of the way to white.
+    """
+    c = np.asarray(colour, dtype=np.float64)
+    best = float("inf")
+    pts = [np.asarray(e, dtype=np.float64) for e in ends]
+    for i in range(len(pts)):
+        for j in range(i + 1, len(pts)):
+            a, b = pts[i], pts[j]
+            ab = b - a
+            span = float(ab @ ab)
+            if span < 1.0:
+                continue
+            t = float((c - a) @ ab) / span
+            if t < 0.1 or t > 0.9:
+                continue
+            best = min(best, float(np.abs(c - (a + t * ab)).sum()))
+    return best
+
+
+def _attached(mask: np.ndarray, others: np.ndarray) -> float:
+    """Share of a layer's pixels that lie against another colour."""
+    import cv2
+
+    n = int(mask.sum())
+    if n == 0 or not others.any():
+        return 0.0
+    near = cv2.dilate(others.astype(np.uint8), np.ones((3, 3), np.uint8), iterations=1)
+    return float((mask & near.astype(bool)).sum()) / n
+
+
+def _hue(colour) -> tuple[float, float]:
+    """(hue in degrees, saturation 0-1) of an RGB colour."""
+    import colorsys
+
+    r, g, b = (float(v) / 255.0 for v in colour)
+    h, s, _v = colorsys.rgb_to_hsv(r, g, b)
+    return h * 360.0, s
+
+
+def _same_family(a, b) -> bool:
+    """Whether one colour could be a fringe of the other.
+
+    Hue, not distance. The cyan around a PROPAK letter and the blue of the
+    letter are far apart in RGB but a few degrees apart in hue: one is the
+    other lightened and oversaturated by JPEG. The red rule under the same
+    letters is close to the blue in position and far from it in hue, and a
+    designer would never take one for a smear of the other.
+    """
+    ha, sa = _hue(a)
+    hb, sb = _hue(b)
+    if sa < 0.25 or sb < 0.25:
+        return False
+    d = abs(ha - hb) % 360.0
+    return min(d, 360.0 - d) <= HALO_HUE
+
+
+def _interior(mask: np.ndarray) -> float:
+    import cv2
+
+    n = int(mask.sum())
+    if n == 0:
+        return 0.0
+    kept = cv2.erode(mask.astype(np.uint8), np.ones((3, 3), np.uint8), iterations=1)
+    return float(kept.sum()) / n
+
+
 def _quantize_layers(
     arr: np.ndarray, max_layers: int = 6, alpha_threshold: int = 128
 ) -> list[tuple[np.ndarray, tuple[int, int, int], int]]:
-    """Split ink into flat colour layers, largest first."""
+    """Split ink into flat colour layers, largest first.
+
+    Colours are pooled before they compete for layers (see `_colour_clusters`)
+    and the page they sit on is removed (see `_plate_colour`). A designer
+    rebuilding a logo from a scan draws every colour the scan shows, however
+    small, and never draws the paper.
+    """
     ink = arr[:, :, 3] >= alpha_threshold
     if not ink.any():
         return []
@@ -130,36 +309,111 @@ def _quantize_layers(
         | q[:, :, 2].astype(np.int64)
     )
     vals, counts = np.unique(keys[ink], return_counts=True)
-    order = np.argsort(-counts)
-    total = float(counts.sum())
+    clusters = _colour_clusters(vals, counts)
 
-    layers: list[tuple[np.ndarray, tuple[int, int, int], int]] = []
+    plate = _plate_colour(rgb, ink, clusters)
+    if plate is not None:
+        pc = clusters[plate][0]
+        paper = ink & (np.abs(rgb - pc.astype(np.int32)).sum(axis=2) <= CLUSTER_RADIUS)
+        ink = ink & ~paper
+        clusters = [c for k, c in enumerate(clusters) if k != plate]
+        if not ink.any():
+            return []
+
+    total = float(ink.sum())
+    clusters.sort(key=lambda t: -t[1])
+
+    field: list[tuple[np.ndarray, tuple[int, int, int], int]] = []
     claimed = np.zeros_like(ink)
-    for i in order[: max_layers * 4]:
-        if len(layers) >= max_layers:
+    for centre, weight in clusters:
+        if len(field) >= max_layers * 2:
             break
-        if counts[i] / total < 0.01:
+        if weight / total < 0.01:
             continue
-        key = int(vals[i])
-        colour = ((key >> 16) & 0xFF, (key >> 8) & 0xFF, key & 0xFF)
+        colour = tuple(int(round(v)) for v in centre)
         dist = np.abs(rgb - np.array(colour, dtype=np.int32)).sum(axis=2)
-        mask = ink & (dist <= 60) & ~claimed
+        mask = ink & (dist <= CLUSTER_RADIUS) & ~claimed
         if mask.sum() < 64:
             continue
         claimed |= mask
-        layers.append((mask, colour, int(mask.sum())))
+        field.append((mask, colour, int(mask.sum())))
+
+    # Rust, not paint. The raster carries two kinds of colour nobody chose:
+    #
+    #   * soft edges — antialiasing is linear blending, so a half-covered pixel
+    #     is literally the average of the fill and the page;
+    #   * halos — JPEG, and prepare_for_engine's chroma recovery, leave rings of
+    #     lighter or oversaturated colour around fills. Around the PROPAK letters
+    #     it is a CHAIN: navy, then mid-blue, then light blue, then cyan, each
+    #     ring hugging the next rather than the letter.
+    #
+    # A designer rebuilding from the scan draws one colour per hue family
+    # unless the family genuinely has several fills. So:
+    #
+    #   1. Anything with a real interior is paint, always.
+    #   2. Anything thin that shares the hue of a painted colour is its fringe.
+    #   3. Where a whole hue family is thin — a hairline rule at low resolution —
+    #      keep its single strongest member. A thin element is still an element:
+    #      the red rule under PROPAK has interior 0.000 at this size, beside its
+    #      own pink fringe, and a pairwise "halo of its neighbour" test can read
+    #      either one as the halo of the other.
+    #   4. Whatever is left that is thin and a blend of two survivors is a soft
+    #      edge — this is what catches the neutral ramps, which have no hue.
+    paper = (
+        tuple(int(v) for v in pc) if plate is not None else (255, 255, 255)
+    )
+    interiors = [_interior(m) for m, _, _ in field]
+    keep = [True] * len(field)
+    chroma = [i for i in range(len(field)) if _hue(field[i][1])[1] >= 0.25]
+    cored = [i for i in chroma if interiors[i] >= MIN_INTERIOR]
+    for i in chroma:
+        if i in cored:
+            continue
+        if any(_same_family(field[i][1], field[k][1]) for k in cored):
+            keep[i] = False
+    orphans = [i for i in chroma if keep[i] and i not in cored]
+    orphans.sort(key=lambda i: -(field[i][2] * _hue(field[i][1])[1]))
+    reps: list[int] = []
+    for i in orphans:
+        if any(_same_family(field[i][1], field[r][1]) for r in reps):
+            keep[i] = False
+        else:
+            reps.append(i)
+    for i, (m, c, _n) in enumerate(field):
+        if not keep[i] or interiors[i] >= MIN_INTERIOR or i in reps:
+            continue
+        ends = [field[j][1] for j in range(len(field)) if j != i and keep[j]] + [paper]
+        if _ramp_distance(c, ends) <= RAMP_TOLERANCE:
+            keep[i] = False
+    layers = [f for i, f in enumerate(field) if keep[i]]
+    layers = layers[:max_layers]
+    claimed = np.zeros_like(ink)
+    for m, _, _ in layers:
+        claimed |= m
 
     leftover = ink & ~claimed
     if leftover.sum() >= 64 and layers:
-        best = min(
-            range(len(layers)),
-            key=lambda j: float(
-                np.abs(rgb[leftover].mean(axis=0) - np.array(layers[j][1])).sum()
-            ),
-        )
-        m, c, _ = layers[best]
-        m = m | leftover
-        layers[best] = (m, c, int(m.sum()))
+        # Each leftover pixel joins the layer whose colour it is nearest, not
+        # the layer nearest the leftover's average. Averaging a mixed remainder
+        # produces a colour that belongs to no layer, and then the whole
+        # remainder — a small brand colour included — is poured into whichever
+        # layer that invented colour happens to sit closest to.
+        cols = np.array([c for _, c, _ in layers], dtype=np.int32)
+        ys, xs = np.nonzero(leftover)
+        d = np.abs(rgb[ys, xs][:, None, :] - cols[None, :, :]).sum(axis=2)
+        pick = d.argmin(axis=1)
+        # The far half of a soft edge belongs to the page, not to the ink. Left
+        # in, it would be poured into the nearest layer and every shape would
+        # grow by the width of its own blur.
+        to_paper = np.abs(rgb[ys, xs] - np.array(paper, dtype=np.int32)).sum(axis=1)
+        pick[to_paper < d.min(axis=1)] = -1
+        new_layers = []
+        for j, (m, c, _) in enumerate(layers):
+            m = m.copy()
+            sel = pick == j
+            m[ys[sel], xs[sel]] = True
+            new_layers.append((m, c, int(m.sum())))
+        layers = new_layers
 
     layers.sort(key=lambda t: -t[2])
     return layers
