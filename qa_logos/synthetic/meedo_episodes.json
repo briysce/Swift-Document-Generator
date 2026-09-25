@@ -1,0 +1,450 @@
+{
+  "version": 1,
+  "episodes": [
+    {
+      "id": "E0001",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "96a8908",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Swift bars rect-snapped in swift_orange but traced as curves in swift_orange_solid",
+      "first_read": "The isoperimetric complexity gate was rejecting long thin bars.",
+      "evidence": "Per-column histogram of the solid bar: 3 stray antialiasing pixels out of 268,100. minAreaRect bounded them and stretched the bar 89 to 91 px tall across 2980 px; coverage 0.9993 to 0.9776, under the gate. On a 300 px bar the same crumbs also tilted it 0.28 degrees.",
+      "cause": "minAreaRect is a bounding estimator, so a handful of outlier pixels sets both the size and the angle of the whole rectangle.",
+      "fix": "Consensus fit: extents from a ladder of boundary trims, orientation from second moments, coverage picks the winner with the bounding fit still in the running.",
+      "verified": "All 926 corpus elements: 5 newly named, 0 worse. swift_orange_solid ideality 0.8502 to 0.8791.",
+      "method": "When a fit passes on one variant and fails on its near-twin, diff the inputs pixel by pixel before touching any threshold \u2014 the cause is usually a few pixels that a bounding or least-squares estimator lets decide. Use a consensus estimator and let a measured quantity choose among candidates.",
+      "tags": [
+        "consensus",
+        "estimator",
+        "shapes"
+      ],
+      "cases": [
+        "swift_orange_solid"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0002",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "96a8908",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "best_fit ranked a rectangle covering 0.80 above a polygon covering 0.97 on the same element",
+      "first_read": "The consensus rect change had caused a regression on propak.",
+      "evidence": "Scanning all candidates showed 14 elements where the degrees-of-freedom preference cost up to 17 points of coverage, predating the change.",
+      "cause": "'Prefer the constrained shape when both fit' was implemented as 'when both clear the floor', and the floor is a minimum that relaxes to 0.80 on small elements.",
+      "fix": "A freer shape outranks a tighter one only if it removes most of the tighter one's leftover error (as a fraction), and only while material error remains.",
+      "verified": "Element scan: 5 renamed, every one to a better fit; propak regression gone.",
+      "method": "Clearing a floor is not proof of fitting. Compare candidates by how much of the remaining error a freer model removes, measured as a fraction so it means the same at every size \u2014 and stop asking once the remaining error is immaterial, or the test turns hair-trigger.",
+      "tags": [
+        "metric-trap",
+        "ranking",
+        "shapes"
+      ],
+      "cases": [
+        "gcm",
+        "propak"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0003",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "ba4bf0f",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Reconstruction took about 5 minutes per logo",
+      "first_read": "Glyphs are compared at 64x64, so rendering them at 256 px is obvious waste \u2014 render smaller.",
+      "evidence": "At 128 px the normalized bitmap agreed with the 256 px one at only 0.9603 mean and 0.8510 at the 1st percentile, against a 0.86 match threshold and a winning score of 0.9545. It would have changed which font was chosen, for a 2.1x gain. Profiling cold and warm separately showed rendering, not comparison, was 98% of the time \u2014 and each logo is a fresh process.",
+      "cause": "Every process re-rendered 1,562 fonts across 66 characters.",
+      "fix": "Render once at full quality into a memory-mapped glyph store built on first use; hoist the corpus scan out of the two-candidate loop; exact branch-and-bound in match_run.",
+      "verified": "Cold start 265.3 s to 6.9 s; identical matches to the last digit (ScienceGothic-400, SUPPLY, 0.954527).",
+      "method": "An optimisation that should change nothing must be shown to change nothing \u2014 measure its effect at the decision threshold before shipping it. Profile cold and warm paths separately; a per-process tool pays the cold cost every time.",
+      "tags": [
+        "fonts",
+        "measure-before-optimising",
+        "performance"
+      ],
+      "cases": [],
+      "source": "backfill"
+    },
+    {
+      "id": "E0004",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "d1eed48",
+      "workstream": "logo-engine",
+      "outcome": "failure",
+      "problem": "Reported a 0.0035 regression in the default path that did not exist",
+      "first_read": "The shape-fitting change had regressed Swift vectorize anchors 0.9269 to 0.9234.",
+      "evidence": "The re-run used --min-height 3000 and two engines; every historical run used 1200 and three. Re-run at matching settings reproduced 0.9269 / 0.9356 exactly.",
+      "cause": "Nothing recorded the configuration beside the score, so incomparable runs looked comparable.",
+      "fix": "min_height and engines are now recorded on every row, in the summary and in the durable run snapshots.",
+      "verified": "Guardrail reproduced the baseline to four decimals.",
+      "method": "Never compare two runs until their configuration matches, and record configuration beside every score so the check is possible. A surprising regression is a configuration difference until proven otherwise.",
+      "tags": [
+        "configuration",
+        "measurement"
+      ],
+      "cases": [],
+      "source": "backfill"
+    },
+    {
+      "id": "E0005",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "195782e",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "The reconstruction gate could not tell which candidate was better within a pair",
+      "first_read": "Agreement with the source is the strongest signal (r=+0.57), so rank on it.",
+      "evidence": "Built every candidate on all 18 pairs and scored against the clean masters. Agreement ranked candidates within a pair no better than chance; trialta's reconstruction agreed at 0.180 vs the trace's 0.914 and scored better. A Lanczos fallback agrees almost perfectly because it IS the degraded source enlarged.",
+      "cause": "Agreement with the raster measures which pair is easy, and rewards changing nothing.",
+      "fix": "Rule derived from the study: when the trace produced no vector, ship the reconstruction unless it collapsed; tie-break reconstruction variants by build quality.",
+      "verified": "Corpus composite 0.7433 to 0.7567, v2 0.7455 to 0.7584, 0 regressions; the re-run matched the study to four decimals.",
+      "method": "A signal strong across cases can be useless within one. Validate a ranking signal inside the unit you are choosing within, and derive decision rules from a ground-truth study rather than argument. Fidelity to a degraded input rewards doing nothing.",
+      "tags": [
+        "gating",
+        "ground-truth-study",
+        "ranking"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg",
+        "trialta__import_combo"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0006",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "f17e227",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "The three largest reported wins had deleted GCM's red monogram",
+      "first_read": "composite ranked them the best candidates in the corpus (e.g. 0.8373 to 0.8619).",
+      "evidence": "Looking at the comparison sheet: the red C/G was gone. Red share of ink 0.108 in the master, 0.000 in the output.",
+      "cause": "Layers were seeded from exact 5-bit colour bins, so a JPEG-mottled red spread over dozens of sub-threshold bins never got a layer; and the white page counted as the largest 'ink' colour.",
+      "fix": "Pool bins into colours before seeding; remove the page (a neutral that owns the border); resolve antialiasing ramps and halos by hue family.",
+      "verified": "Red retained in 12/12 degraded variants, halos in 0/12; clean masters reduce to their true brand palettes.",
+      "method": "Never report an improvement without looking at the output. A blended score can rank a logo with a deleted element as the best result \u2014 the missing element is only part of one term.",
+      "tags": [
+        "colour",
+        "look-at-images",
+        "metric-trap"
+      ],
+      "cases": [
+        "gcm__blur_crush",
+        "gcm__downscale_jpeg",
+        "gcm__import_combo"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0007",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "f17e227",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Removing JPEG halos deleted PROPAK's red rule",
+      "first_read": "A thin colour attached to another colour is a halo.",
+      "evidence": "Checking red explicitly after the change: the rule has interior 0.000 at that size and sits beside its own pink fringe, so a pairwise test could read either as the halo of the other. It survived one run by 0.08 margin.",
+      "cause": "The rule was a single pairwise property; paint and rust can share it.",
+      "fix": "One colour per hue family: interior means paint; thin and sharing a painted colour's hue means fringe; an all-thin family keeps its strongest member.",
+      "verified": "Red kept everywhere, halos gone everywhere.",
+      "method": "When removing a class of artefact, explicitly re-check every element you meant to keep. A rule that removes rust will remove paint that resembles rust in the one respect the rule tests. Passing by a small margin is luck, not a fix.",
+      "tags": [
+        "colour",
+        "halo",
+        "regression-check"
+      ],
+      "cases": [
+        "propak__import_combo"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0008",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "3837921",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me's reviewer blocked correct restorations",
+      "first_read": "The reviewer was right and the outputs had lost colours.",
+      "evidence": "Pixel counts showed the outputs kept them: Swift's black shadow read as (2,0,0), HSV saturation 1.0, and was taken for red; GCM's navy text crushed to (0,1,12) read as black, so bringing it back blue was called a deletion.",
+      "cause": "HSV saturation explodes near black; dark colours carry their hue as a faint tint that a chroma threshold discards.",
+      "fix": "Absolute chroma everywhere, a dark-tint rule, and review against both the raw and prepared sketches.",
+      "verified": "Against clean masters over every candidate: 14 real deletions caught, 0 false alarms, 0 missed.",
+      "method": "Test a reviewer for false alarms against ground truth before trusting it \u2014 a reviewer that cries wolf gets ignored. Use absolute chroma, never HSV saturation, anywhere near black.",
+      "tags": [
+        "colour",
+        "false-alarm",
+        "review"
+      ],
+      "cases": [],
+      "source": "backfill"
+    },
+    {
+      "id": "E0009",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "83da4e3",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me's advice showed a 0% hit rate",
+      "first_read": "Its advice was poor.",
+      "evidence": "All 28 proposals had been judged without anyone acting on them; nobody read the file all session. Its most repeated proposal was a correct diagnosis of the next problem.",
+      "cause": "Proposals were scored by whether their case happened to move, whether or not they were taken; and repeats were filed as new proposals.",
+      "fix": "Decide before judging (accept with a baseline run, reject with a reason); escalate repeats; learn which engines not to propose on from rejection patterns; a standup at the start of every work cycle, written into CLAUDE.md.",
+      "verified": "28 proposals became 11; first standup decided 10; Meedo-Me learned to stop proposing on baseline and esrgan.",
+      "method": "Advice is only tested once someone acts on it \u2014 measure advice from acceptance, not from filing. Put the advisor in the path of the work, or it becomes a diary.",
+      "tags": [
+        "advice",
+        "hit-rate",
+        "process"
+      ],
+      "cases": [],
+      "source": "backfill"
+    },
+    {
+      "id": "E0010",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "83da4e3",
+      "workstream": "font-id",
+      "outcome": "partial",
+      "problem": "Identify the typeface of the orange SWIFT letters",
+      "first_read": "Run the glyph matcher against the corpus.",
+      "evidence": "Best match GravitasOne at 0.83, visibly a different face. The corpus is essentially Google Fonts. Web search found nothing for the logo.",
+      "cause": "Commercial display type and custom lettering are outside a free-font corpus.",
+      "fix": "Named the genre with confidence (ultra-bold italic wedge-serif display type; the slashes are a logo treatment), declined to invent a name, and gave a clean isolated extraction for WhatTheFont / Matcherator.",
+      "verified": "",
+      "method": "A weak top match in a limited corpus means 'not in the corpus', not 'closest relative'. Say so plainly and hand over the clean input a proper identifier needs.",
+      "tags": [
+        "corpus-limits",
+        "fonts",
+        "honesty"
+      ],
+      "cases": [
+        "swift_orange"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0011",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "83da4e3",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "A check suggested the SUPPLY font substitution was wrong",
+      "first_read": "ScienceGothic matched SUPPLY at only 0.34.",
+      "evidence": "The check had included the two orange bars as 'letters', shifting every comparison by two. Corrected: 0.9545 mean, 0.924-0.985 per letter.",
+      "cause": "A bug in my own verification script.",
+      "fix": "Fixed the check; the substitution was sound.",
+      "verified": "",
+      "method": "When a check contradicts a strong earlier result, suspect the check first \u2014 print exactly what it is comparing before acting on its verdict.",
+      "tags": [
+        "checks",
+        "self-doubt"
+      ],
+      "cases": [],
+      "source": "backfill"
+    },
+    {
+      "id": "E0012",
+      "ts": "2026-09-25T03:34:09Z",
+      "commit": "83da4e3",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Blur washed brand colours toward the page (TRIALTA green to mint, Arc and PROPAK red to pink)",
+      "first_read": "Sample each element's densest ink \u2014 the pixels furthest from the page.",
+      "evidence": "Degraded-only measurement: 0 worse. But the clean PROPAK master's red (199,48,47) became (50,15,14): its densest pixels were edges mixed with the dark blue letters. A chroma-based variant instead picked halos that prepare_for_engine had oversaturated, turning GCM navy cyan. Unconstrained sampling also drifted PROPAK's red toward blue-grey from neighbouring bleed.",
+      "cause": "Two purity estimators each fooled by a different contaminant; the real question is whether the element is washed at all.",
+      "fix": "Restore only when the element's average sits near the page (<=340 L1; washed 123-288, solid fills >=405) AND differs from its densest same-hue ink by >=110; sample only same-hue pixels; never touch neutrals.",
+      "verified": "6 layers restored, 0 worse, all 6 clean masters unchanged; mean error to intended colour 55.5 to 39.8; visually green and red return. PROPAK's thin rule only reaches 224 off \u2014 no pixel in the sketch is pure, and going further would invent.",
+      "method": "Gate a restoration on the condition it restores, and verify clean inputs stay unchanged \u2014 not only that damaged ones improve. When a 'purity' estimate is fooled, ask which contaminant fooled it; two different contaminants mean the estimator is the wrong question.",
+      "tags": [
+        "clean-inputs",
+        "colour",
+        "regression-check",
+        "washed"
+      ],
+      "cases": [
+        "arc__blur_crush",
+        "propak__blur_crush",
+        "trialta__blur_crush",
+        "trialta__import_combo"
+      ],
+      "source": "manual"
+    },
+    {
+      "id": "E0013",
+      "ts": "2026-09-25T03:48:47Z",
+      "commit": "6e64032",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me's memory was reachable only from Python in this repo; the Jan-based app, Claude Code and agents each needed it",
+      "first_read": "Build a context-stitching engine inside the Jan fork",
+      "evidence": "Jan already speaks MCP natively, as do Claude Code and most agents; an engine inside Jan would tie the memory to one client",
+      "cause": "Memory and its faces were coupled by design choice, not necessity",
+      "fix": "A zero-dependency stdio MCP server over the ledger, reviewer and episodes; read-only mode drops every writer; reviewer paths confined to the repo and MEEDO_ALLOWED_DIRS",
+      "verified": "Official MCP SDK 2.2.0 client drove both modes end to end; 10 unit tests including symlink escape, foreign cwd, and stdout purity while a tool prints",
+      "method": "Serve shared memory over a protocol every face already speaks instead of building it into one face. Verify a protocol implementation with the official client, not a reading of the spec. On stdio, route prints to stderr \u2014 one stray line corrupts the session.",
+      "tags": [
+        "architecture",
+        "mcp",
+        "security"
+      ],
+      "cases": [],
+      "source": "session"
+    },
+    {
+      "id": "E0014",
+      "ts": "2026-09-25T04:20:08Z",
+      "commit": "a333184",
+      "workstream": "logo",
+      "outcome": "success",
+      "problem": "small same-colour elements dropped (GCM Modification i-dots); reviewer colour-only missed them",
+      "first_read": "brand_colour share barely moved while separate blobs vanished",
+      "evidence": "synthetic navy word+dots: colour check passed, element_count blocked after drop of 2+ components below 70% keep",
+      "cause": "reviewer measured ink share by hue family, not connected components",
+      "fix": "",
+      "verified": "",
+      "method": "count connected ink components (area>=8) on sketch vs output; block when drop>=2 and keep<70%",
+      "tags": [
+        "element_count",
+        "gcm",
+        "reviewer"
+      ],
+      "cases": [],
+      "source": "manual"
+    },
+    {
+      "id": "E0015",
+      "ts": "2026-09-25T04:23:50Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__downscale_jpeg/traced: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 32 ink elements, output has 8 (24 dropped) \u2014 small same-colour pieces are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0016",
+      "ts": "2026-09-25T04:25:02Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__plate_halo/traced: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 28 ink elements, output has 7 (21 dropped) \u2014 small same-colour pieces are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0017",
+      "ts": "2026-09-25T04:38:37Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__downscale_jpeg/idealize/prepared: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 4 small ink satellites, output has 1 (3 dropped) \u2014 dots/accents are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0018",
+      "ts": "2026-09-25T04:40:59Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__plate_halo/idealize/prepared: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 14 small ink satellites, output has 2 (12 dropped) \u2014 dots/accents are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0019",
+      "ts": "2026-09-25T04:44:28Z",
+      "commit": "bb2359c",
+      "workstream": "logo",
+      "outcome": "success",
+      "problem": "Trialta letterforms collapse to blobs; font match named nothing on clean TRIALTA",
+      "first_read": "glyph matching broken or fonts missing",
+      "evidence": "mixed-colour run gray TRI+green ALTA scored 0.807 < MIN_RUN_SCORE 0.86; colour-segregated runs scored 0.87\u20130.95 Oswald; icon fragments diluted gray TRI until contiguous subsequences recovered T,R,I",
+      "cause": "group_runs ignored fill colour, so two designed words were scored as one typesetting pass; baseline-sharing icon scrap diluted TRI",
+      "fix": "",
+      "verified": "",
+      "method": "Segregate glyph runs by colour family; filter hairlines; on failed runs try contiguous subsequences. Keep element_count on compact satellites only and skip when sketch has >4 (JPEG crumbs).",
+      "tags": [
+        "colour-run",
+        "font",
+        "glyph",
+        "trialta"
+      ],
+      "cases": [],
+      "source": "manual"
+    },
+    {
+      "id": "E0020",
+      "ts": "2026-09-25T04:46:24Z",
+      "commit": "5d42fb4",
+      "workstream": "process",
+      "outcome": "success",
+      "problem": "Agents treated Meedo-Me as optional post-hoc critic; advice sat unread",
+      "first_read": "Meedo-Me is just another tool to call when convenient",
+      "evidence": "User directive 2026-09-25: keep Meedo-Me heavily involved so it can learn, grow, adapt, adjust, and experiment as project manager/assistant. Historical 28 ignored proposals scored hit-rate 0% while correct.",
+      "cause": "No standing rule forced standup\u2192decide\u2192recall\u2192review\u2192propose every cycle; improve loop observed but did not propose",
+      "fix": "",
+      "verified": "",
+      "method": "Always-apply cursor rule meedo-me-pm.mdc; CLAUDE.md cycle; improve loop auto-propose after observe; never leave open proposals undecided; accept only what will be acted on now.",
+      "tags": [
+        "meedo",
+        "pm",
+        "process"
+      ],
+      "cases": [],
+      "source": "manual"
+    }
+  ]
+}

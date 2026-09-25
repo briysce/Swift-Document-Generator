@@ -4,7 +4,12 @@ import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
-/// Runs repo/bundled [logo_restorer.py] (Real-ESRGAN) for structure-aware SR.
+/// Runs repo/bundled [logo_restorer.py] for structure-aware SR.
+///
+/// Pipeline inside the Python engine (fail-open at every step):
+/// classical Gigapixel / Upscayl / Remacri / UltraSharp-inspired polish →
+/// Real-ESRGAN family weights (x4plus, Remacri, UltraSharp, … when cached) →
+/// optional GFPGAN / Upscayl CLI → Lanczos conservator.
 ///
 /// Capability limit (be upfront): this invents missing edge/fill detail from
 /// degradation patterns. It is **not** a free-form brand redesign. Windows

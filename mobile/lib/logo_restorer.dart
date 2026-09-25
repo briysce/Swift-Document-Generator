@@ -14,11 +14,13 @@ import 'restore_catalog.dart';
 
 /// Print-ready customer logo restore.
 ///
-/// Generative branch order (Windows, when Python tools exist):
-/// 1. **Vectorize** flat lockups (`scripts/logo_vectorize.py`) — Swift-like
-///    clean fills/edges when the mark is low-color.
-/// 2. **Real-ESRGAN** (`logo_restorer.py`) — structure-aware SR for mottled /
-///    photo-like rasters.
+/// Generative branch order (Windows, when Python tools exist) — every step
+/// fail-opens (AI out-of-tokens never blocks local engines):
+/// 1. **Vectorize** (`scripts/logo_vectorize.py`) — sectional Bezier with
+///    DejaType-style per-element anchors, then VTracer (Inkscape in ensemble).
+/// 2. **Raster polish + SR** (`logo_restorer.py`) — classical Gigapixel /
+///    Upscayl / Remacri / UltraSharp-inspired polish, Real-ESRGAN family
+///    weights, optional GFPGAN / Upscayl CLI, then Lanczos.
 /// 3. **Cubic conservator** — faithful upscale; cannot invent lost detail.
 ///
 /// Gemini (`restoreLogoPng`) is **demoted**: off by default. Set env

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swift_shipping_label/bulk/bulk_label_models.dart';
 import 'package:swift_shipping_label/bulk/order_ack_parser.dart';
-import 'package:swift_shipping_label/claude_client.dart';
+import 'package:swift_shipping_label/order_ack_ai.dart';
 import 'package:swift_shipping_label/job_pdf_ai.dart';
 import 'package:swift_shipping_label/pdf/bulk_label_pdf.dart';
 
@@ -371,8 +371,8 @@ CA
     });
   });
 
-  group('JobPdfAi.applyClaudeLineSuggestions', () {
-    test('fills incomplete lines from Claude but keeps missingIdentity', () {
+  group('JobPdfAi.applyAiLineSuggestions', () {
+    test('fills incomplete lines from Meedo-Me but keeps missingIdentity', () {
       final parsed = OrderAckParseResult(
         poNumber: 'P613979',
         orderNumber: '1431332',
@@ -388,8 +388,8 @@ CA
           ),
         ],
       );
-      final out = JobPdfAi.applyClaudeLineSuggestions(parsed, const [
-        ClaudeOrderAckLine(
+      final out = JobPdfAi.applyAiLineSuggestions(parsed, const [
+        AiOrderAckLine(
           cpoDisplay: '1-4',
           poNumber: 'P613979',
           idKind: BulkIdKind.item,
@@ -408,7 +408,7 @@ CA
       expect(out.lines.first.aiNote, contains('confirm'));
     });
 
-    test('keeps regex identity when Claude disagrees, attaches note', () {
+    test('keeps regex identity when Meedo-Me disagrees, attaches note', () {
       final parsed = OrderAckParseResult(
         poNumber: 'P1',
         orderNumber: '1',
@@ -424,8 +424,8 @@ CA
         ],
         warnings: const [],
       );
-      final out = JobPdfAi.applyClaudeLineSuggestions(parsed, const [
-        ClaudeOrderAckLine(
+      final out = JobPdfAi.applyAiLineSuggestions(parsed, const [
+        AiOrderAckLine(
           cpoDisplay: '8, 9',
           poNumber: 'P1',
           idKind: BulkIdKind.part,
@@ -443,7 +443,7 @@ CA
       expect(out.lines.first.aiNote, contains('OTHER'));
     });
 
-    test('attaches agree note when Claude matches regex', () {
+    test('attaches agree note when Meedo-Me matches regex', () {
       final parsed = OrderAckParseResult(
         poNumber: 'P1',
         orderNumber: '1',
@@ -459,8 +459,8 @@ CA
         ],
         warnings: const [],
       );
-      final out = JobPdfAi.applyClaudeLineSuggestions(parsed, const [
-        ClaudeOrderAckLine(
+      final out = JobPdfAi.applyAiLineSuggestions(parsed, const [
+        AiOrderAckLine(
           cpoDisplay: '5',
           poNumber: 'P1',
           idKind: BulkIdKind.item,
@@ -475,7 +475,7 @@ CA
     });
   });
 
-  group('JobPdfAi.applyClaudeHeaderSuggestion', () {
+  group('JobPdfAi.applyAiHeaderSuggestion', () {
     test('fills header fields the regex/Gemini pass left empty', () {
       const parsed = OrderAckParseResult(
         poNumber: '',
@@ -484,9 +484,9 @@ CA
         warnings: [],
         requisitioner: '',
       );
-      final out = JobPdfAi.applyClaudeHeaderSuggestion(
+      final out = JobPdfAi.applyAiHeaderSuggestion(
         parsed,
-        const ClaudeOrderAckHeader(
+        const AiOrderAckHeader(
           poNumber: 'P613979',
           requisitioner: 'MARLENE DUNAND',
           reasoning: 'PO wrapped across the Location value on the header row',
@@ -494,52 +494,52 @@ CA
       );
       expect(out.poNumber, 'P613979');
       expect(out.requisitioner, 'MARLENE DUNAND');
-      expect(out.warnings, contains(contains('Claude review: PO wrapped')));
+      expect(out.warnings, contains(contains('Meedo-Me review: PO wrapped')));
     });
 
-    test('keeps the existing value when Claude disagrees, notes it', () {
+    test('keeps the existing value when Meedo-Me disagrees, notes it', () {
       const parsed = OrderAckParseResult(
         poNumber: 'P613979',
         orderNumber: '1',
         lines: [],
         warnings: [],
       );
-      final out = JobPdfAi.applyClaudeHeaderSuggestion(
+      final out = JobPdfAi.applyAiHeaderSuggestion(
         parsed,
-        const ClaudeOrderAckHeader(poNumber: 'P999999'),
+        const AiOrderAckHeader(poNumber: 'P999999'),
       );
       expect(out.poNumber, 'P613979');
       expect(
         out.warnings,
-        contains(contains('PO#: using "P613979" — Claude read "P999999"')),
+        contains(contains('PO#: using "P613979" — Meedo-Me read "P999999"')),
       );
     });
 
-    test('flags fields Claude is unsure about without changing anything', () {
+    test('flags fields Meedo-Me is unsure about without changing anything', () {
       const parsed = OrderAckParseResult(
         poNumber: 'P613979',
         orderNumber: '1',
         lines: [],
         warnings: [],
       );
-      final out = JobPdfAi.applyClaudeHeaderSuggestion(
+      final out = JobPdfAi.applyAiHeaderSuggestion(
         parsed,
-        const ClaudeOrderAckHeader(flags: ['ship_to_address']),
+        const AiOrderAckHeader(flags: ['ship_to_address']),
       );
       expect(out.poNumber, 'P613979');
       expect(out.warnings, contains(contains('ship_to_address')));
     });
 
-    test('no notes added when Claude has nothing to add or flag', () {
+    test('no notes added when Meedo-Me has nothing to add or flag', () {
       const parsed = OrderAckParseResult(
         poNumber: 'P613979',
         orderNumber: '1',
         lines: [],
         warnings: ['unrelated CPO warning'],
       );
-      final out = JobPdfAi.applyClaudeHeaderSuggestion(
+      final out = JobPdfAi.applyAiHeaderSuggestion(
         parsed,
-        const ClaudeOrderAckHeader(poNumber: 'P613979'),
+        const AiOrderAckHeader(poNumber: 'P613979'),
       );
       expect(out.warnings, ['unrelated CPO warning']);
     });

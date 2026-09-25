@@ -83,6 +83,13 @@ def record_run_snapshot(domain: str, summary: dict) -> Path:
         "ts": summary.get("ts")
         or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "run_id": summary.get("run_id"),
+        # Carry the settings through to the durable memory, not just the log.
+        # A snapshot is what later runs get compared against, so a snapshot
+        # without its configuration is the one most able to mislead: two runs
+        # at different --min-height or different engine sets look like a
+        # regression and read like one.
+        "min_height": summary.get("min_height"),
+        "engines": summary.get("engines"),
         "mean_composite": summary.get("mean_composite"),
         "ok": summary.get("ok", True),
         "top_failures": (summary.get("top_failures") or [])[:5],

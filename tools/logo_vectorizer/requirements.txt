@@ -1,0 +1,16 @@
+opencv-python-headless>=4.8
+numpy>=1.24
+Pillow>=10.0
+# potracer (the pure-python tracer) was listed here but has zero references:
+# the engine shells out to the potrace BINARY instead. Removed as dead weight.
+vtracer>=0.6
+cairosvg>=2.7
+# Recognition stages (engine.reconstruct): shapes, glyph ID, flaw analysis.
+scipy>=1.10
+scikit-image>=0.21
+fonttools>=4.40
+pyransac3d>=0.6
+# Optional, probed at runtime and fail-open:
+#   potrace (binary)   — apt-get install potrace   [element tracing]
+#   exiftool (binary)  — apt-get install libimage-exiftool-perl  [provenance]
+#   inkscape (binary)  — ensemble tracer
