@@ -692,11 +692,15 @@
       "headline": "trialta__import_combo::vectorize has not moved and sits at 0.5045",
       "case": "trialta__import_combo::vectorize",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "open",
+      "status": "accepted",
       "id": "80ac95cb",
       "kind": "has not moved and sits at #",
       "raised": 2,
-      "last_raised": "20260920T004154Z"
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "Acting now: diagnose TRIALTA letterform collapse with font matching (thought_trace anomaly #1), then reviewer element-count for dropped i-dots (#2).",
+      "decided_by": "",
+      "decided_at": "2026-09-25T04:17:49Z",
+      "accepted_run": "20260920T174511Z"
     }
   ],
   "reviews": [

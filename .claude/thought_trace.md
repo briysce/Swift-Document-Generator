@@ -96,3 +96,37 @@ Meedo-Me MCP server.
 The fork needs a durable home before any Jan code is written. Recommended: fork
 `menloresearch/jan` to `briysce/meedo-me` on GitHub. Creating a repository under the
 user's account is theirs to approve.
+
+
+---
+
+## 2026-09-25 — Cursor pickup after Claude Code
+
+Session left off at `a333184` (Meedo-Me MCP) on `claude/relaxed-babbage-igbk0v`
+([Claude session](https://claude.ai/code/session_01D7eJEVF3QVi48DE5eKDtgr)).
+No local Claude Code transcript on this VM; branch tip + `.claude/thought_trace.md`
++ commit messages were the handoff.
+
+### Done this cycle
+
+1. Meedo standup: accepted `80ac95cb` (trialta__import_combo stuck at 0.5045).
+2. **Anomaly #2 shipped:** `meedo_review._check_element_count` — connected-component
+   count catches same-colour piece drops (i-dots) that brand-colour share misses.
+   Tests: drop blocked, fringe-merge still passes. MCP relative-path test no longer
+   depends on gitignored `clean/gcm.png` (synthesises under `qa_logos/`).
+3. Seeded local `qa_logos/synthetic/clean/` from golden/customer for diagnostics
+   (gitignored; not committed).
+4. Trialta clean has 18 ink components; font corpus present (349 faces) — anomaly #1
+   (letterform→blob under heavy degrade) still open for a font-match experiment.
+
+### Still blocked on the user
+
+Fork `menloresearch/jan` → `briysce/meedo-me` before any Jan app code. MCP server
+is ready for that client.
+
+### Next experiments (unchanged rank, #2 done)
+
+1. Letterforms → blobs on heavy degrade (TRIALTA) — font-match first.
+3. Outlines lumpy / wrong corners (GCM) — ideality-driven primitives.
+4. Trace wins over better reconstruction on PROPAK — selection signal.
+5. Oracle headroom — within-pair ranking when trace already produced a vector.

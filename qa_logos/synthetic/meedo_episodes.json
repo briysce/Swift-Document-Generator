@@ -293,6 +293,27 @@
       ],
       "cases": [],
       "source": "session"
+    },
+    {
+      "id": "E0014",
+      "ts": "2026-09-25T04:20:08Z",
+      "commit": "a333184",
+      "workstream": "logo",
+      "outcome": "success",
+      "problem": "small same-colour elements dropped (GCM Modification i-dots); reviewer colour-only missed them",
+      "first_read": "brand_colour share barely moved while separate blobs vanished",
+      "evidence": "synthetic navy word+dots: colour check passed, element_count blocked after drop of 2+ components below 70% keep",
+      "cause": "reviewer measured ink share by hue family, not connected components",
+      "fix": "",
+      "verified": "",
+      "method": "count connected ink components (area>=8) on sketch vs output; block when drop>=2 and keep<70%",
+      "tags": [
+        "element_count",
+        "gcm",
+        "reviewer"
+      ],
+      "cases": [],
+      "source": "manual"
     }
   ]
 }

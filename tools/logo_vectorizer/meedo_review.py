@@ -71,6 +71,18 @@ LIGHTNESS_MATCH = 70.0     # 0-255, for neutrals
 # that prompted this kept 0.2% to 2%.
 MIN_INK_RATIO = 0.10
 
+# Same-colour elements the brand colour share cannot see (GCM "Modification"
+# i-dots: same navy as the word, separate blobs). Count connected components
+# of significant ink; an output that keeps the colour but loses the pieces has
+# dropped an element. MIN_ELEMENT_AREA is in sketch pixels — i-dots on the
+# corpus sit well above 8 px even at low import resolution; noise does not.
+MIN_ELEMENT_AREA = 8
+# Absolute drop of this many components (or more) is a deletion once the
+# relative keep falls below MIN_ELEMENT_KEEP. Restoration can merge AA fringe
+# into fewer blobs, so one lost speck is not enough to block.
+MIN_ELEMENT_DROP = 2
+MIN_ELEMENT_KEEP = 0.70
+
 
 @dataclass
 class Finding:
@@ -200,6 +212,53 @@ def _matches(want, have) -> bool:
 # --------------------------------------------------------------------------
 
 
+def _ink_components(arr: np.ndarray) -> int:
+    """How many separate ink blobs a designer would count.
+
+    Alpha > 32 after a 1-px open to drop single-pixel JPEG noise. Area filter
+    keeps i-dots and drops speckles. Same-colour pieces (letter + its dots)
+    are separate components — that is the point of this check.
+    """
+    import cv2
+
+    alpha = arr[:, :, 3] if arr.shape[2] == 4 else np.full(arr.shape[:2], 255, np.uint8)
+    mask = (alpha > 32).astype(np.uint8) * 255
+    kernel = np.ones((2, 2), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    n, _labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    count = 0
+    for i in range(1, n):
+        if int(stats[i, cv2.CC_STAT_AREA]) >= MIN_ELEMENT_AREA:
+            count += 1
+    return count
+
+
+def _check_element_count(sketch: np.ndarray, output: np.ndarray) -> list[Finding]:
+    """Block when separate ink pieces vanish while their colour stays.
+
+    Colour share alone missed GCM dropping the i-dots on "Modification": navy
+    ink share barely moved, but two small components were gone.
+    """
+    n_s = _ink_components(sketch)
+    n_o = _ink_components(output)
+    if n_s < 3:
+        # Tiny marks (one word, no dots) — relative keep is noisy.
+        return []
+    dropped = n_s - n_o
+    if dropped < MIN_ELEMENT_DROP:
+        return []
+    if n_o / float(n_s) >= MIN_ELEMENT_KEEP:
+        return []
+    return [
+        Finding(
+            "element_count",
+            "block",
+            f"sketch has {n_s} ink elements, output has {n_o} "
+            f"({dropped} dropped) — small same-colour pieces are missing",
+        )
+    ]
+
+
 def _check_brand_colours(sketch_pal, output_pal) -> list[Finding]:
     """Every colour the sketch shows must still be in the drawing.
 
@@ -265,6 +324,7 @@ def _review_one(o_full: np.ndarray, sketch) -> Review:
     rv = Review(sketch_palette=sp, output_palette=op)
     rv.findings += _check_collapse(s, o, sp, op)
     rv.findings += _check_brand_colours(sp, op)
+    rv.findings += _check_element_count(s, o)
     return rv
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import json
+from pathlib import Path
 
 import numpy as np
 from PIL import Image
@@ -108,10 +109,17 @@ def test_a_link_inside_the_repository_cannot_reach_outside(tmp_path):
 
 
 def test_relative_paths_mean_the_repository_wherever_the_client_runs(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    err, text = _call("meedo_review", {"output": "qa_logos/synthetic/clean/gcm.png",
-                                       "sketch": "qa_logos/synthetic/clean/gcm.png"})
-    assert not err, text
+    # clean/ is gitignored — synthesise a tiny PNG under the repo so the test
+    # does not depend on a local corpus seed.
+    rel = Path("qa_logos") / f".mcp_rel_test_{tmp_path.name}.png"
+    abs_path = S.ROOT / rel
+    Image.fromarray(np.full((24, 24, 3), 180, np.uint8)).save(abs_path)
+    try:
+        monkeypatch.chdir(tmp_path)
+        err, text = _call("meedo_review", {"output": str(rel), "sketch": str(rel)})
+        assert not err, text
+    finally:
+        abs_path.unlink(missing_ok=True)
 
 
 def test_stdout_carries_only_protocol_even_when_a_tool_prints(monkeypatch, capsys):
