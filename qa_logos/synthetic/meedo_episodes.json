@@ -272,6 +272,27 @@
         "trialta__import_combo"
       ],
       "source": "manual"
+    },
+    {
+      "id": "E0013",
+      "ts": "2026-09-25T03:48:47Z",
+      "commit": "6e64032",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me's memory was reachable only from Python in this repo; the Jan-based app, Claude Code and agents each needed it",
+      "first_read": "Build a context-stitching engine inside the Jan fork",
+      "evidence": "Jan already speaks MCP natively, as do Claude Code and most agents; an engine inside Jan would tie the memory to one client",
+      "cause": "Memory and its faces were coupled by design choice, not necessity",
+      "fix": "A zero-dependency stdio MCP server over the ledger, reviewer and episodes; read-only mode drops every writer; reviewer paths confined to the repo and MEEDO_ALLOWED_DIRS",
+      "verified": "Official MCP SDK 2.2.0 client drove both modes end to end; 10 unit tests including symlink escape, foreign cwd, and stdout purity while a tool prints",
+      "method": "Serve shared memory over a protocol every face already speaks instead of building it into one face. Verify a protocol implementation with the official client, not a reading of the spec. On stdio, route prints to stderr \u2014 one stray line corrupts the session.",
+      "tags": [
+        "architecture",
+        "mcp",
+        "security"
+      ],
+      "cases": [],
+      "source": "session"
     }
   ]
 }
