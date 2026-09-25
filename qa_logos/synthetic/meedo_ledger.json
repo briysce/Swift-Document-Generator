@@ -730,6 +730,252 @@
       "context": "convert",
       "passed": true,
       "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:22:39Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:23:50Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 32 ink elements, output has 8 (24 dropped) \u2014 small same-colour pieces are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:25:02Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 28 ink elements, output has 7 (21 dropped) \u2014 small same-colour pieces are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:26:32Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:34Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:34Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:37Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 4 small ink satellites, output has 1 (3 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:38:37Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:41Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:41Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 4 small ink satellites, output has 0 (4 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:40:56Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 6 small ink satellites, output has 1 (5 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:40:56Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 6 small ink satellites, output has 2 (4 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:40:59Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 14 small ink satellites, output has 2 (12 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:40:59Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 14 small ink satellites, output has 4 (10 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:41:02Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:41:02Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:33Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:33Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:36Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:36Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:39Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:39Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
     }
   ]
 }
