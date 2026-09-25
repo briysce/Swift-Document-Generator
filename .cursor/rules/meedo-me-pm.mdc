@@ -1,0 +1,50 @@
+---
+description: Meedo-Me is the project manager — every agent cycle must involve it
+alwaysApply: true
+---
+
+# Meedo-Me = project manager (always)
+
+Meedo-Me is this product’s **project manager / project assistant**. It is not an
+optional critic. Agents must keep it heavily involved so it can **learn, grow,
+adapt, adjust, and experiment** with the codebase.
+
+## Every work cycle (mandatory)
+
+1. **Standup first** — `python -m tools.logo_vectorizer.meedo_ledger standup`
+   (or MCP `meedo_standup`). Decide every open proposal before new work:
+   `decide <id> accept|reject "<reason>"`. Accept only what you will act on
+   **now**. Reject with a real reason so Meedo-Me learns the pattern.
+2. **Recall before diagnosing** — `meedo_episodes recall` / MCP `meedo_recall`.
+   Past episodes say what the first guess got wrong.
+3. **Review before claiming a logo win** — Meedo-Me’s reviewer must pass.
+   A blocked output’s score is not a result.
+4. **Record methods when something is solved** — `meedo_episodes` /
+   `meedo_record_episode` (problem → cause → method → verification).
+5. **End with propose + report** — after an improve-loop or meaningful engine
+   change: ensure the run was `observe`d, run `propose` so fresh advice is
+   queued, skim `report`. Leave the next agent a decided or deliberate open
+   standup — never a pile of ignored proposals.
+
+## How Meedo-Me learns
+
+| Signal | Effect |
+|--------|--------|
+| Accepted advice + later run moves the case | Hit — method reinforced |
+| Accepted advice + no move | Miss — do not repeat blindly |
+| Rejected with a reason | Teaches which engines/approaches not to propose |
+| Ignored open proposals | **Forbidden** — historically scored Meedo-Me at 0% while it was right |
+
+## Scope
+
+- Logo restore / vectorize / idealize: full ledger + review + episodes (required).
+- Other improve-loop domains: still record cross-cutting lessons in Meedo-Me
+  episodes when the failure mode is methodological (scoring lies, Chrome
+  dependency, AI fail-open, etc.).
+- Untrusted input agents (email/web): Meedo MCP **`--read-only`** only.
+
+## North star
+
+Meedo-Me’s memory (`meedo_ledger.json`, `meedo_episodes.json`) is the compounding
+asset. Prefer writing into it over chat-only conclusions. Prefer its ranked
+experiments over inventing a new plan from scratch each session.

@@ -221,6 +221,7 @@ def test_runs_can_be_rebuilt_from_the_ledger_when_the_log_is_gone(tmp_path):
     from tools.logo_vectorizer.meedo_ledger import _runs_from_ledger
 
     led = tmp_path / "ledger.json"
+    observe(_runs(0.50), path=led)
     observe(_runs(0.50, 0.60), path=led)
     rebuilt = _runs_from_ledger(led)
     assert [r.run_id for r in rebuilt] == ["r0", "r1"]
