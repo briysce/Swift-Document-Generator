@@ -49,6 +49,12 @@ PINNED = "af0ddc3"
 PRODUCT = "Meedo-Me"
 IDENTIFIER = "com.briysce.meedome"
 TAGLINE = "Meedo's Codified Likeness Utility"
+# Left out of the import, and said so in its commit. Jan's documentation site
+# and blog are 235 MB of a 262 MB snapshot — the app itself is 27 MB — and
+# nothing in the build references them. They are Jan's marketing, about Jan and
+# carrying Jan's marks, so they are not Meedo-Me's to ship; left in, they made
+# the first push too large for the proxy.
+EXCLUDE = ("docs", "demo.gif", "JanBanner.png")
 
 # "Jan" as the product's name, not as part of someone else's model name
 # (Jan-Nano, Jan-v2-VL, Jan-Code) and not the browser extension's server name,
@@ -56,7 +62,13 @@ TAGLINE = "Meedo's Codified Likeness Utility"
 _PRODUCT_WORD = re.compile(r"\bJan\b(?![-_]\w)(?! Browser)")
 
 
+TRAILERS: list[str] = []
+
+
 def _run(cmd: list[str], cwd: Path | None = None) -> str:
+    if cmd[:2] == ["git", "commit"] and TRAILERS and "-m" in cmd:
+        i = cmd.index("-m") + 1
+        cmd = cmd[:i] + [cmd[i].rstrip() + "\n\n" + "\n".join(TRAILERS)] + cmd[i + 1:]
     return subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True).stdout
 
 
@@ -66,7 +78,8 @@ def import_upstream(jan: Path, out: Path) -> None:
         shutil.rmtree(out)
     out.mkdir(parents=True)
     archive = subprocess.run(
-        ["git", "archive", "--format=tar", PINNED], cwd=jan, check=True, capture_output=True
+        ["git", "archive", "--format=tar", PINNED, "--", "."] + [f":!{x}" for x in EXCLUDE],
+        cwd=jan, check=True, capture_output=True,
     ).stdout
     subprocess.run(["tar", "-x", "-C", str(out)], input=archive, check=True)
     _run(["git", "init", "-q", "-b", "main"], cwd=out)
@@ -74,7 +87,10 @@ def import_upstream(jan: Path, out: Path) -> None:
     _run(["git", "commit", "-q", "-m",
           f"Import Jan {PINNED} by Menlo Research (Apache-2.0)\n\n"
           f"Unmodified snapshot of {UPSTREAM} at {PINNED}, the base Meedo-Me is\n"
-          "built on. Every change after this commit is Meedo-Me's."], cwd=out)
+          "built on. Every change after this commit is Meedo-Me's.\n\n"
+          f"Left out: {', '.join(EXCLUDE)}. Jan's documentation site and blog are\n"
+          "235 MB of the snapshot against 27 MB for the app, nothing in the build\n"
+          "uses them, and they are Jan's marketing, carrying Jan's marks."], cwd=out)
 
 
 _KEY_VALUE = re.compile(r'^(\s*"(?:[^"\\]|\\.)*"\s*:\s*)("(?:[^"\\]|\\.)*")(.*)$', re.S)
@@ -233,7 +249,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--jan", required=True, type=Path, help="a clone of Jan containing the pinned commit")
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--push", default="", help="git URL of the Meedo-Me repository")
+    ap.add_argument("--trailer", action="append", default=[],
+                    help="line appended to every commit message (repeatable)")
     a = ap.parse_args(argv)
+    TRAILERS[:] = a.trailer
     import_upstream(a.jan, a.out)
     changed = rename(a.out)
     commit_rename(a.out, changed)
