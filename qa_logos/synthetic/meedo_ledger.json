@@ -530,9 +530,15 @@
       "headline": "trialta__blur_crush::vectorize: palette is gone, geometry survived",
       "case": "trialta__blur_crush::vectorize",
       "rationale": "palette_fidelity=0.003, ink_iou=0.2638. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260919T225928Z"
+      "status": "accepted",
+      "id": "6f103481",
+      "kind": "palette is gone, geometry survived",
+      "raised": 4,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "Acting now. Restoring washed colours in the reconstruction path: chroma restored along the sketch's own hue for coloured elements, lightness for neutrals, and never a hue invented from grey \u2014 honouring the recorded lesson this proposal cites.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:35Z",
+      "accepted_run": "20260920T174511Z"
     },
     {
       "run_id": "20260919T215744Z",
@@ -541,9 +547,14 @@
       "headline": "trialta__blur_crush::esrgan: palette is gone, geometry survived",
       "case": "trialta__blur_crush::esrgan",
       "rationale": "palette_fidelity=0.0, ink_iou=0.2207. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260919T225928Z"
+      "status": "rejected",
+      "id": "61666154",
+      "kind": "palette is gone, geometry survived",
+      "raised": 4,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "ESRGAN produces a raster. The goal is the reconstructed vector, so colour recovery is being built in the reconstruction path, where it can be judged.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:36Z"
     },
     {
       "run_id": "20260919T215744Z",
@@ -552,42 +563,14 @@
       "headline": "trialta__blur_crush::baseline: palette is gone, geometry survived",
       "case": "trialta__blur_crush::baseline",
       "rationale": "palette_fidelity=0.0037, ink_iou=0.2712. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260919T225928Z"
-    },
-    {
-      "run_id": "20260919T225928Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 3,
-      "headline": "trialta__blur_crush::vectorize: palette is gone, geometry survived",
-      "case": "trialta__blur_crush::vectorize",
-      "rationale": "palette_fidelity=0.003, ink_iou=0.2638. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260919T233324Z"
-    },
-    {
-      "run_id": "20260919T225928Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 3,
-      "headline": "trialta__blur_crush::esrgan: palette is gone, geometry survived",
-      "case": "trialta__blur_crush::esrgan",
-      "rationale": "palette_fidelity=0.0, ink_iou=0.2207. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260919T233324Z"
-    },
-    {
-      "run_id": "20260919T225928Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 3,
-      "headline": "trialta__blur_crush::baseline: palette is gone, geometry survived",
-      "case": "trialta__blur_crush::baseline",
-      "rationale": "palette_fidelity=0.0037, ink_iou=0.2712. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260919T233324Z"
+      "status": "rejected",
+      "id": "39dfd08f",
+      "kind": "palette is gone, geometry survived",
+      "raised": 4,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "baseline is the control (prepare plus cubic upscale). Improving it would move the yardstick, not the product.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:36Z"
     },
     {
       "run_id": "20260919T233324Z",
@@ -596,9 +579,14 @@
       "headline": "arc__blur_crush::baseline has not moved and sits at 0.4463",
       "case": "arc__blur_crush::baseline",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
+      "status": "rejected",
+      "id": "cc22b567",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "baseline is the control. Improving it would move the yardstick, not the product.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:37Z"
     },
     {
       "run_id": "20260919T233324Z",
@@ -607,9 +595,14 @@
       "headline": "arc__blur_crush::esrgan has not moved and sits at 0.4722",
       "case": "arc__blur_crush::esrgan",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
+      "status": "rejected",
+      "id": "b03c2dea",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "ESRGAN produces a raster; the direction is the reconstructed vector. Not worth effort on this engine.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:36Z"
     },
     {
       "run_id": "20260919T233324Z",
@@ -618,9 +611,15 @@
       "headline": "arc__blur_crush::vectorize has not moved and sits at 0.4461",
       "case": "arc__blur_crush::vectorize",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
+      "status": "accepted",
+      "id": "785527b3",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "Acting now, as part of the same colour recovery. This sketch's red is washed to (248,117,167) and its teal nearly gone; the new palette reading keeps both, so the reconstruction may now recover what the trace drops. Judge it honestly on the next run.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:35Z",
+      "accepted_run": "20260920T174511Z"
     },
     {
       "run_id": "20260919T233324Z",
@@ -629,9 +628,14 @@
       "headline": "trialta__blur_crush::baseline has not moved and sits at 0.4419",
       "case": "trialta__blur_crush::baseline",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
+      "status": "rejected",
+      "id": "31861396",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "baseline is the control. Improving it would move the yardstick, not the product.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:37Z"
     },
     {
       "run_id": "20260919T233324Z",
@@ -640,9 +644,14 @@
       "headline": "trialta__blur_crush::esrgan has not moved and sits at 0.4242",
       "case": "trialta__blur_crush::esrgan",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
+      "status": "rejected",
+      "id": "ca0fc5ff",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "ESRGAN produces a raster; the direction is the reconstructed vector. Not worth effort on this engine.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:36Z"
     },
     {
       "run_id": "20260919T233324Z",
@@ -651,9 +660,14 @@
       "headline": "trialta__blur_crush::vectorize has not moved and sits at 0.4021",
       "case": "trialta__blur_crush::vectorize",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
+      "status": "rejected",
+      "id": "ff3b0ccd",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "Same case and same cause as 6f103481, which is accepted. Judging both would count one piece of work twice.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:36Z"
     },
     {
       "run_id": "20260919T233324Z",
@@ -662,9 +676,14 @@
       "headline": "trialta__import_combo::baseline has not moved and sits at 0.5016",
       "case": "trialta__import_combo::baseline",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
+      "status": "rejected",
+      "id": "a02e201c",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "baseline is the control. Improving it would move the yardstick, not the product.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:37Z"
     },
     {
       "run_id": "20260919T233324Z",
@@ -673,163 +692,11 @@
       "headline": "trialta__import_combo::vectorize has not moved and sits at 0.5045",
       "case": "trialta__import_combo::vectorize",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
-    },
-    {
-      "run_id": "20260919T233324Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 3,
-      "headline": "trialta__blur_crush::vectorize: palette is gone, geometry survived",
-      "case": "trialta__blur_crush::vectorize",
-      "rationale": "palette_fidelity=0.003, ink_iou=0.2638. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
-    },
-    {
-      "run_id": "20260919T233324Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 3,
-      "headline": "trialta__blur_crush::esrgan: palette is gone, geometry survived",
-      "case": "trialta__blur_crush::esrgan",
-      "rationale": "palette_fidelity=0.0, ink_iou=0.2207. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
-    },
-    {
-      "run_id": "20260919T233324Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 3,
-      "headline": "trialta__blur_crush::baseline: palette is gone, geometry survived",
-      "case": "trialta__blur_crush::baseline",
-      "rationale": "palette_fidelity=0.0037, ink_iou=0.2712. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T004154Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 2,
-      "headline": "arc__blur_crush::baseline has not moved and sits at 0.4463",
-      "case": "arc__blur_crush::baseline",
-      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 2,
-      "headline": "arc__blur_crush::esrgan has not moved and sits at 0.4722",
-      "case": "arc__blur_crush::esrgan",
-      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 2,
-      "headline": "arc__blur_crush::vectorize has not moved and sits at 0.4461",
-      "case": "arc__blur_crush::vectorize",
-      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 2,
-      "headline": "trialta__blur_crush::baseline has not moved and sits at 0.4419",
-      "case": "trialta__blur_crush::baseline",
-      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 2,
-      "headline": "trialta__blur_crush::esrgan has not moved and sits at 0.4242",
-      "case": "trialta__blur_crush::esrgan",
-      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 2,
-      "headline": "trialta__blur_crush::vectorize has not moved and sits at 0.4021",
-      "case": "trialta__blur_crush::vectorize",
-      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 2,
-      "headline": "trialta__import_combo::baseline has not moved and sits at 0.5016",
-      "case": "trialta__import_combo::baseline",
-      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 2,
-      "headline": "trialta__import_combo::vectorize has not moved and sits at 0.5045",
-      "case": "trialta__import_combo::vectorize",
-      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 3,
-      "headline": "trialta__blur_crush::vectorize: palette is gone, geometry survived",
-      "case": "trialta__blur_crush::vectorize",
-      "rationale": "palette_fidelity=0.003, ink_iou=0.2638. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 3,
-      "headline": "trialta__blur_crush::esrgan: palette is gone, geometry survived",
-      "case": "trialta__blur_crush::esrgan",
-      "rationale": "palette_fidelity=0.0, ink_iou=0.2207. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
-    },
-    {
-      "run_id": "20260920T004154Z",
-      "ts": "2026-09-20T04:41:30Z",
-      "priority": 3,
-      "headline": "trialta__blur_crush::baseline: palette is gone, geometry survived",
-      "case": "trialta__blur_crush::baseline",
-      "rationale": "palette_fidelity=0.0037, ink_iou=0.2712. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
-      "status": "no_change",
-      "delta": 0.0,
-      "resolved_run": "20260920T044325Z"
+      "status": "open",
+      "id": "80ac95cb",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z"
     }
   ],
   "reviews": [

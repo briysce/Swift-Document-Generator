@@ -64,6 +64,11 @@ MAX_OBSERVATIONS = 200
 # A proposal older than this without a verdict is abandoned rather than left
 # open forever — an unresolved proposal pollutes the hit rate.
 STALE_AFTER_RUNS = 6
+# The same advice raised this many times without anyone deciding on it stops
+# being one more line in a list and goes to the top of the standup.
+ESCALATE_AFTER = 3
+# Statuses in which a proposal is still one piece of advice, not a new one.
+_LIVE = ("open", "accepted", "rejected")
 
 
 def _now() -> str:
@@ -109,7 +114,66 @@ def load(path: Path | None = None) -> dict:
         return {"version": 1, "observations": [], "proposals": []}
     data.setdefault("observations", [])
     data.setdefault("proposals", [])
+    _migrate(data)
     return data
+
+
+def _kind(headline: str, case: str) -> str:
+    """The advice with its subject and its numbers taken out.
+
+    "X::y has not moved and sits at 0.4021" and "... sits at 0.4019" are the
+    same advice about the same case; the score in the sentence is not what is
+    being advised.
+    """
+    import re
+
+    text = headline.replace(case, "")
+    text = re.sub(r"[-+]?\d+\.\d+", "#", text)
+    return " ".join(text.split()).strip(" :")
+
+
+def _pid(case: str, kind: str) -> str:
+    import hashlib
+
+    return hashlib.sha1(f"{case}|{kind}".encode()).hexdigest()[:8]
+
+
+def _migrate(data: dict) -> None:
+    """Bring older proposals under the decide-then-judge lifecycle.
+
+    Before it, every proposal was judged by whether its case moved on the next
+    run, whether or not anyone acted on it. Twenty-eight proposals went into a
+    file nobody read, were all scored no_change, and gave Meedo-Me a 0% hit
+    rate that measured whether problems fixed themselves. Advice nobody took
+    was never tested, so it goes back to awaiting a decision; and the same
+    advice filed six times is one proposal raised six times.
+    """
+    props = data.get("proposals", [])
+    if all("id" in p for p in props):
+        return
+    merged: dict[str, dict] = {}
+    for p in props:
+        case = p.get("case", "")
+        kind = _kind(p.get("headline", ""), case)
+        pid = _pid(case, kind)
+        if not p.get("accepted_run"):
+            for k in ("delta", "resolved_run"):
+                p.pop(k, None)
+            if p.get("status") in ("helped", "hurt", "no_change"):
+                p["status"] = "open"
+        cur = merged.get(pid)
+        if cur is None:
+            p.update({"id": pid, "kind": kind, "raised": 1,
+                      "last_raised": p.get("run_id")})
+            merged[pid] = p
+            continue
+        if p.get("run_id") != cur.get("last_raised"):
+            cur["raised"] = cur.get("raised", 1) + 1
+            cur["last_raised"] = max(str(cur.get("last_raised")), str(p.get("run_id")))
+    for cur in merged.values():
+        if cur["raised"] >= ESCALATE_AFTER and cur.get("status") == "open":
+            cur["escalated"] = True
+    data["proposals"] = list(merged.values())
 
 
 def save(data: dict, path: Path | None = None) -> None:
@@ -197,29 +261,128 @@ def propose(
     inflate the hit rate.
     """
     data = load(path)
-    existing = {(p["run_id"], p["headline"]) for p in data["proposals"]}
     added = 0
+    declined = declined_engines(data)
+    withheld = 0
     for s in suggestions:
         case = _case_from_headline(s.headline)
         if not case:
             continue
-        key = (run_id, s.headline)
-        if key in existing:
+        if case.split("::")[-1] in declined:
+            withheld += 1
+            continue
+        kind = _kind(s.headline, case)
+        pid = _pid(case, kind)
+        prior = next(
+            (p for p in data["proposals"]
+             if p.get("id") == pid and p.get("status") in _LIVE),
+            None,
+        )
+        if prior is not None:
+            # Already said. Saying it again does not add a proposal — it adds
+            # weight to the one already waiting, and past a point it escalates.
+            # A rejected proposal is not reopened by repetition; the reason it
+            # was rejected stands until someone changes their mind.
+            if prior.get("last_raised") != run_id:
+                prior["raised"] = prior.get("raised", 1) + 1
+                prior["last_raised"] = run_id
+                if (prior["raised"] >= ESCALATE_AFTER
+                        and prior.get("status") == "open"
+                        and not prior.get("escalated")):
+                    prior["escalated"] = True
+                    prior["escalated_at"] = run_id
             continue
         data["proposals"].append(
             {
+                "id": pid,
                 "run_id": run_id,
                 "ts": _now(),
                 "priority": s.priority,
                 "headline": s.headline,
                 "case": case,
+                "kind": kind,
                 "rationale": s.rationale,
                 "status": "open",
+                "raised": 1,
+                "last_raised": run_id,
             }
         )
         added += 1
+    data["withheld_last"] = {"run_id": run_id, "count": withheld,
+                             "engines": sorted(declined)}
     save(data, path)
     return added
+
+
+def declined_engines(data: dict) -> set[str]:
+    """Engines Meedo-Me has learned not to propose work on.
+
+    Its first standup rejected seven of eleven proposals for one of two
+    reasons: the engine was the control (improving it moves the yardstick, not
+    the product), or it produced a raster when the product is the vector. An
+    advisor that keeps making a suggestion its manager keeps rejecting for the
+    same reason is not advising, it is nagging. Once an engine has at least two
+    rejected proposals and none accepted, advice about it is withheld — and
+    counted as withheld, so it stays visible rather than going silent.
+    Accepting any proposal on that engine reverses it.
+    """
+    rejected: dict[str, int] = defaultdict(int)
+    taken: dict[str, int] = defaultdict(int)
+    for p in data.get("proposals", []):
+        engine = str(p.get("case", "")).split("::")[-1]
+        if p.get("status") == "rejected":
+            rejected[engine] += 1
+        elif p.get("status") in ("accepted", "helped", "hurt", "no_change"):
+            taken[engine] += 1
+    return {e for e, n in rejected.items() if n >= 2 and not taken.get(e)}
+
+
+def decide(
+    pid: str,
+    decision: str,
+    reason: str,
+    by: str = "",
+    path: Path | None = None,
+) -> dict:
+    """Accept or reject a proposal, with a reason.
+
+    Advice is only tested once someone acts on it, so only accepted proposals
+    are judged by later runs, and they are judged from the run on which they
+    were accepted — that is when the work starts. A rejection needs a reason:
+    "no" with nothing after it teaches Meedo-Me nothing.
+    """
+    if decision not in ("accept", "reject"):
+        raise ValueError("decision must be 'accept' or 'reject'")
+    if not reason.strip():
+        raise ValueError("a decision needs a reason")
+    data = load(path)
+    prop = next((p for p in data["proposals"] if p.get("id") == pid
+                 and p.get("status") in _LIVE), None)
+    if prop is None:
+        raise KeyError(f"no live proposal {pid}")
+    runs = [o.get("run_id") for o in data["observations"]]
+    prop["status"] = "accepted" if decision == "accept" else "rejected"
+    prop["decision_reason"] = reason.strip()
+    prop["decided_by"] = by
+    prop["decided_at"] = _now()
+    if decision == "accept":
+        prop["accepted_run"] = runs[-1] if runs else prop.get("run_id")
+    prop.pop("escalated", None)
+    save(data, path)
+    return prop
+
+
+def standup(path: Path | None = None) -> list[dict]:
+    """What is waiting on a decision, most pressing first.
+
+    Escalated advice leads — it has been raised repeatedly and nobody has
+    decided. Then by priority (1 is highest), then by how often it was raised.
+    """
+    data = load(path)
+    waiting = [p for p in data["proposals"] if p.get("status") == "open"]
+    waiting.sort(key=lambda p: (not p.get("escalated"), int(p.get("priority", 9)),
+                                -int(p.get("raised", 1))))
+    return waiting
 
 
 def _case_from_headline(headline: str) -> str:
@@ -239,17 +402,21 @@ def _resolve_proposals(data: dict, current: Run) -> int:
     resolved = 0
 
     for prop in data["proposals"]:
-        if prop.get("status") != "open":
+        # Only advice someone acted on is tested. Judging an open proposal by
+        # whether its case happened to move measures whether problems fix
+        # themselves, and scored 28 untaken suggestions as failures.
+        if prop.get("status") != "accepted":
             continue
-        if prop["run_id"] == current.run_id:
-            continue  # cannot judge a proposal by the run that produced it
+        start = prop.get("accepted_run") or prop["run_id"]
+        if start == current.run_id:
+            continue  # cannot judge a proposal by the run it was accepted on
 
-        before = _score_at(data, prop["run_id"], prop["case"])
+        before = _score_at(data, start, prop["case"])
         after = cases.get(prop["case"])
         if before is None or after is None:
             # Still unjudgeable. Abandon once it is too old to attribute.
             try:
-                age = len(order) - 1 - order.index(prop["run_id"])
+                age = len(order) - 1 - order.index(start)
             except ValueError:
                 age = len(order)
             if age > STALE_AFTER_RUNS:
@@ -381,6 +548,10 @@ def hit_rate(path: Path | None = None) -> dict:
 
     return {
         "judged": len(judged),
+        "awaiting_decision": sum(1 for p in data["proposals"] if p.get("status") == "open"),
+        "escalated": sum(1 for p in data["proposals"] if p.get("escalated")),
+        "accepted_in_progress": sum(1 for p in data["proposals"] if p.get("status") == "accepted"),
+        "rejected": sum(1 for p in data["proposals"] if p.get("status") == "rejected"),
         "open": sum(1 for p in data["proposals"] if p.get("status") == "open"),
         "abandoned": sum(
             1 for p in data["proposals"] if p.get("status") == "abandoned"
@@ -454,13 +625,42 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument(
         "command",
-        choices=["observe", "report", "propose"],
+        choices=["observe", "report", "propose", "standup", "decide"],
         help="observe: record the latest run; propose: log current advice; "
-             "report: what has been learned",
+             "report: what has been learned; standup: what awaits a decision; "
+             "decide: accept or reject a proposal",
     )
+    p.add_argument("args", nargs="*", help="decide: <id> accept|reject <reason>")
     p.add_argument("--note", default="", help="What changed before this run")
+    p.add_argument("--by", default="", help="decide: who decided")
     p.add_argument("--json", action="store_true")
-    a = p.parse_args(argv)
+    # Intermixed, so options may sit anywhere: `decide --by claude <id> ...`
+    # otherwise leaves the reason unparsed.
+    a = p.parse_intermixed_args(argv)
+
+    if a.command == "standup":
+        waiting = standup()
+        if a.json:
+            print(json.dumps(waiting, indent=2))
+            return 0
+        if not waiting:
+            print("Meedo-Me standup: nothing awaiting a decision")
+            return 0
+        print(f"Meedo-Me standup — {len(waiting)} proposal(s) awaiting a decision")
+        for q in waiting:
+            flag = "ESCALATED " if q.get("escalated") else ""
+            print(f"  [{q['id']}] {flag}P{q.get('priority')} x{q.get('raised', 1)}  {q['headline']}")
+            print(f"           {q.get('rationale', '')}")
+        print("\ndecide with: python -m tools.logo_vectorizer.meedo_ledger decide <id> accept|reject \"<reason>\"")
+        return 0
+
+    if a.command == "decide":
+        if len(a.args) < 3:
+            print("usage: decide <id> accept|reject <reason>")
+            return 2
+        prop = decide(a.args[0], a.args[1], " ".join(a.args[2:]), by=a.by)
+        print(f"{prop['id']} -> {prop['status']}: {prop['decision_reason']}")
+        return 0
 
     if a.command == "observe":
         res = observe(note=a.note)
@@ -494,7 +694,9 @@ def main(argv: list[str] | None = None) -> int:
               + ("  [flat]" if t["flat"] else ""))
     h = report["hit_rate"]
     print(f"  advice judged: {h['judged']}  helped-rate {h['overall']}  "
-          f"(open {h['open']}, abandoned {h['abandoned']})")
+          f"(awaiting decision {h['awaiting_decision']}, escalated {h['escalated']}, "
+          f"in progress {h['accepted_in_progress']}, rejected {h['rejected']}, "
+          f"abandoned {h['abandoned']})")
     for pri, stats in h["by_priority"].items():
         print(f"    P{pri}: {stats['n']} judged, helped {stats['helped_rate']}")
     if report["never_moved"]:
@@ -516,6 +718,9 @@ __all__ = [
     "save",
     "observe",
     "propose",
+    "decide",
+    "declined_engines",
+    "standup",
     "case_knowledge",
     "hit_rate",
     "trend",
