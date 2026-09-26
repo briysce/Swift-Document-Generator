@@ -3068,6 +3068,78 @@
       ],
       "cases": [],
       "source": "observe:improve_loop"
+    },
+    {
+      "id": "E0134",
+      "ts": "2026-09-26T22:41:24Z",
+      "commit": "7790007",
+      "workstream": "logo-engine",
+      "outcome": "partial",
+      "problem": "Trialta scores ~0.48, far below every other logo \u2014 is the engine failing on it?",
+      "first_read": "Engine loses Trialta's grey elements (fan mark, TRI, PROJECTS) during preparation.",
+      "evidence": "On magenta, the degraded sketches show the grey ink as transparent holes in an opaque white plate (downscale_jpeg: grey is 0.8% of opaque pixels; clean: 19% of the canvas). scripts/logo_synthetic_degrade.py::_jpeg_reconstruct_alpha flattens onto white, then keeps 'plate' (lum>248) opaque and counts as ink only chroma>=20, lum<70 or a red/blue/orange tint \u2014 neutral mid-grey (lum ~107) is none, so it becomes alpha 0. prepare_for_engine then removes the white plate and nothing of the grey half is left to restore; the reviewer cannot object because grey is not in the sketch's palette.",
+      "cause": "A test-harness bug: the synthetic degrader deletes neutral ink and keeps the page, an input no real import produces. Trialta's low score mostly measures the broken sketch, not the engine.",
+      "fix": "Pending: version the corpus (degrader v2 treating neutral mid-tones darker than the plate as ink), record the degrader version in the corpus fingerprint, and re-baseline \u2014 not a silent swap.",
+      "verified": "",
+      "method": "When one logo scores far below the rest, look at its degraded sketch on a contrasting background (magenta) before blaming the engine: the harness may have deleted what the engine is asked to restore.",
+      "tags": [
+        "alpha",
+        "corpus",
+        "degrader",
+        "grey",
+        "trialta"
+      ],
+      "cases": [
+        "trialta__blur_crush",
+        "trialta__downscale_jpeg",
+        "trialta__import_combo"
+      ],
+      "source": "claude"
+    },
+    {
+      "id": "E0135",
+      "ts": "2026-09-26T22:41:27Z",
+      "commit": "7790007",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__blur_crush/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (253,95) in sketch pixels; 15 of the 29 elements the sketch shows (letters, bars, marks) are missing, at (96,53), (114,65), (159,65), (190,66), (144,68), (240,72), (170,102), (196,99) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__blur_crush"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0136",
+      "ts": "2026-09-26T22:41:28Z",
+      "commit": "7790007",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__blur_crush/traced: blocked by review (element)",
+      "first_read": "",
+      "evidence": "15 of the 29 elements the sketch shows (letters, bars, marks) are missing, at (96,53), (114,65), (159,65), (190,66), (144,68), (240,72), (170,102), (196,99) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "gcm__blur_crush"
+      ],
+      "source": "review"
     }
   ]
 }

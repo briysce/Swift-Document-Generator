@@ -2604,6 +2604,18 @@
         "commit": "8a1eec5"
       },
       "source": "manual"
+    },
+    {
+      "id": "2026-09-26T22:41:24Z-claude",
+      "ts": "2026-09-26T22:41:24Z",
+      "agent": "claude",
+      "task": 16,
+      "kind": "finding",
+      "summary": "Trialta's ~0.48 is a harness bug: the synthetic degrader makes neutral grey ink transparent and keeps the white page opaque, so half the logo is gone before the engine runs (E0134). Needs a versioned corpus (degrader v2) + re-baseline",
+      "evidence": {
+        "commit": "7790007"
+      },
+      "source": "manual"
     }
   ]
 }
