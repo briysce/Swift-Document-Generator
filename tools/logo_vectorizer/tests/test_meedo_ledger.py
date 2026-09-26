@@ -243,6 +243,44 @@ def test_runs_are_only_compared_with_runs_configured_the_same(tmp_path):
     led = tmp_path / "ledger.json"
     observe(runs, path=led)
     obs = load(led)["observations"][-1]
-    assert obs["config"] == {"min_height": 1200, "engines": ["vectorize"], "idealize": False, "minds": False}
+    assert obs["config"] == {
+        "min_height": 1200,
+        "engines": ["vectorize"],
+        "idealize": False,
+        "minds": False,
+        "minds_rank": False,
+    }
     assert obs["moved"] == {}
+
+
+def test_minds_rank_splits_run_comparability():
+    """A LOGO_MINDS_RANK run must not compare against one without it — same
+    contract as idealize/minds (Claude's incomplete handoff before usage stop)."""
+    from tools.logo_vectorizer.meedo_advisor import Run, comparable_previous
+
+    def run(rid, *, minds_rank):
+        return Run(
+            rid,
+            [
+                {
+                    "run_id": rid,
+                    "pair_id": "swift_orange_solid__import_combo",
+                    "engine": "vectorize",
+                    "ok": True,
+                    "composite": 0.93,
+                    "min_height": 1200,
+                    "engines": ["vectorize"],
+                    "idealize": True,
+                    "minds": False,
+                    "minds_rank": minds_rank,
+                }
+            ],
+        )
+
+    off = run("r0", minds_rank=False)
+    on = run("r1", minds_rank=True)
+    assert off.config()["minds_rank"] is False
+    assert on.config()["minds_rank"] is True
+    assert comparable_previous([off, on]) is None
+    assert comparable_previous([off, run("r2", minds_rank=False)]) is off
 

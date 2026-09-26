@@ -88,6 +88,23 @@ def available(mind: str) -> bool:
     return False
 
 
+def minds_rank_enabled() -> bool:
+    """Opt-in: Gemini/Claude may pick traced vs idealize when both pass review.
+
+    Off by default. Measured by `scripts/logo_minds_rank.py` before anything
+    trusts it as the in-pair signal board #4 lacks. Enable with
+    ``LOGO_MINDS_RANK=1`` (only meaningful alongside ``LOGO_IDEALIZE=1``, which
+    builds both candidates). The improve loop records this flag beside
+    ``minds`` so runs with ranking on are never compared to runs without it.
+    """
+    return os.environ.get("LOGO_MINDS_RANK", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
 # --------------------------------------------------------------------------
 # transport
 # --------------------------------------------------------------------------

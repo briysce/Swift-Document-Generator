@@ -158,6 +158,21 @@ def _minds_on() -> bool:
         return False
 
 
+def _minds_rank_on() -> bool:
+    """Whether Gemini/Claude may pick traced vs idealize (LOGO_MINDS_RANK).
+
+    Same contract as ``minds`` / ``idealize``: it changes what a run produces,
+    so it must sit beside them in every row and in what makes runs comparable.
+    """
+    try:
+        sys.path.insert(0, str(ROOT))
+        from tools.logo_vectorizer.ai_advisors.minds import minds_rank_enabled
+
+        return bool(minds_rank_enabled())
+    except Exception:
+        return False
+
+
 def run_loop(
     engines: list[str],
     min_h: int = 1200,
@@ -217,6 +232,9 @@ def run_loop(
                 # Whether Gemini/Claude could escalate (collab_mind): a run
                 # where they could is not comparable to one where they could not.
                 "minds": _minds_on(),
+                # Whether minds may rank traced vs idealize (LOGO_MINDS_RANK).
+                # Off by default; when on it changes which candidate ships.
+                "minds_rank": _minds_rank_on(),
                 "anchor": bool(pair.get("anchor")),
                 "clean": pair["clean"],
                 "degraded": pair["degraded"],
@@ -305,6 +323,7 @@ def run_loop(
         "engines": list(engines),
         "idealize": _idealize_on(),
         "minds": _minds_on(),
+        "minds_rank": _minds_rank_on(),
         "n_pairs": len(pairs),
         "n_rows": len(rows),
         "n_scored": len(scored),

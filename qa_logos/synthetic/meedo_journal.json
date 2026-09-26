@@ -792,6 +792,100 @@
         "commit": "b974e8d"
       },
       "source": "manual"
+    },
+    {
+      "id": "2026-09-26T14:41:05Z-cursor",
+      "ts": "2026-09-26T14:41:05Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "claim",
+      "summary": "Claude Code usage-down: Cursor covers both. Resume Arc #8 tagline \u2014 color-split before prune; measure idealize vs trace vs brand-ref.",
+      "evidence": {
+        "commit": "f756949",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "2026-09-26T14:41:05Z-cursor-2",
+      "ts": "2026-09-26T14:41:05Z",
+      "agent": "cursor",
+      "task": 4,
+      "kind": "claim",
+      "summary": "Taken over from Claude (usage down): craftsmanship/design_fit selection after identity holds.",
+      "evidence": {
+        "commit": "f756949",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "2026-09-26T14:45:14Z-cursor",
+      "ts": "2026-09-26T14:45:14Z",
+      "agent": "cursor",
+      "task": 12,
+      "kind": "claim",
+      "summary": "Take over stale #12 minds from Claude (~16+ min quiet): Gemini+Claude critique/guide when stuck; cover house-rule gaps on prior cursor dones if cheap.",
+      "evidence": {
+        "commit": "f756949"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "2026-09-26T14:45:14Z-cursor-2",
+      "ts": "2026-09-26T14:45:14Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "finding",
+      "summary": "Arc convert: only traced is Meedo-reviewed; _prefer_reconstruction returns False whenever traced.has_vector, so red wrong-color VTracer can beat tagline-retaining idealize even when identity_first should win. Will: review both cands; prefer ideal when lost_no_more(ideal,traced) and identity holds; color-split before prune.",
+      "evidence": {
+        "commit": "f756949"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "2026-09-26T14:46:27Z-cursor",
+      "ts": "2026-09-26T14:46:27Z",
+      "agent": "cursor",
+      "task": 4,
+      "kind": "finding",
+      "summary": "Land Claude's incomplete minds_rank handoff: improve-loop rows + summary + Run.config() record minds_rank beside minds; LOGO_MINDS_RANK opt-in in convert (fail-open). Off by default until logo_minds_rank.py proves the signal.",
+      "evidence": {
+        "commit": "f756949",
+        "tests": "pytest tools/logo_vectorizer/tests/test_meedo_ledger.py -q (31 passed)",
+        "review": "n/a: config recording; convert fail-open when minds unavailable",
+        "looked": "n/a: no raster change this slice",
+        "measured": "n/a: recording/comparability only; ranking still opt-in"
+      },
+      "source": "cli",
+      "files": [
+        "scripts/logo_restore_improve_loop.py",
+        "scripts/logo_vectorize.py",
+        "tools/logo_vectorizer/ai_advisors/minds.py",
+        "tools/logo_vectorizer/meedo_advisor.py"
+      ]
+    },
+    {
+      "id": "2026-09-26T14:46:45Z-cursor",
+      "ts": "2026-09-26T14:46:45Z",
+      "agent": "cursor",
+      "task": 4,
+      "kind": "finding",
+      "summary": "Land Claude's incomplete minds_rank handoff: improve-loop rows + summary + Run.config() record minds_rank beside minds; LOGO_MINDS_RANK opt-in in convert (fail-open). Off by default until logo_minds_rank.py proves the signal.",
+      "evidence": {
+        "commit": "f756949",
+        "tests": "pytest tools/logo_vectorizer/tests/test_meedo_ledger.py -q (31 passed)",
+        "review": "n/a: config recording; convert fail-open when minds unavailable",
+        "looked": "n/a: no raster change this slice",
+        "measured": "n/a: recording/comparability only; ranking still opt-in"
+      },
+      "source": "cli",
+      "files": [
+        "scripts/logo_restore_improve_loop.py",
+        "scripts/logo_vectorize.py",
+        "tools/logo_vectorizer/ai_advisors/minds.py",
+        "tools/logo_vectorizer/meedo_advisor.py"
+      ]
     }
   ]
 }
