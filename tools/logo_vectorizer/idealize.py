@@ -772,6 +772,8 @@ def match_glyphs(els: list) -> dict[int, tuple[object, str]]:
         corpus = font_corpus()
         masks = [e.mask for e in els]
         boxes = [e.bbox for e in els]
+        cache: dict = {}
+        found = []
         for family in _colour_run_families(els):
             fam = [i for i in family if _letterlike_element(els[i])]
             if len(fam) < 3:
@@ -779,15 +781,76 @@ def match_glyphs(els: list) -> dict[int, tuple[object, str]]:
             fam_boxes = [boxes[i] for i in fam]
             for local_run in group_runs(fam_boxes):
                 run = [fam[j] for j in local_run]
-                m = _best_run_match(masks, run, corpus, match_run)
-                if m is None:
-                    continue
-                for idx, ch in zip(m.indices, m.chars):
-                    if ch:
-                        glyphs[idx] = (m.font, ch)
+                m = _best_run_match(masks, run, corpus, match_run, cache)
+                if m is not None:
+                    found.append(m)
+        for m in _one_face_per_line(found, masks, boxes, cache):
+            for idx, ch in zip(m.indices, m.chars):
+                if ch:
+                    glyphs[idx] = (m.font, ch)
     except Exception:
         return {}
     return glyphs
+
+
+def _one_face_per_line(runs: list, masks, boxes, cache: dict) -> list:
+    """Runs on one line are one wordmark, and a wordmark is set in one face.
+
+    Colour splits the runs so each can be matched cleanly, but colour is not a
+    change of typeface: Trialta's gray TRI and green ALTA share a baseline and
+    cap height, yet matched apart they came back Oswald and Sansita — one word
+    in two fonts, with the same T drawn identically in both. The face is chosen
+    jointly for the line: the candidate (each run's own winner) with the best
+    mean over every letter of the line, provided that mean clears MIN_RUN_SCORE
+    and every run still reads the same letters. The floor applies to the line,
+    not to each run: each run was already recognised as text by its own match,
+    and the joint face only has to be the best single explanation of the word
+    (Oswald: TRI 0.948, ALTA 0.839, line 0.886). A face that needs a letter
+    misread to fit is the wrong face — Sansita tied Oswald on the line (0.885)
+    only by reading R as "n". If no candidate qualifies, runs keep their own.
+    """
+    from .glyph_match import MIN_RUN_SCORE, RunMatch, _normalize, best_char, group_runs
+
+    if len(runs) < 2:
+        return runs
+    heads = [boxes[r.indices[0]] for r in runs]
+    line_of = {}
+    for line in group_runs(heads):
+        for j in line:
+            line_of[j] = tuple(line)
+    out = list(runs)
+    for line in set(line_of.values()):
+        members = [runs[j] for j in line]
+        if len({m.font for m in members}) < 2:
+            continue
+
+        def scored(font, m):
+            chars, total = [], 0.0
+            for i in m.indices:
+                key = (i, font)
+                if key not in cache:
+                    n = _normalize(masks[i].astype(np.uint8) * 255)
+                    cache[key] = best_char(n[0], n[1], font) if n else (0.0, "")
+                sc, ch = cache[key]
+                chars.append(ch)
+                total += sc
+            return RunMatch(font, chars, m.indices, total / len(m.indices))
+
+        best = None
+        for font in dict.fromkeys(m.font for m in members):
+            rescored = [scored(font, m) for m in members]
+            if any(r.chars != m.chars for r, m in zip(rescored, members)):
+                continue
+            letters = sum(len(r.indices) for r in rescored)
+            mean = sum(r.mean_score * len(r.indices) for r in rescored) / letters
+            if mean < MIN_RUN_SCORE:
+                continue
+            if best is None or mean > best[0]:
+                best = (mean, rescored)
+        if best is not None:
+            for j, r in zip(line, best[1]):
+                out[j] = r
+    return out
 
 
 def _letterlike_element(el) -> bool:
@@ -802,13 +865,17 @@ def _letterlike_element(el) -> bool:
     return True
 
 
-def _best_run_match(masks, indices, corpus, match_run):
+def _best_run_match(masks, indices, corpus, match_run, cache: dict | None = None):
     """Match a run; if polluted, try contiguous letter subsequences.
 
     Trialta's gray family groups the logo icon with TRI. The full run fails
     the score floor; the contiguous TRI triple alone clears it at ~0.95.
+    The sub-runs share one score cache: each letter is scored against each
+    font once, not once per sub-run (62 s to name Trialta's clean master
+    without it).
     """
-    m = match_run(masks, indices, corpus)
+    cache = {} if cache is None else cache
+    m = match_run(masks, indices, corpus, cache=cache)
     if m is not None:
         return m
     if len(indices) <= 3:
@@ -816,7 +883,7 @@ def _best_run_match(masks, indices, corpus, match_run):
     best = None
     for i in range(len(indices)):
         for j in range(i + 3, len(indices) + 1):
-            cand = match_run(masks, indices[i:j], corpus)
+            cand = match_run(masks, indices[i:j], corpus, cache=cache)
             if cand is None:
                 continue
             if best is None or cand.mean_score > best.mean_score:

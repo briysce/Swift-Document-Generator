@@ -350,6 +350,24 @@ class RunMatch:
     mean_score: float
 
 
+def best_char(target: np.ndarray, aspect: float, fp: Path, alphabet: str = ALPHABET) -> tuple[float, str]:
+    """The character of font `fp` that best matches one normalized element."""
+    bs, bc = 0.0, ""
+    for ch in alphabet:
+        g = _glyph_norm(fp, ch)
+        if g is None:
+            continue
+        gnorm, gaspect = g
+        if aspect <= 0 or gaspect <= 0:
+            continue
+        if abs(math.log(aspect / gaspect)) > MAX_ASPECT_LOG_RATIO:
+            continue
+        sc = _soft_score(target, gnorm)
+        if sc > bs:
+            bs, bc = sc, ch
+    return bs, bc
+
+
 def match_run(
     masks: list[np.ndarray],
     indices: list[int],
@@ -357,8 +375,14 @@ def match_run(
     *,
     alphabet: str = ALPHABET,
     min_run_score: float = MIN_RUN_SCORE,
+    cache: dict | None = None,
 ) -> RunMatch | None:
-    """Pick the single font that best explains a whole run of elements."""
+    """Pick the single font that best explains a whole run of elements.
+
+    `cache`, shared across calls on the same elements, holds each element's
+    best (score, character) per font. Retrying sub-runs of a failed run then
+    costs arithmetic instead of another pass over the corpus.
+    """
     norms = []
     for i in indices:
         n = _normalize(masks[i].astype(np.uint8) * 255)
@@ -405,19 +429,13 @@ def match_run(
                 pruned = True
                 break
 
-            bs, bc = 0.0, ""
-            for ch in alphabet:
-                g = _glyph_norm(fp, ch)
-                if g is None:
-                    continue
-                gnorm, gaspect = g
-                if aspect <= 0 or gaspect <= 0:
-                    continue
-                if abs(math.log(aspect / gaspect)) > MAX_ASPECT_LOG_RATIO:
-                    continue
-                sc = _soft_score(target, gnorm)
-                if sc > bs:
-                    bs, bc = sc, ch
+            key = (indices[k], fp)
+            if cache is not None and key in cache:
+                bs, bc = cache[key]
+            else:
+                bs, bc = best_char(target, aspect, fp, alphabet)
+                if cache is not None:
+                    cache[key] = (bs, bc)
             chars.append(bc)
             total += bs
         if pruned or not chars:
