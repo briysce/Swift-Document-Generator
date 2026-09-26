@@ -120,7 +120,11 @@ class Run:
                        key=lambda t: (str(t[0]), str(t[1])))
         if not pairs:
             return None
-        return hashlib.sha1(_json.dumps([list(t) for t in pairs]).encode()).hexdigest()[:10]
+        key = [list(t) for t in pairs]
+        degrader = int(self.rows[0].get("degrader", 1) or 1)
+        if degrader != 1:  # v1 fingerprints stay what they always were
+            key.append(["degrader", degrader])
+        return hashlib.sha1(_json.dumps(key).encode()).hexdigest()[:10]
 
 
 def comparable_previous(runs: list[Run]) -> Run | None:

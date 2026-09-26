@@ -155,7 +155,15 @@ def _add_plate_halo(
     return out
 
 
-def _jpeg_reconstruct_alpha(jarr: np.ndarray) -> np.ndarray:
+# Version 2 counts neutral mid-tones darker than the plate as ink. Version 1
+# made them transparent while keeping the white plate opaque: Trialta's grey
+# fan mark, TRI and PROJECTS became holes in a white card before the engine
+# ran, an input no real import produces (E0134). Kept so corpus v1 — the one
+# every run up to 2026-09-26 measured — can still be regenerated.
+DEGRADER_VERSION = 2
+
+
+def _jpeg_reconstruct_alpha(jarr: np.ndarray, version: int = 1) -> np.ndarray:
     """Re-attach alpha after JPEG flatten: plate + ink opaque, speckle transparent.
 
     Earlier bug set alpha=255 for every pixel, which left JPEG plate noise as
@@ -173,6 +181,8 @@ def _jpeg_reconstruct_alpha(jarr: np.ndarray) -> np.ndarray:
     chroma_ink = (sat >= 20) | (lum < 70)
     biased_ink = (sat >= 14) & (lum < 210) & (red_bias | blue_bias | orange_bias)
     ink_px = chroma_ink | biased_ink
+    if version >= 2:
+        ink_px |= lum < 200  # grey and silver ink is ink; only near-white is JPEG mush
     out[:, :, 3] = np.where(plate_px, 255, np.where(ink_px, 255, 0)).astype(np.uint8)
     return out
 
@@ -192,6 +202,7 @@ def degrade(
     recipe: str = "import_combo",
     seed: int = 42,
     recipe_overrides: dict | None = None,
+    degrader: int = 1,
 ) -> dict:
     if recipe not in RECIPES:
         raise ValueError(f"unknown recipe {recipe!r}; choose from {sorted(RECIPES)}")
@@ -250,7 +261,7 @@ def degrade(
     jpg = Image.open(buf).convert("RGBA")
     # Re-attach a soft alpha from luminance-vs-plate heuristic so restore sees plate leftovers
     jarr = np.asarray(jpg, dtype=np.uint8).copy()
-    jarr = _jpeg_reconstruct_alpha(jarr)
+    jarr = _jpeg_reconstruct_alpha(jarr, degrader)
     out = Image.fromarray(jarr, "RGBA")
 
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -308,6 +319,29 @@ def seed_from_clean(
     return manifest
 
 
+def from_manifest(manifest_path: Path, out_dir: Path, *, degrader: int, write_manifest: Path | None = None) -> dict:
+    """Regenerate a corpus exactly from its manifest — each pair's recipe, seed
+    and parameters — instead of from today's default recipe list, whose order
+    decides the seeds: reordering it once swapped six pairs and reseeded twelve."""
+    manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
+    out_dir = Path(out_dir)
+    pairs = []
+    for pair in manifest.get("pairs", []):
+        clean = SYN / pair["clean"]
+        dest = out_dir / f"{pair['id']}.png"
+        meta = degrade(clean, dest, recipe=pair["recipe"], seed=int(pair["seed"]),
+                       recipe_overrides=pair.get("params") or None, degrader=degrader)
+        try:
+            rel = dest.resolve().relative_to(SYN.resolve()).as_posix()
+        except ValueError:
+            rel = dest.resolve().as_posix()
+        pairs.append({**pair, "degraded": rel, "params": meta["params"]})
+    out = {**manifest, "degrader": degrader, "pairs": pairs}
+    if write_manifest is not None:
+        Path(write_manifest).write_text(json.dumps(out, indent=2), encoding="utf-8")
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Synthetic logo degradation")
     p.add_argument("input", nargs="?", help="Clean PNG/SVG path (PNG preferred)")
@@ -324,7 +358,19 @@ def main(argv: list[str] | None = None) -> int:
         default="import_combo,downscale_jpeg,plate_halo",
         help="Comma list for --seed-from-clean",
     )
+    p.add_argument("--from-manifest", type=Path, help="regenerate the corpus this manifest describes")
+    p.add_argument("--out-dir", type=Path, help="with --from-manifest: where the degraded images go")
+    p.add_argument("--write-manifest", type=Path, help="with --from-manifest: write the regenerated manifest here")
+    p.add_argument("--degrader", type=int, default=1, help=f"degrader version (latest {DEGRADER_VERSION})")
     args = p.parse_args(argv)
+
+    if args.from_manifest:
+        if not args.out_dir:
+            p.error("--from-manifest needs --out-dir")
+        m = from_manifest(args.from_manifest, args.out_dir, degrader=args.degrader,
+                          write_manifest=args.write_manifest)
+        print(f"regenerated {len(m['pairs'])} pairs with degrader v{args.degrader} into {args.out_dir}")
+        return 0
 
     if args.seed_from_clean:
         seed_from_clean([r.strip() for r in args.recipes.split(",") if r.strip()], args.seed)

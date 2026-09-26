@@ -89,7 +89,23 @@ def _run_script(script: Path, src: Path, dest: Path, min_h: int) -> tuple[bool, 
 
 
 def _ensure_pairs(degrade_first: bool) -> dict:
-    if degrade_first or not PAIRS.is_file():
+    if degrade_first and PAIRS.is_file():
+        # Regenerate exactly the corpus the manifest describes (recipe, seed,
+        # params, degrader version). --seed-from-clean reseeds from today's
+        # default recipe list, and once swapped six pairs and reseeded twelve.
+        manifest = json.loads(PAIRS.read_text(encoding="utf-8"))
+        first = (manifest.get("pairs") or [{}])[0].get("degraded", "degraded/x.png")
+        out_dir = SYN / Path(first).parent
+        py = _find_python()
+        r = subprocess.run(
+            [*py, str(DEGRADE), "--from-manifest", str(PAIRS), "--out-dir", str(out_dir),
+             "--degrader", str(int(manifest.get("degrader", 1)))],
+            cwd=str(ROOT), capture_output=True, text=True, timeout=600,
+        )
+        if r.returncode != 0:
+            raise RuntimeError(f"degrade failed: {r.stderr or r.stdout}")
+        print(r.stdout, end="", flush=True)
+    elif not PAIRS.is_file():
         py = _find_python()
         r = subprocess.run(
             [*py, str(DEGRADE), "--seed-from-clean"],
@@ -181,6 +197,10 @@ def run_loop(
 ) -> dict:
     manifest = _ensure_pairs(degrade_first)
     pairs = manifest.get("pairs") or []
+    degrader = int(manifest.get("degrader", 1))
+    global RESTORED
+    if degrader != 1:
+        RESTORED = SYN / f"restored_v{degrader}"
     if not pairs:
         raise RuntimeError(f"no pairs in {PAIRS}")
 
@@ -235,6 +255,8 @@ def run_loop(
                 # Whether minds may rank traced vs idealize (LOGO_MINDS_RANK).
                 # Off by default; when on it changes which candidate ships.
                 "minds_rank": _minds_rank_on(),
+                # Which degrader built the sketch (corpus version, E0134).
+                "degrader": degrader,
                 "anchor": bool(pair.get("anchor")),
                 "clean": pair["clean"],
                 "degraded": pair["degraded"],
@@ -324,6 +346,8 @@ def run_loop(
         "idealize": _idealize_on(),
         "minds": _minds_on(),
         "minds_rank": _minds_rank_on(),
+        "degrader": degrader,
+        "pairs_manifest": str(PAIRS.relative_to(ROOT)) if PAIRS.is_relative_to(ROOT) else str(PAIRS),
         "n_pairs": len(pairs),
         "n_rows": len(rows),
         "n_scored": len(scored),
@@ -495,7 +519,12 @@ def main(argv: list[str] | None = None) -> int:
         help="Regenerate degraded/ + pairs.json before restore",
     )
     p.add_argument("--top", type=int, default=10, help="How many worst pairs to print")
+    p.add_argument("--pairs", type=Path, default=None,
+                   help="corpus manifest (default qa_logos/synthetic/pairs.json; pairs_v2.json = degrader v2)")
     args = p.parse_args(argv)
+    if args.pairs is not None:
+        global PAIRS
+        PAIRS = args.pairs if args.pairs.is_absolute() else (ROOT / args.pairs)
 
     if not CLEAN.is_dir() or not any(CLEAN.glob("*.png")):
         print(f"No clean logos in {CLEAN} — copy PNG anchors first.", file=sys.stderr)
