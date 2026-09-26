@@ -35,6 +35,8 @@ class AIContext:
     hints: SourceHints | None = None
     critiques: list[CritiqueResult] = field(default_factory=list)
     providers_used: list[str] = field(default_factory=list)
+    collab: object | None = None  # CollabGuidance when escalate-when-stuck fires
+    collab_retried: bool = False
 
 
 def resolve_providers(requested: list[str] | None = None) -> list[str]:

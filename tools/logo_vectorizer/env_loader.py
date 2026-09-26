@@ -40,3 +40,13 @@ def load_env(*, override: bool = False) -> list[Path]:
 
 def gemini_configured() -> bool:
     return bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
+
+
+def claude_configured() -> bool:
+    return bool(os.environ.get("ANTHROPIC_API_KEY", "").strip())
+
+
+def ai_advisors_configured() -> bool:
+    return gemini_configured() or claude_configured() or bool(
+        os.environ.get("OPENAI_API_KEY", "").strip()
+    )

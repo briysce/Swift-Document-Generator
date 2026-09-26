@@ -728,10 +728,135 @@ def _build_traced(
                 prepared,
                 min_palette=0.05,
             )
+            # Active mind: Gemini+Claude diagnose when the local vector path
+            # could not ship a vector. Fail-open; never block Lanczos.
+            try:
+                from tools.logo_vectorizer.ai_advisors.collab_mind import (
+                    escalate_if_stuck,
+                )
+                from tools.logo_vectorizer.env_loader import load_env
+
+                load_env()
+                guidance = escalate_if_stuck(
+                    Image.fromarray(prepared, "RGBA"),
+                    case_id="",
+                    journal=True,
+                    fell_to_lanczos=True,
+                    score_total=0.0,
+                    passes_gates=False,
+                    extra_context={"reject": str(e), "path": "vectorize"},
+                )
+                if guidance is not None and guidance.takeover:
+                    rescued = _collab_rescue(
+                        prepared,
+                        dest,
+                        min_height=min_height,
+                        svg_out=svg_out,
+                        guidance=guidance,
+                    )
+                    if rescued is not None:
+                        return rescued
+            except Exception as collab_exc:  # noqa: BLE001
+                print(f"collab_mind skipped ({collab_exc})", file=sys.stderr)
         save_rgba(dest, finished)
         if vtrace_accepted and svg_out is not None:
             svg_out.write_bytes(svg.read_bytes())
     return dest
+
+
+def _collab_rescue(
+    prepared: np.ndarray,
+    dest: Path,
+    *,
+    min_height: int,
+    svg_out: Path | None,
+    guidance,
+) -> Path | None:
+    """Apply collab_mind preferred_path when vectorize fell to Lanczos."""
+    path = (guidance.preferred_path or "").strip().lower()
+    if path == "recreate":
+        try:
+            from tools.logo_vectorizer.customer_recreate import recreate_customer_logo
+
+            with tempfile.TemporaryDirectory(prefix="swift_collab_") as td:
+                td_path = Path(td)
+                src_png = td_path / "in.png"
+                save_rgba(src_png, prepared)
+                out_svg = td_path / "out.svg"
+                out_png = td_path / "out.png"
+                recreate_customer_logo(
+                    src_png,
+                    output_svg=out_svg,
+                    output_png=out_png,
+                    render_width=max(min_height, 2000),
+                    render_background="transparent",
+                    use_ai=True,
+                    ai_providers=["gemini", "claude"],
+                )
+                if out_png.is_file():
+                    finished = finalize_restore(
+                        load_rgba(out_png),
+                        prepared,
+                        min_palette=0.05,
+                    )
+                    save_rgba(dest, finished)
+                    if svg_out is not None and out_svg.is_file():
+                        svg_out.write_bytes(out_svg.read_bytes())
+                    print(
+                        f"collab_mind rescue: recreate shipped ({guidance.diagnosis[:120]})",
+                        file=sys.stderr,
+                    )
+                    return dest
+        except Exception as exc:  # noqa: BLE001
+            print(f"collab_mind recreate rescue failed ({exc})", file=sys.stderr)
+            return None
+    if path in ("retry_ensemble", "ensemble"):
+        try:
+            from tools.logo_vectorizer.ai_advisors import AIConfig
+            from tools.logo_vectorizer.ensemble import vectorize_ensemble
+            from tools.logo_vectorizer.sectional import rasterize_svg
+
+            with tempfile.TemporaryDirectory(prefix="swift_collab_ens_") as td:
+                td_path = Path(td)
+                out_svg = td_path / "out.svg"
+                result = vectorize_ensemble(
+                    Image.fromarray(prepared, "RGBA"),
+                    fill_hex="#FFFFFF",
+                    use_cache=False,
+                    is_orange=False,
+                    ai=AIConfig(enabled=True, providers=["gemini", "claude"]),
+                    case_id="collab_rescue",
+                )
+                out_svg.write_text(result.svg, encoding="utf-8")
+                out_png = td_path / "out.png"
+                try:
+                    rasterize_svg(out_svg, out_png, width=max(min_height, 2000))
+                except Exception:
+                    return None
+                if not out_png.is_file():
+                    return None
+                finished = finalize_restore(
+                    load_rgba(out_png),
+                    prepared,
+                    min_palette=0.05,
+                )
+                save_rgba(dest, finished)
+                if svg_out is not None:
+                    svg_out.write_bytes(out_svg.read_bytes())
+                print(
+                    f"collab_mind rescue: ensemble/{result.method}",
+                    file=sys.stderr,
+                )
+                return dest
+        except Exception as exc:  # noqa: BLE001
+            print(f"collab_mind ensemble rescue failed ({exc})", file=sys.stderr)
+            return None
+    # idealize / sectional / keep — leave Lanczos; idealize is owned by convert()
+    print(
+        f"collab_mind noted path={path} (no inline rescue; keep Lanczos)",
+        file=sys.stderr,
+    )
+    return None
 
 
 def main(argv: list[str] | None = None) -> int:

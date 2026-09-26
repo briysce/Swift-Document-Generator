@@ -19,6 +19,7 @@ from .ai_advisors import (
     critique_render_multi,
     resolve_providers,
 )
+from .ai_advisors.collab_mind import escalate_if_stuck
 from .backends import TraceCandidate, generate_candidates
 from .cache import image_hash, load_cached, save_cached
 from .preprocess import DEFAULT_VARIANTS, PreprocessConfig, build_mask
@@ -95,14 +96,18 @@ def _pick_winner(
     ai_providers: list[str],
     ref_img: Image.Image,
     ai_ctx: AIContext,
-) -> ScoredCandidate | None:
-    """Pick best candidate; AI critique may reject top scorer."""
+) -> tuple[ScoredCandidate | None, bool]:
+    """Pick best candidate; AI critique may reject top scorer.
+
+    Returns (winner, all_ai_rejected).
+    """
     passing = [s for s in ranked if s.report.passes_gates()]
     pool = passing or ranked
 
     if not ai_providers:
-        return pool[0] if pool else None
+        return (pool[0] if pool else None), False
 
+    rejected_any = False
     for item in pool[:5]:
         if item.rendered is None:
             continue
@@ -119,7 +124,8 @@ def _pick_winner(
             continue
         ai_ctx.critiques.append(critique)
         if not critique.reject_candidate and not critique.missing_counters:
-            return item
+            return item, False
+        rejected_any = True
         print(
             f"[ai] rejected {item.candidate.backend} ({item.candidate.preprocess.key()}), trying next",
             file=sys.stderr,
@@ -128,8 +134,34 @@ def _pick_winner(
     # All AI-rejected or no AI response — fall back to top scorer with holes
     for item in pool:
         if item.candidate.hole_count >= 2 and item.report.p_hollow >= 0.35:
-            return item
-    return pool[0] if pool else None
+            return item, rejected_any
+    return (pool[0] if pool else None), rejected_any
+
+
+def _race(
+    img: Image.Image,
+    fill_hex: str,
+    *,
+    variants: tuple[PreprocessConfig, ...],
+    backend_order: list[str],
+    use_cache: bool,
+    cache_key: str,
+) -> list[TraceCandidate]:
+    candidates: list[TraceCandidate] = []
+    if use_cache:
+        cached = load_cached(cache_key)
+        if cached and "backend" in cached:
+            cfg = _cfg_from_cache(cached)
+            if cfg:
+                c = _run_single(img, cfg, fill_hex, cached["backend"])
+                if c:
+                    candidates.append(c)
+    candidates.extend(
+        generate_candidates(
+            img, fill_hex, preprocess_variants=variants, backend_order=backend_order
+        )
+    )
+    return candidates
 
 
 def vectorize_ensemble(
@@ -139,6 +171,7 @@ def vectorize_ensemble(
     use_cache: bool = True,
     is_orange: bool = True,
     ai: AIConfig | None = None,
+    case_id: str = "",
 ) -> EnsembleResult:
     ai = ai or AIConfig()
     ai_ctx = AIContext()
@@ -165,18 +198,13 @@ def vectorize_ensemble(
     variants = _build_variants(hints_override)
     backend_order = backend_priority(ai_ctx.hints)
 
-    candidates: list[TraceCandidate] = []
-    if use_cache:
-        cached = load_cached(cache_key)
-        if cached and "backend" in cached:
-            cfg = _cfg_from_cache(cached)
-            if cfg:
-                c = _run_single(img, cfg, fill_hex, cached["backend"])
-                if c:
-                    candidates.append(c)
-
-    candidates.extend(
-        generate_candidates(img, fill_hex, preprocess_variants=variants, backend_order=backend_order)
+    candidates = _race(
+        img,
+        fill_hex,
+        variants=variants,
+        backend_order=backend_order,
+        use_cache=use_cache,
+        cache_key=cache_key,
     )
 
     if not candidates:
@@ -188,12 +216,98 @@ def vectorize_ensemble(
     if not ranked:
         raise RuntimeError("no candidates scored successfully")
 
-    winner = _pick_winner(ranked, ai_providers=ai_providers, ref_img=img, ai_ctx=ai_ctx)
+    winner, all_ai_rejected = _pick_winner(
+        ranked, ai_providers=ai_providers, ref_img=img, ai_ctx=ai_ctx
+    )
     if winner is None:
         raise RuntimeError("no candidate passed scoring")
 
     score = winner.report
+
+    # Active mind: when the local race is stuck, Gemini+Claude deliberate and
+    # may re-aim preprocess/backends for one retry pass (fail-open).
+    try:
+        guidance = escalate_if_stuck(
+            img,
+            case_id=case_id,
+            journal=True,
+            score_total=score.total,
+            alpha_iou=score.alpha_iou,
+            p_hollow=score.p_hollow,
+            hole_count=winner.candidate.hole_count,
+            passes_gates=score.passes_gates(),
+            critiques=list(ai_ctx.critiques),
+            candidates_tried=len(candidates),
+            all_ai_rejected=all_ai_rejected,
+            extra_context={
+                "method": f"ensemble/{winner.candidate.backend}",
+                "preprocess": winner.candidate.preprocess.key(),
+            },
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"[collab_mind] escalate skipped: {exc}", file=sys.stderr)
+        guidance = None
+
+    if guidance is not None:
+        ai_ctx.collab = guidance
+        path = guidance.preferred_path
+        if (
+            guidance.takeover
+            and path in ("retry_ensemble", "ensemble")
+            and not ai_ctx.collab_retried
+            and (guidance.recommended_preprocess or guidance.recommended_backends)
+        ):
+            ai_ctx.collab_retried = True
+            retry_hints = guidance.to_source_hints()
+            if ai_ctx.hints:
+                ai_ctx.hints = ai_ctx.hints.merged(retry_hints)
+            else:
+                ai_ctx.hints = retry_hints
+            retry_override = apply_hints_to_preprocess(retry_hints)
+            retry_variants = _build_variants(retry_override)
+            retry_backends = backend_priority(retry_hints)
+            print(
+                f"[collab_mind] retry ensemble backends={retry_backends[:3]} "
+                f"preprocess={retry_override}",
+                file=sys.stderr,
+            )
+            retry_cands = _race(
+                img,
+                fill_hex,
+                variants=retry_variants,
+                backend_order=retry_backends,
+                use_cache=False,
+                cache_key=cache_key + ":collab",
+            )
+            if retry_cands:
+                candidates = candidates + retry_cands
+                score_pool = _heuristic_rank(retry_cands)
+                ranked2 = score_all(
+                    score_pool, img, is_orange=is_orange, require_holes=require_holes
+                )
+                if ranked2:
+                    w2, _ = _pick_winner(
+                        ranked2,
+                        ai_providers=ai_providers,
+                        ref_img=img,
+                        ai_ctx=ai_ctx,
+                    )
+                    if w2 is not None and (
+                        w2.report.total > score.total
+                        or (not score.passes_gates() and w2.report.passes_gates())
+                    ):
+                        winner = w2
+                        score = w2.report
+                        print(
+                            f"[collab_mind] retry improved "
+                            f"score {score.total:.3f} via {winner.candidate.backend}",
+                            file=sys.stderr,
+                        )
+
     refined_svg = refine_svg_paths(winner.candidate.svg, snap=False)
+    method = f"ensemble/{winner.candidate.backend}"
+    if ai_ctx.collab_retried:
+        method = f"ensemble+collab/{winner.candidate.backend}"
 
     if use_cache:
         save_cached(
@@ -210,7 +324,7 @@ def vectorize_ensemble(
 
     return EnsembleResult(
         svg=refined_svg,
-        method=f"ensemble/{winner.candidate.backend}",
+        method=method,
         preprocess=winner.candidate.preprocess,
         score=score,
         contour_count=winner.candidate.contour_count,
