@@ -886,6 +886,27 @@
         "tools/logo_vectorizer/ai_advisors/minds.py",
         "tools/logo_vectorizer/meedo_advisor.py"
       ]
+    },
+    {
+      "id": "2026-09-26T14:54:13Z-cursor",
+      "ts": "2026-09-26T14:54:13Z",
+      "agent": "cursor",
+      "task": 6,
+      "kind": "finding",
+      "summary": "WhatsApp hourly was tooling-only (no OpenClaw). Installed OpenClaw 2026.9.6 + WhatsApp plugin on cloud; gateway running; allowlist +17809350628; registered meedo-all-hourly-whatsapp automation; added scripts/meedo_whatsapp_hourly_watch.sh fallback. Blocked on one QR Linked-Devices scan \u2014 until linked, hourly cannot deliver.",
+      "evidence": {
+        "commit": "f072ab4",
+        "tests": "pytest tools/meedo_me/tests/test_progress.py test_connect.py (17 passed)",
+        "review": "n/a: delivery infra",
+        "looked": "n/a: WhatsApp QR link pending user scan",
+        "measured": "automation nextRun ~top of hour; channel status=not linked"
+      },
+      "source": "cli",
+      "files": [
+        "scripts/meedo_openclaw_hourly_progress.sh",
+        "scripts/meedo_whatsapp_hourly_watch.sh",
+        "tools/meedo_me/connect.py"
+      ]
     }
   ]
 }
