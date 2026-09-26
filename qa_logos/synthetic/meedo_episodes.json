@@ -973,6 +973,56 @@
         "shipping_generate"
       ],
       "source": "ai_collab"
+    },
+    {
+      "id": "E0043",
+      "ts": "2026-09-26T13:52:27Z",
+      "commit": "8a5cc53",
+      "workstream": "meedo-me",
+      "outcome": "open",
+      "problem": "How should Meedo-Me learn from Gemini and Claude so it can eventually own decisions without calling the APIs?",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Meedo must deepen MCP (meedo_ai_advise / meedo_ai_lessons) rather than grow a parallel brain.",
+      "cause": "",
+      "fix": "Wire improve loops + meedo_cycle through tools.ai_collab; persist lessons; prefer offline recall",
+      "verified": "",
+      "method": "Recall-first Gemini\u2194Claude via tools.ai_collab; MCP owns advise/lessons; fail-open offline defaults.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "curriculum",
+        "gemini",
+        "meedo-me"
+      ],
+      "cases": [
+        "board11",
+        "board3"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0044",
+      "ts": "2026-09-26T13:53:17Z",
+      "commit": "8a5cc53",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab"
     }
   ]
 }

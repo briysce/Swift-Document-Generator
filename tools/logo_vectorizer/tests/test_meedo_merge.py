@@ -54,3 +54,43 @@ def test_both_agents_journal_entries_survive(tmp_path):
     assert merge(ours, theirs)
     ids = {e["id"] for e in json.loads((tmp_path / "a").read_text())["entries"]}
     assert ids == {"Ja", "Jb"}
+
+
+def test_ai_lessons_union_prefers_offline_progress(tmp_path):
+    a = {
+        "id": "AL1",
+        "domain": "logo_restore",
+        "problem": "arc tagline",
+        "method": "sectional",
+        "times_applied_offline": 0,
+        "times_recalled": 1,
+        "ts": "1",
+    }
+    b = {
+        "id": "AL1",
+        "domain": "logo_restore",
+        "problem": "arc tagline",
+        "method": "sectional color-split before min_area",
+        "times_applied_offline": 3,
+        "times_recalled": 5,
+        "ts": "2",
+    }
+    ours = _w(
+        tmp_path / "a",
+        {
+            "version": 1,
+            "lessons": [a, {"id": "AL2", "problem": "ours only", "method": "m", "ts": "1"}],
+        },
+    )
+    theirs = _w(
+        tmp_path / "b",
+        {
+            "version": 1,
+            "lessons": [b, {"id": "AL3", "problem": "theirs only", "method": "n", "ts": "2"}],
+        },
+    )
+    assert merge(ours, theirs)
+    lessons = {L["id"]: L for L in json.loads((tmp_path / "a").read_text())["lessons"]}
+    assert set(lessons) == {"AL1", "AL2", "AL3"}
+    assert lessons["AL1"]["times_applied_offline"] == 3
+    assert "color-split" in lessons["AL1"]["method"]

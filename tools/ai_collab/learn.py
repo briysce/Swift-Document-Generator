@@ -12,6 +12,7 @@ sees them.
 from __future__ import annotations
 
 import json
+import os
 import re
 import uuid
 from dataclasses import dataclass, field
@@ -21,6 +22,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PATH = ROOT / "qa_logos" / "synthetic" / "meedo_ai_lessons.json"
+# Canonical on-disk ledger — used to decide episode mirroring even when tests
+# monkeypatch DEFAULT_PATH.
+CANONICAL_LESSONS_PATH = ROOT / "qa_logos" / "synthetic" / "meedo_ai_lessons.json"
 MAX_LESSONS = 800
 
 _STOP = set(
@@ -238,7 +242,18 @@ def persist_lesson(
         lessons.append(lesson)
     _save(lessons, path)
 
-    if mirror_episode and lesson.method:
+    # Mirror into Meedo episodes only when writing the real lessons ledger.
+    # Unit tests monkeypatch DEFAULT_PATH / pass a custom path — never pollute.
+    effective = path or DEFAULT_PATH
+    do_mirror = bool(mirror_episode) and Path(effective).resolve() == CANONICAL_LESSONS_PATH.resolve()
+    if do_mirror and os.environ.get("MEEDO_AI_MIRROR_EPISODES", "1").strip().lower() in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }:
+        do_mirror = False
+    if do_mirror and lesson.method:
         try:
             from tools.logo_vectorizer import meedo_episodes as E
 

@@ -452,6 +452,58 @@
         "commit": "1bf88de"
       },
       "source": "ai_collab"
+    },
+    {
+      "id": "Jc2674f48",
+      "ts": "2026-09-26T13:51:35Z",
+      "agent": "meedo",
+      "task": 3,
+      "kind": "finding",
+      "summary": "ai_collab live domain=meedo_advisor source=gemini,claude \u2014 Agree \u2014 Meedo must deepen MCP (meedo_ai_advise / meedo_ai_lessons) rather than grow a parallel brain.",
+      "evidence": {
+        "ai_collab": {
+          "domain": "meedo_advisor",
+          "problem": "How should Meedo-Me learn from Gemini and Claude so it can eventually own decisions without calling the APIs?",
+          "diagnosis": "Agree \u2014 Meedo must deepen MCP (meedo_ai_advise / meedo_ai_lessons) rather than grow a parallel brain.",
+          "method": "Recall-first Gemini\u2194Claude via tools.ai_collab; MCP owns advise/lessons; fail-open offline defaults.",
+          "actions": [
+            "Call meedo_ai_lessons / recall before meedo_ai_advise force_live",
+            "Persist every live deliberation into meedo_ai_lessons.json",
+            "Prefer offline advice when recall_score meets MEEDO_AI_RECALL_MIN",
+            "Wire improve loops + meedo_cycle through tools.ai_collab",
+            "Mirror lessons into episodes for meedo_recall"
+          ],
+          "risks": [
+            "never commit API keys",
+            "fail-open when APIs dark",
+            "do not change Shipping SO/Contact locks"
+          ],
+          "providers_used": [
+            "gemini",
+            "claude"
+          ],
+          "source": "gemini,claude",
+          "lesson_id": "AL6781e225",
+          "offline": false,
+          "agree": true
+        },
+        "commit": "8a5cc53"
+      },
+      "source": "ai_collab"
+    },
+    {
+      "id": "Jf16de356",
+      "ts": "2026-09-26T13:51:36Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "finding",
+      "summary": "App-wide tools/ai_collab: shared Gemini+Claude client + Meedo recall-first learning; wired meedo_cycle, logo/shipping/app improve hooks, MCP meedo_ai_advise/lessons; collab_mind persists lessons.",
+      "evidence": {
+        "commit": "8a5cc53",
+        "tests": "pytest ai_collab + meedo_cycle/merge/mcp (40+)",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
     }
   ]
 }

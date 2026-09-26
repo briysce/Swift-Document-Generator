@@ -154,3 +154,54 @@ def test_stdout_carries_only_protocol_even_when_a_tool_prints(monkeypatch, capsy
     assert [r.get("id") for r in replies] == [1, 2, None]
     assert replies[2]["error"]["code"] == -32700
     assert "engine chatter" in err
+
+
+def test_ai_advise_and_lessons_tools(tmp_path, monkeypatch):
+    from tools.ai_collab import learn as learn_mod
+
+    monkeypatch.setattr(learn_mod, "DEFAULT_PATH", tmp_path / "meedo_ai_lessons.json")
+    monkeypatch.setenv("MEEDO_AI_RECALL_MIN", "99")
+
+    class _Adv:
+        def to_dict(self):
+            return {
+                "domain": "general",
+                "problem": "test stuck",
+                "diagnosis": "injected",
+                "method": "do the thing",
+                "actions": ["a"],
+                "risks": [],
+                "providers_used": ["gemini", "claude"],
+                "source": "gemini,claude",
+                "lesson_id": "ALinj",
+                "offline": False,
+                "agree": True,
+            }
+
+    monkeypatch.setattr(
+        "tools.ai_collab.advisor.advise",
+        lambda **kwargs: _Adv(),
+    )
+    err, text = _call(
+        "meedo_ai_advise",
+        {"problem": "test stuck", "domain": "general"},
+    )
+    assert not err
+    assert json.loads(text)["method"] == "do the thing"
+
+    learn_mod.persist_lesson(
+        domain="general",
+        problem="test stuck case for recall",
+        diagnosis="injected",
+        method="do the thing",
+        mirror_episode=False,
+        path=tmp_path / "meedo_ai_lessons.json",
+    )
+    err, text = _call("meedo_ai_lessons", {"problem": "test stuck case for recall", "domain": "general"})
+    assert not err
+    hits = json.loads(text)
+    assert hits and "do the thing" in hits[0]["method"]
+
+    # Read-only refuses the write tool.
+    err, text = _call("meedo_ai_advise", {"problem": "x"}, True)
+    assert err and "read-only" in text

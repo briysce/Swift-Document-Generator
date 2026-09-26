@@ -159,6 +159,7 @@ def test_advise_live_persists_lesson(tmp_path, monkeypatch):
     path = tmp_path / "meedo_ai_lessons.json"
     monkeypatch.setattr("tools.ai_collab.learn.DEFAULT_PATH", path)
     monkeypatch.setenv("MEEDO_AI_RECALL_MIN", "99")  # force live
+    monkeypatch.setenv("MEEDO_AI_MIRROR_EPISODES", "0")
 
     def g_fn(_p):
         return {
@@ -199,6 +200,7 @@ def test_advise_top_failures_and_improve_hook(tmp_path, monkeypatch):
     path = tmp_path / "meedo_ai_lessons.json"
     monkeypatch.setattr("tools.ai_collab.learn.DEFAULT_PATH", path)
     monkeypatch.setenv("MEEDO_AI_RECALL_MIN", "99")
+    monkeypatch.setenv("MEEDO_AI_MIRROR_EPISODES", "0")
 
     def g_fn(_p):
         return {
