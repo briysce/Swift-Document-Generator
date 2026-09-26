@@ -445,6 +445,97 @@
       ],
       "cases": [],
       "source": "manual"
+    },
+    {
+      "id": "E0021",
+      "ts": "2026-09-26T02:58:52Z",
+      "commit": "52b5f81",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Cursor picked up after Claude Code but continued from a stale handoff: it thought the Jan fork was still blocked on the user and never saw the OpenClaw/Ollama work",
+      "first_read": "Cursor ignored the notes",
+      "evidence": "The OpenClaw/Ollama work existed only in the container, uncommitted; thought_trace.md still listed the fork as a blocking decision after briysce/meedo-me had been created and pushed",
+      "cause": "Work not pushed at the end of a work unit, and the state file not updated when state changed",
+      "fix": "Pushed the pending work (20c3885, meedo-me b229088); merged Cursor's branch (2ffe644); rewrote the handoff section of thought_trace.md",
+      "verified": "",
+      "method": "Push at the end of every work unit, and update the thought trace the moment state changes (a repo created, a decision made). The next agent sees only what is committed and written down.",
+      "tags": [
+        "cursor",
+        "handoff",
+        "process"
+      ],
+      "cases": [],
+      "source": "mcp"
+    },
+    {
+      "id": "E0022",
+      "ts": "2026-09-26T02:58:52Z",
+      "commit": "52b5f81",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "i-dots erased before any engine drew them (GCM \"Modification\", PROPAK \"Services\")",
+      "first_read": "The engines lose small elements while tracing",
+      "evidence": "Stage-by-stage trace: prune_ink_speckles removed all 3 GCM dots (below 1.2% of the largest island); separately idealize._components dropped everything under 24 px. The baseline engine, which only upsamples the prepared image, lost the same dots.",
+      "cause": "Size floors used as noise tests in two places; a 16-25 px dot beside a 6,000 px monogram is below any sensible size cut",
+      "fix": "Keep an island as a mark when it is compact, >=3 px each way, beside a letter, sized like that letter's strokes (0.6-2.5x), in its core ink, and not inside a counter (0673cf2, 577dd87)",
+      "verified": "Prepared inputs byte-identical on 16/18 sketches (all Swift); only GCM's lost dots return. GCM import_combo reconstruction 0.7846 -> 0.8142 with dots and red intact.",
+      "method": "A size floor is not a noise test. Judge small pieces by shape relative to their neighbours, trace a loss stage by stage before fixing, and look at every piece a new rule keeps \u2014 each first version here also kept crumbs on Swift.",
+      "tags": [
+        "dots",
+        "preparation",
+        "small-elements"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg",
+        "gcm__import_combo",
+        "propak__downscale_jpeg"
+      ],
+      "source": "mcp"
+    },
+    {
+      "id": "E0023",
+      "ts": "2026-09-26T02:58:52Z",
+      "commit": "52b5f81",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Newer reconstructions scored lower than 09-20 on GCM and PROPAK, which read as a regression",
+      "first_read": "Something since 09-20 made the reconstruction worse",
+      "evidence": "Side by side with the clean masters: the 09-20 GCM reconstruction had deleted the red monogram; the 09-20 PROPAK one drew its red rule in blue and dropped the dot. Today's keep both colours and the dots, at -0.004 on one scale.",
+      "cause": "The composite metrics rewarded the deletions",
+      "fix": "",
+      "verified": "",
+      "method": "When a newer output scores lower, look at both before calling it a regression; a score that rises when a brand colour disappears is measuring the wrong thing.",
+      "tags": [
+        "look-at-the-images",
+        "metrics",
+        "regression-check"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg",
+        "propak__downscale_jpeg"
+      ],
+      "source": "mcp"
+    },
+    {
+      "id": "E0024",
+      "ts": "2026-09-26T02:58:52Z",
+      "commit": "52b5f81",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Is the engine backsliding since the mid-September stoppage?",
+      "first_read": "August means (0.80) vs September (0.74) look like a 5-point backslide",
+      "evidence": "The test set was rewritten on 09-19. Rebuilt August's exact inputs from git (degrade code byte-identical) and ran the Aug 22 engine, the 09-08 pre-stoppage engine and today's on identical inputs: 0 of 36 worse per logo on both sets; 2-3 Swift cases better (up to +0.018).",
+      "cause": "Means across different test sets and configurations are not comparable",
+      "fix": "",
+      "verified": "",
+      "method": "To answer \"did we backslide\", run the old engine and the new one on identical inputs and compare per logo; never compare means across test sets or configurations.",
+      "tags": [
+        "assessment",
+        "measurement",
+        "regression-check"
+      ],
+      "cases": [],
+      "source": "mcp"
     }
   ]
 }

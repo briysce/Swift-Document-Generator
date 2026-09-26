@@ -6,6 +6,68 @@ this file is the readable account of *why*.
 
 ---
 
+## CURRENT STATE — read this first (updated 2026-09-26)
+
+Handoff rule: push at the end of every work unit and update this section the
+moment state changes. The next agent sees only what is committed.
+
+### Priorities (the user's order)
+1. **The Swift logo as a perfectly crafted vector.** The app's
+   `mobile/assets/images/swift_supply_logo_orange.svg` is a PNG inside an SVG
+   wrapper (no paths). The traced vectors in `assets/brand/_document_sections`
+   use ~9,100 points for five letters. The only true source is
+   `assets/brand/swift_supply_source.png` (743x230); every 2987x910 "master" is
+   an enlargement of it.
+2. Every customer logo in the improve loop to a perfect vector.
+3. Only then, app development.
+
+### Where the work is
+- Swift-Document-Generator, branch `claude/relaxed-babbage-igbk0v` (Cursor's
+  `cursor/meedo-pm-continue-ab66` is merged in).
+- `briysce/meedo-me` exists (the Jan fork = the Meedo-Me app). Branch
+  `claude/relaxed-babbage-igbk0v` there adds Ollama as a built-in local
+  provider, the Meedo-Me MCP server in the default MCP config, and the default
+  assistant "Meedo-Me" with Project Manager Mode. Jan's logos still need
+  replacing (Apache-2.0 grants no trademark rights).
+- OpenClaw + Ollama: `python -m tools.meedo_me.connect {status,ollama,app,openclaw}`
+  and the shared skill `tools/meedo_me/skills/meedo-me/SKILL.md`. Verified live
+  with Ollama 0.34.4 and OpenClaw 2026.9.6; a 0.6B model did not reach for the
+  tool inside OpenClaw's own agent — retest with a larger model.
+
+### Assessment 2026-09-26 (no backsliding on the shipping path)
+Old and new engines on identical inputs, per logo x engine: today vs the
+09-08 pre-stoppage engine and vs the Aug 22 engine, on today's test set and
+on August's rebuilt one — 0 of 36 worse; Swift improved on 2-3 cases (up to
++0.018). The reconstruction path (`LOGO_IDEALIZE=1`) did regress: GCM and
+PROPAK lost their gains (dots erased -> reviewer blocked -> trace shipped);
+fixed (0673cf2, 577dd87) and verified by eye. Still open there: the derived
+gate keeps the trace whenever one exists, which gave up Swift solid
+import_combo 0.9465 and downscale 0.9364 (task: rank on craftsmanship).
+
+### Fixed today
+- Dot check judges by correspondence with sub-pixel registration; 8 false
+  Trialta blocks withdrawn (d610573, 0673cf2).
+- One face per wordmark; glyph matching 3-8x faster (8479410).
+- Runs record LOGO_IDEALIZE; comparisons like with like; e7f95947 rejected as
+  a false premise (bf4de99).
+- i-dots kept through preparation and reconstruction (0673cf2, 577dd87).
+- `design_fit.py`: designed geometry over a sketch — coverage edges, corners,
+  lines/fair cubics, restored corners, shared slant and heights (52b5f81).
+
+### Next
+1. Swift rebuild on `design_fit`: letters as fair shapes; the dark outline as
+   one stroke width around them; the shadow as an extrusion of the outlined
+   letters (offset down-right), fitted against the source's dark ink;
+   bars as rectangles with border and shadow; SUPPLY from its typeface
+   (ScienceGothic 0.95). Judge by rendering at 743x230 against the source and
+   by eye at 4x; no seams, no wobble.
+2. Reconstruction gate: rank candidates by craftsmanship once identity holds.
+3. PROPAK's "Services" dot survives despeckle but is lost later in preparation.
+4. Meedo-Me growth: autonomy is earned — see its hit rate and reviewer record
+   before widening what it may do unasked.
+
+---
+
 ## 2026-09-25 — Initial state
 
 ### Topology (observed)
@@ -91,7 +153,7 @@ Meedo-Me MCP server.
 5. **Half the oracle headroom is unreachable** without a signal that ranks
    candidates within a pair where the trace produced a vector.
 
-### Blocking decision (the user's)
+### Blocking decision (the user's) — RESOLVED: the user created briysce/meedo-me; the fork is imported and pushed
 
 The fork needs a durable home before any Jan code is written. Recommended: fork
 `menloresearch/jan` to `briysce/meedo-me` on GitHub. Creating a repository under the
@@ -119,7 +181,7 @@ No local Claude Code transcript on this VM; branch tip + `.claude/thought_trace.
 4. Trialta clean has 18 ink components; font corpus present (349 faces) — anomaly #1
    (letterform→blob under heavy degrade) still open for a font-match experiment.
 
-### Still blocked on the user
+### Still blocked on the user — STALE: the fork already existed (see CURRENT STATE)
 
 Fork `menloresearch/jan` → `briysce/meedo-me` before any Jan app code. MCP server
 is ready for that client.
