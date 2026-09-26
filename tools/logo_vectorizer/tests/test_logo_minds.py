@@ -59,3 +59,9 @@ def test_a_pick_counts_only_when_both_orders_agree(monkeypatch):
     monkeypatch.setattr(M, "compare", fake)
     assert M.compare_both_ways("claude", img, img, img)["pick"] == "first"   # A then (swapped) B = first both times
     assert M.compare_both_ways("claude", img, img, img)["pick"] == "split"   # A then A = position bias
+
+
+def test_an_answer_that_comes_back_as_a_list_is_read_as_its_object():
+    assert M._as_object([{"better": "B"}]) == {"better": "B"}
+    assert M._as_object([1, 2]) == {"items": [1, 2]}
+    assert M._as_object("x") == {} and M._as_object({"better": "A"}) == {"better": "A"}

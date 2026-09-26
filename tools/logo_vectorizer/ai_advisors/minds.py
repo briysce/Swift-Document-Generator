@@ -192,6 +192,18 @@ def _meedo(model: str, images: list[Image.Image], text: str, max_tokens: int) ->
 # --------------------------------------------------------------------------
 
 
+def _as_object(parsed) -> dict:
+    """Every role reads the answer as one JSON object. Asked for an object,
+    Gemini once answered with a list holding it, and the ranking run died on
+    `.get` of a list half-way through the corpus."""
+    if isinstance(parsed, dict):
+        return parsed
+    if isinstance(parsed, list):
+        first = next((x for x in parsed if isinstance(x, dict)), None)
+        return first if first is not None else {"items": parsed}
+    return {}
+
+
 @dataclass
 class Answer:
     mind: str
@@ -255,7 +267,7 @@ def ask(mind: str, role: str, images: list[Image.Image], text: str, *, case: str
             raise KeyError(mind)
         if as_json and ans.text:
             try:
-                ans.parsed = extract_json(ans.text)
+                ans.parsed = _as_object(extract_json(ans.text))
             except Exception:
                 ans.parsed = {}
     except Exception as exc:  # noqa: BLE001 — quota, network, refusal, parse
