@@ -17,6 +17,7 @@ import json
 import os
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable
 
 from PIL import Image
@@ -420,6 +421,41 @@ def _claude_critique(
         return None
 
 
+def load_brand_ref(case_id: str = "") -> dict[str, Any] | None:
+    """Load Serper/official brand notes from qa_logos/brand_refs/catalog.json.
+
+    Keys are case slugs (arc, propak, …). case_id may be ``arc__tagline`` —
+    we match the prefix before ``__``.
+    """
+    if not case_id:
+        return None
+    slug = case_id.split("__", 1)[0].strip().lower()
+    if not slug:
+        return None
+    catalog = (
+        Path(__file__).resolve().parents[3]
+        / "qa_logos"
+        / "brand_refs"
+        / "catalog.json"
+    )
+    if not catalog.is_file():
+        return None
+    try:
+        data = json.loads(catalog.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    brand = (data.get("brands") or {}).get(slug)
+    if not isinstance(brand, dict):
+        return None
+    # Compact payload for the LLM context (no huge URL lists).
+    return {
+        "slug": slug,
+        "name": brand.get("name"),
+        "domain": brand.get("domain"),
+        "branding": brand.get("branding"),
+    }
+
+
 def collaborate(
     img: Image.Image,
     signal: StuckSignal,
@@ -441,6 +477,9 @@ def collaborate(
         "stuck": signal.to_dict(),
         **(extra_context or {}),
     }
+    brand_ref = load_brand_ref(case_id)
+    if brand_ref and "brand_ref" not in context:
+        context["brand_ref"] = brand_ref
     g_fn = gemini_fn or _gemini_plan
     c_fn = claude_fn or _claude_critique
 

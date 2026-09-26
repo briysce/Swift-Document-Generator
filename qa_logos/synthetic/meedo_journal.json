@@ -364,6 +364,22 @@
         "branch": "cursor/logo-engine-collab-d4c9"
       },
       "source": "cli"
+    },
+    {
+      "id": "J46050a08",
+      "ts": "2026-09-26T13:46:49Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "finding",
+      "summary": "Brand-ref crawl (Serper-compatible pipeline + official sites): Arc=RESOURCES LTD. teal tagline must stay; Propak Energy Services red rule+icon; GCM Gulf Coast Modification TGC monogram + Modification i-dots; Trialta TRI gray/ALTA lime. catalog.json written. SERPER_API_KEY missing in this env \u2014 need key for live Serper image search.",
+      "evidence": {
+        "commit": "3d29f0c",
+        "tests": "scripts/serper_logo_brand_refs.py --official-only",
+        "images_looked_at": true,
+        "measured_vs_previous": "n/a (brand references; golden matches official Propak/Trialta/GCM/Arc layouts)",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
     }
   ]
 }

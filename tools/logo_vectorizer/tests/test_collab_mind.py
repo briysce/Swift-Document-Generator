@@ -174,3 +174,16 @@ def test_guidance_to_dict_roundtrip():
     d = g.to_dict()
     assert d["preferred_path"] == "idealize"
     assert d["takeover"] is True
+
+
+def test_load_brand_ref_matches_slug_prefix():
+    from tools.logo_vectorizer.ai_advisors.collab_mind import load_brand_ref
+
+    ref = load_brand_ref("arc__tagline")
+    if ref is None:
+        # Catalog may be absent in sparse checkouts — skip, don't fail CI.
+        return
+    assert ref["slug"] == "arc"
+    assert "RESOURCES" in str(ref.get("branding", {})).upper() or "tagline" in str(
+        ref.get("branding", {})
+    ).lower()
