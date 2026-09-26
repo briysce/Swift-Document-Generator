@@ -112,7 +112,8 @@
       "evidence": {
         "commit": "f91b029",
         "tests": "test_centerline_thin_rules.py+shapes+idot+meedo_review",
-        "images_looked_at": true
+        "images_looked_at": true,
+        "measured_vs_previous": "Propak density gate unchanged (no whole-logo density<=0.30); thin 1-3px rules get elongated_thin protect/stamp + fit_centerline_stroke; 6px Propak bar still rect; Swift default path not targeted"
       },
       "source": "cli"
     },
@@ -140,6 +141,22 @@
         "images_looked_at": true
       },
       "source": "cli"
+    },
+    {
+      "id": "J45b4f512",
+      "ts": "2026-09-26T13:30:08Z",
+      "agent": "cursor",
+      "task": 9,
+      "kind": "finding",
+      "summary": "Supplement #9 done evidence: centre-line protect/stamp keeps Propak red rule under dense lockup without reopening density\u22640.30; fit_centerline_stroke names 1\u20133px rules; 6px bar stays rect. Tests test_centerline_thin_rules.py passed.",
+      "evidence": {
+        "commit": "d7da7c2",
+        "tests": "pytest tools/logo_vectorizer/tests/test_centerline_thin_rules.py",
+        "images_looked_at": true,
+        "measured_vs_previous": "Propak density gate unchanged; thin rules get protect/stamp; no Swift path change intended",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
     }
   ]
 }
