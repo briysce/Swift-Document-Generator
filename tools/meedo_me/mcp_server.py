@@ -45,14 +45,15 @@ INSTRUCTIONS = (
     "Meedo-Me is the project manager for our products: its memory of runs, the "
     "advice it has given and what was decided, the outputs it has reviewed, the "
     "methods that solved past problems, and the work journal of every agent unit "
-    "(Claude Code and Cursor). Start a work session with meedo_standup and "
-    "decide what it raises; also call meedo_journal_standup so stale claims and "
-    "thin `done` entries are visible. Log every work unit with meedo_journal_log "
-    "(claim / finding / handoff / done / blocked). Before diagnosing a problem, "
-    "call meedo_recall — the same kind of problem has often been seen before, "
-    "and the episode says what the first guess got wrong. Never report an "
-    "improvement to a logo without meedo_review passing. When a problem is "
-    "solved, record the method with meedo_record_episode so the next one is faster."
+    "(Claude Code and Cursor). Start a work session with meedo_cycle (ledger + "
+    "journal + snapshot) and decide what it raises. Log every work unit with "
+    "meedo_journal_log (claim / finding / handoff / done / blocked). Before "
+    "diagnosing a problem, call meedo_recall — the same kind of problem has "
+    "often been seen before, and the episode says what the first guess got "
+    "wrong. Never report an improvement to a logo without meedo_review passing. "
+    "When a problem is solved, record the method with meedo_record_episode. "
+    "Claude Code and Cursor both refine Meedo-Me itself when tools are wrong, "
+    "thin, or awkward — fix in-session and record under workstream meedo-me."
 )
 
 
@@ -65,6 +66,12 @@ _S = {"type": "string"}
 _SL = {"type": "array", "items": {"type": "string"}}
 
 READ_TOOLS = {
+    "meedo_cycle": {
+        "description": "Full start-of-cycle view: ledger proposals awaiting decision, journal "
+                       "assessment (recent units, stale claims, thin dones), and a knowledge snapshot. "
+                       "Prefer this over calling standup tools separately.",
+        "inputSchema": _obj({}),
+    },
     "meedo_standup": {
         "description": "Proposals awaiting a decision, most pressing first (escalated, then "
                        "priority), each with the method Meedo-Me remembers from a similar problem.",
@@ -179,6 +186,12 @@ def _call(name: str, args: dict, read_only: bool) -> object:
     from tools.logo_vectorizer import meedo_journal as J
     from tools.logo_vectorizer import meedo_ledger as L
 
+    if name == "meedo_cycle":
+        from tools.logo_vectorizer.meedo_cycle import collect, format_cycle
+
+        data = collect()
+        data["text"] = format_cycle(data)
+        return data
     if name == "meedo_standup":
         out = []
         for p in L.standup():

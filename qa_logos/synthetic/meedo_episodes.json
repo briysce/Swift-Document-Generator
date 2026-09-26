@@ -609,6 +609,29 @@
         "propak__import_combo"
       ],
       "source": "manual"
+    },
+    {
+      "id": "E0028",
+      "ts": "2026-09-26T13:21:44Z",
+      "commit": "4b3d64c",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me must keep improving as a shared utility across agents and projects",
+      "first_read": "Meedo-Me only gets attention on a dedicated ticket; agents skip multi-step standup",
+      "evidence": "User asked both Claude Code and Cursor to tweak/fix/refine Meedo-Me as issues arise and deepen integration. Agents were calling ledger and journal standups separately (easy to skip one).",
+      "cause": "No standing shared duty + no single cycle command; board #3 read as Claude-only autonomy work",
+      "fix": "COORDINATION \u00a79 + CLAUDE.md + skill: both agents own continuous Meedo refine. Board #3 shared. meedo_cycle (CLI+MCP) prints ledger+journal+snapshot and reminds agents to fix Meedo friction in-session. Prefer one MCP memory across projects.",
+      "verified": "pytest test_meedo_cycle; meedo_cycle CLI prints combined standup",
+      "method": "Treat Meedo-Me product bugs as in-session work for whichever agent hits them. Lower ceremony with one cycle command. Record methods under workstream meedo-me. Deepen integration by attaching faces to the same MCP server, not cloning memory.",
+      "tags": [
+        "claude",
+        "cursor",
+        "integration",
+        "meedo-me",
+        "process"
+      ],
+      "cases": [],
+      "source": "manual"
     }
   ]
 }

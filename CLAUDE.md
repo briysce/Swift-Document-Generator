@@ -8,8 +8,7 @@ it can learn, grow, adapt, adjust, and experiment with us — not as a sidecar
 that is only consulted after the fact.
 
 ```
-python -m tools.logo_vectorizer.meedo_ledger standup
-python -m tools.logo_vectorizer.meedo_journal standup
+python -m tools.logo_vectorizer.meedo_cycle          # ledger + journal + snapshot
 python -m tools.logo_vectorizer.meedo_ledger decide --by <you> <id> accept|reject "<reason>"
 python -m tools.logo_vectorizer.meedo_episodes recall "<problem>"
 python -m tools.logo_vectorizer.meedo_journal log --agent <claude|cursor> --task N \
@@ -29,6 +28,12 @@ Log **every** work unit into the journal (Claude Code and Cursor). A `done`
 without tests / images-looked-at / measured-vs-previous (for engine tasks) is
 flagged on the next journal standup. Episodes still hold the durable *method*;
 the journal holds who did what, when, and with what evidence.
+
+**Refine Meedo-Me as you go.** Claude Code and Cursor both own Meedo-Me's
+product quality: when standup/recall/review/journal/MCP/desktop wiring fails or
+feels dumb, fix it in-session (board #3 / workstream `meedo-me`). The goal is a
+smarter utility deeply integrated across our projects via one MCP memory — not a
+sidecar that only gets attention on a dedicated ticket.
 
 The same memory is served over MCP (`.mcp.json` registers it for Claude Code):
 `meedo_standup`, `meedo_journal_standup`, `meedo_journal_recent`,

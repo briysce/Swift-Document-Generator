@@ -15,16 +15,16 @@ moment state changes. The next agent sees only what is committed.
 - Protocol: `COORDINATION.md` + Meedo merge driver (`scripts/setup_collab.sh`).
 - Talk: GitHub issue [#6](https://github.com/briysce/Swift-Document-Generator/issues/6).
 - **Meedo-Me is mandatory for both agents** (ledger + journal + episodes).
-  Journal: `tools/logo_vectorizer/meedo_journal.py` →
-  `qa_logos/synthetic/meedo_journal.json` (`merge=meedo`). MCP:
-  `meedo_journal_log` / `meedo_journal_standup` / `meedo_journal_recent`.
-  Cursor landed this to Claude's issue-#6 sketch so logging is live now; if
-  Claude pushes a variant, union via `merge=meedo` (do not fork a second log).
-- Claude branch: `claude/relaxed-babbage-igbk0v` — tasks **#1** (Swift app swap,
-  nearly done per issue comment), **#3** (Meedo trust / autonomy); **#4**
-  (craftsmanship gate) still open for Claude.
-- Cursor Cloud branch: `cursor/logo-engine-collab-d4c9` — **#7 done** (PROPAK
-  prepare-path locked; E0026/E0027). Next claim TBD among **#8/#9/#10**.
+  Start each unit with `python -m tools.logo_vectorizer.meedo_cycle`.
+  Journal: `meedo_journal.py` → `meedo_journal.json` (`merge=meedo`).
+  MCP: `meedo_cycle`, `meedo_journal_*`, etc.
+- **Standing duty (user 2026-09-26):** Claude Code *and* Cursor continuously
+  tweak/fix/refine Meedo-Me whenever it is wrong, thin, or awkward — deepen
+  MCP integration across projects; board **#3** is shared (`claude+cursor`).
+- Claude branch: `claude/relaxed-babbage-igbk0v` — **#1** Swift app swap;
+  **#3** Meedo trust/autonomy (shared refine); **#4** craftsmanship gate.
+- Cursor Cloud branch: `cursor/logo-engine-collab-d4c9` — **#7 done**;
+  **#9** centre-line thin strokes in progress; Meedo journal + cycle landed.
   PC-only **#2/#5/#6** remain open (noVNC ≠ Brice's PC).
 
 ### Board #7 closeout (Cursor, this unit)
@@ -104,10 +104,11 @@ latter, so Arc falls back to the trace as on 09-20.
    (Swift solid downscale/import_combo ship the trace; the old gate's
    reconstructions scored 0.9364/0.9465). Bring design_fit into the engine as
    a candidate. *(Claude — board #4)*
-2. Cursor **#9** in progress: centre-line tracing for thin strokes (PROPAK red
-   rule, one-pixel borders). Leave **#8/#10** open; do not touch Claude **#1/#3/#4**.
-3. Meedo-Me growth: autonomy is earned — see its hit rate and reviewer record
-   before widening what it may do unasked. *(Claude — board #3)*
+2. Cursor next: claim **#8** (Arc tagline), **#9** (centre-line thin strokes),
+   or **#10** (Swift rebuild refinements) — non-conflicting with Claude.
+3. Meedo-Me growth + continuous product refine *(board #3, both agents)*:
+   autonomy is earned from hit rate/reviewer record; also fix journal/MCP/
+   recall/review friction in-session whenever it shows up.
 
 ---
 

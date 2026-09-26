@@ -8,14 +8,21 @@ metadata: {"openclaw": {"requires": {"anyBins": ["python3", "python"]}, "emoji":
 
 Meedo-Me is the project manager for our products. Its memory lives in the
 Swift-Document-Generator repository and is served over MCP by the `meedo-me`
-server. Every face — the Meedo-Me app, OpenClaw on chat, Claude Code — reads
-the same memory. Answer from it, not from impressions.
+server. Every face — the Meedo-Me app, OpenClaw on chat, Claude Code, Cursor —
+reads the same memory. Answer from it, not from impressions. Prefer connecting
+other repos (briyszier, staging-tracker, Meedo-Me app) to this MCP server over
+inventing a second brain.
+
+Claude Code and Cursor **continuously refine** Meedo-Me: when tools are wrong,
+thin, silent, or awkward, fix them in the same session and record the method
+under workstream `meedo-me`.
 
 ## The tools
 
 | Tool | Use it to |
 |---|---|
-| `meedo_standup` | Start a work session: proposals awaiting a decision, most pressing first, each with the method remembered from a similar problem. |
+| `meedo_cycle` | Full start-of-cycle view: ledger proposals + journal assessment + snapshot. Prefer this. |
+| `meedo_standup` | Proposals awaiting a decision only (subset of `meedo_cycle`). |
 | `meedo_journal_standup` | Work-journal assessment: recent units per agent, claims quiet ≥45 min, thin `done` entries missing evidence. |
 | `meedo_journal_log` | Log one agent work unit (`claim` / `finding` / `handoff` / `done` / `blocked`) with evidence. |
 | `meedo_journal_recent` | Recent journal units, filterable by agent or task. |
@@ -33,9 +40,10 @@ the Meedo-Me app or Claude Code.
 
 ## How to work
 
-1. **Standup first.** Put each proposal to the user. Accepting is theirs to do,
-   and only for work that starts now: accepted advice is judged by later runs.
-   A rejection needs a real reason; Meedo-Me learns from the pattern.
+1. **Cycle first.** Call `meedo_cycle` (or ledger + journal standup). Put each
+   proposal to the user. Accepting is theirs to do, and only for work that
+   starts now: accepted advice is judged by later runs. A rejection needs a
+   real reason; Meedo-Me learns from the pattern. Log the unit in the journal.
 2. **Recall before diagnosing.** The same kind of problem has usually been seen.
    Episodes say what the first guess got wrong — quote that, then check it.
 3. **Never report an improvement on a score alone.** An output that deleted a
@@ -43,6 +51,9 @@ the Meedo-Me app or Claude Code.
    an improvement only if `meedo_review` passes and someone has looked at it.
 4. **Close the loop.** A solved problem is recorded with its method. A result
    with no method is not a lesson.
+5. **Improve the utility.** If Meedo-Me itself misled you, missed evidence, or
+   was hard to use, fix that path and record a `meedo-me` episode so the next
+   face is smarter.
 
 ## What the logo work is for
 
