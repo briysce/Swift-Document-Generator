@@ -1101,6 +1101,36 @@ def quantize_thin_path(arr: np.ndarray, max_colors: int = 4) -> np.ndarray:
                 break
     if not uniq:
         return out
+
+    # Hue-family safety: if the source ink has two distinct chromatic families
+    # (Arc red ARC + teal RESOURCES LTD.) the quantised palette must keep both.
+    # Collapsing to a single family painted the whole tagline red on
+    # arc__import_combo / downscale_jpeg.
+    def _families(cols: list[np.ndarray]) -> int:
+        fam: list[tuple[float, float]] = []
+        for c in cols:
+            r, g, b = (float(v) for v in c)
+            mx, mn = max(r, g, b), min(r, g, b)
+            if mx - mn < 16:
+                continue
+            # Rough hue angle in degrees.
+            if mx == r:
+                h = 60.0 * ((g - b) / (mx - mn)) % 360.0
+            elif mx == g:
+                h = 60.0 * ((b - r) / (mx - mn)) + 120.0
+            else:
+                h = 60.0 * ((r - g) / (mx - mn)) + 240.0
+            if not any(min(abs(h - fh), 360.0 - abs(h - fh)) <= 40.0 for fh, _ in fam):
+                fam.append((h, mx - mn))
+        return len(fam)
+
+    src_cols = [
+        np.array(c, dtype=np.int32)
+        for c in _brand_palette(arr, max_colors=8)
+    ]
+    if _families(src_cols) >= 2 and _families(uniq) < 2:
+        return arr
+
     stack = np.stack(uniq, axis=0)
     pix = rgb[ink]
     diffs = np.abs(pix[:, None, :] - stack[None, :, :]).sum(axis=2)
@@ -1180,13 +1210,55 @@ def _brand_palette(arr: np.ndarray, max_colors: int = 16) -> list[np.ndarray]:
         return []
 
     # Prefer chromatic brand fills when any exist (avoid locking to JPEG gray mush).
-    chromatic = [e for e in entries if e[0] >= 28]
+    # Dark teal/navy (Arc RESOURCES LTD.) often lands at sat 16–27 after 16-bin
+    # quantization — still a real hue, not gray mush. Excluding it left only
+    # red bins, and quantize_thin_path then painted the whole tagline red.
+    def _chromatic(e: tuple[int, np.ndarray, int]) -> bool:
+        sat_c, rgb_c, _n = e
+        if sat_c >= 28:
+            return True
+        lum_c = float(rgb_c.mean())
+        return lum_c < 130.0 and sat_c >= 16
+
+    chromatic = [e for e in entries if _chromatic(e)]
     pool = chromatic if chromatic else entries
     # Rank by sat*count so residual Arc red beats washed pink majority bins.
+    # Fill slots by hue family first so a secondary teal is not crowded out
+    # by four near-duplicate red bins (arc__import_combo failure mode).
     pool_sorted = sorted(pool, key=lambda e: -(e[0] * e[2]))
-    return [e[1] for e in pool_sorted[:max_colors]]
 
+    def _hue_deg(rgb_c: np.ndarray) -> float | None:
+        r, g, b = (float(v) for v in rgb_c)
+        mx, mn = max(r, g, b), min(r, g, b)
+        if mx - mn < 12:
+            return None
+        if mx == r:
+            return 60.0 * ((g - b) / (mx - mn)) % 360.0
+        if mx == g:
+            return 60.0 * ((b - r) / (mx - mn)) + 120.0
+        return 60.0 * ((r - g) / (mx - mn)) + 240.0
 
+    picked: list[np.ndarray] = []
+    picked_h: list[float] = []
+    for _sat, rgb_c, _n in pool_sorted:
+        h = _hue_deg(rgb_c)
+        if h is not None and any(
+            min(abs(h - ph), 360.0 - abs(h - ph)) <= 40.0 for ph in picked_h
+        ):
+            continue
+        picked.append(rgb_c)
+        if h is not None:
+            picked_h.append(h)
+        if len(picked) >= max_colors:
+            break
+    if len(picked) < max_colors:
+        for _sat, rgb_c, _n in pool_sorted:
+            if any(int(np.abs(rgb_c - u).sum()) <= 12 for u in picked):
+                continue
+            picked.append(rgb_c)
+            if len(picked) >= max_colors:
+                break
+    return picked
 def harden_flat_edges(arr: np.ndarray) -> np.ndarray:
     """Collapse JPEG/AA mush at ink boundaries toward solid neighbor fills.
 
@@ -1312,10 +1384,24 @@ def snap_to_source_palette(
     pix = rgb[ink]
     lum = pix.mean(axis=1)
     sat = pix.max(axis=1) - pix.min(axis=1)
-    # Keep hard black / white and solid grey/silver fills (do not recolor type).
-    keep = ((lum < 28) & (sat < 18)) | ((lum > 245) & (sat < 12)) | (
-        (sat <= 28) & (lum >= 55) & (lum <= 210)
-    )
+    # Keep hard black / white. Mid grey/silver type (Trialta TRI) is protected
+    # only when the *source* also carries substantial neutral ink — otherwise
+    # washed Arc teal (lum~65, sat~4 after SVG rasterize) is mistaken for
+    # silver and never snapped back onto source teal.
+    src_a = source[:, :, 3]
+    src_rgb = source[:, :, :3].astype(np.int32)
+    src_ink = src_a >= 96
+    src_neutral_frac = 0.0
+    if src_ink.any():
+        sp = src_rgb[src_ink]
+        s_lum = sp.mean(axis=1)
+        s_sat = sp.max(axis=1) - sp.min(axis=1)
+        src_neutral_frac = float(
+            ((s_sat <= 12) & (s_lum >= 55) & (s_lum <= 210)).mean()
+        )
+    keep = ((lum < 28) & (sat < 18)) | ((lum > 245) & (sat < 12))
+    if src_neutral_frac >= 0.08:
+        keep = keep | ((sat <= 28) & (lum >= 55) & (lum <= 210))
     work = pix[~keep]
     if len(work) == 0:
         return out

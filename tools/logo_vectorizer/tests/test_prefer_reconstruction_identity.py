@@ -30,7 +30,12 @@ def _cand(name: str, *, has_vector: bool, review: Review | None, agreement: floa
 
 def _pick(ideal, traced):
     """Mirror convert()'s identity-first choice (keep in sync with logo_vectorize)."""
-    from logo_vectorize import _lost_no_more, _prefer_reconstruction
+    from logo_vectorize import (
+        COLLAPSE_FLOOR,
+        _brand_colour_blocks,
+        _lost_no_more,
+        _prefer_reconstruction,
+    )
 
     winner = traced
     if ideal is not None:
@@ -38,6 +43,11 @@ def _pick(ideal, traced):
         if ideal.passed_review and not traced.passed_review:
             winner = ideal
         elif not ideal.passed_review and not traced.passed_review and ideal_less:
+            winner = ideal
+        elif (
+            _brand_colour_blocks(traced) > _brand_colour_blocks(ideal)
+            and ideal.agreement >= COLLAPSE_FLOOR
+        ):
             winner = ideal
         elif ideal.passed_review and _prefer_reconstruction(ideal, traced):
             winner = ideal
@@ -77,3 +87,23 @@ def test_shared_loss_keeps_trace_when_it_has_vector():
     traced = _cand("traced", has_vector=True, review=shared, agreement=0.8)
     ideal = _cand("idealize/prepared", has_vector=True, review=shared, agreement=0.5)
     assert _pick(ideal, traced) == "traced"
+
+
+def test_brand_colour_loss_ships_ideal_over_wrong_red_trace():
+    """Trace painted teal tagline red; ideal kept teal but missed a period."""
+    traced_rv = Review(
+        findings=[
+            Finding(
+                "brand_colour",
+                "block",
+                "colour (33, 54, 55) dropped",
+                colour=(33, 54, 55),
+            )
+        ]
+    )
+    ideal_rv = Review(
+        findings=[Finding("small_element", "block", "period", n=1)]
+    )
+    traced = _cand("traced", has_vector=True, review=traced_rv, agreement=0.73)
+    ideal = _cand("idealize/prepared", has_vector=True, review=ideal_rv, agreement=0.36)
+    assert _pick(ideal, traced) == "idealize/prepared"

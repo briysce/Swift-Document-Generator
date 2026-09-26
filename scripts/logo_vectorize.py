@@ -293,6 +293,18 @@ def _lost_no_more(a: Candidate, b: Candidate) -> bool:
         return False
 
 
+def _brand_colour_blocks(cand: Candidate) -> int:
+    """How many brand-colour deletions Meedo-Me blocked on this candidate."""
+    if cand.review is None:
+        return 0
+    return sum(
+        1
+        for f in cand.review.findings
+        if getattr(f, "check", None) == "brand_colour"
+        and getattr(f, "severity", None) == "block"
+    )
+
+
 def _minds_rank_enabled() -> bool:
     """Read LOGO_MINDS_RANK the same way the improve loop records it."""
     try:
@@ -723,6 +735,12 @@ def convert(
         # retained, trace dropped them), ship ideal even if the trace has a
         # vector — `_prefer_reconstruction` alone would keep the wrong red
         # trace forever once has_vector is true.
+        #
+        # Brand-colour deletions outrank other blocks for selection: on
+        # arc__import_combo the trace painted RESOURCES LTD. red (brand_colour
+        # block) while ideal kept teal but missed a period (small_element).
+        # lost_no_more cannot compare different checks, so brand_colour must
+        # decide explicitly.
         winner = traced
         if ideal is not None:
             ideal_less = _lost_no_more(ideal, traced) and not _lost_no_more(
@@ -734,6 +752,11 @@ def convert(
                 not ideal.passed_review
                 and not traced.passed_review
                 and ideal_less
+            ):
+                winner = ideal
+            elif (
+                _brand_colour_blocks(traced) > _brand_colour_blocks(ideal)
+                and ideal.agreement >= COLLAPSE_FLOOR
             ):
                 winner = ideal
             elif ideal.passed_review and _prefer_reconstruction(ideal, traced):
@@ -748,7 +771,6 @@ def convert(
                 # before either engine runs). The block cannot choose between
                 # them, so the derived rule does, as if neither were blocked.
                 winner = ideal
-
         # Opt-in minds ranking (LOGO_MINDS_RANK): when both still pass review,
         # Gemini/Claude may override the derived rule — the in-pair signal
         # board #4 is measuring. Fail-open: split/error/unavailable keeps
