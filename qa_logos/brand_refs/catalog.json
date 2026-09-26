@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "brands": {
+    "arc": {
+      "slug": "arc",
+      "name": "ARC Resources Ltd.",
+      "domain": "arcresources.com",
+      "branding": {
+        "wordmark": "ARC (serif, connected A\u2013R) + RESOURCES LTD. (small teal sans)",
+        "colors": [
+          "#C92A35 red ARC",
+          "#2D4A4E teal tagline/swoosh",
+          "black field"
+        ],
+        "must_keep": [
+          "RESOURCES LTD. tagline letters to the right of ARC",
+          "thin teal swoosh under ARC",
+          "serif ARC with joined A\u2013R legs"
+        ]
+      },
+      "official": [
+        {
+          "url": "https://www.arcresources.com/wp-content/uploads/2022/02/arc_Logo_PNG_.png",
+          "ok": true,
+          "path": "qa_logos/brand_refs/arc/official_0.png"
+        }
+      ],
+      "serper": [],
+      "ts": "2026-09-26T13:46:43Z"
+    },
+    "propak": {
+      "slug": "propak",
+      "name": "PROPAK Energy Services",
+      "domain": "propaksystems.com",
+      "branding": {
+        "wordmark": "PROPAK (blue italic) over Energy Services; red rule; vessel icon",
+        "colors": [
+          "medium slate blue",
+          "red rule + vessel outline"
+        ],
+        "must_keep": [
+          "i-dot on Services when present",
+          "thin red horizontal rule under PROPAK",
+          "blue arc + red vessel icon to the right"
+        ]
+      },
+      "official": [
+        {
+          "url": "https://www.propaksystems.com/img/logos/Propak-Energy-Services-Logo.webp",
+          "ok": true,
+          "path": "qa_logos/brand_refs/propak/official_0.webp"
+        },
+        {
+          "url": "https://www.propaksystems.com/img/logos/propak-logo-w240.webp",
+          "ok": true,
+          "path": "qa_logos/brand_refs/propak/official_1.webp"
+        }
+      ],
+      "serper": [],
+      "ts": "2026-09-26T13:46:43Z"
+    },
+    "gcm": {
+      "slug": "gcm",
+      "name": "Gulf Coast Modification",
+      "domain": "gulfcoastmod.com",
+      "branding": {
+        "wordmark": "TGC monogram + Gulf Coast / Modification serif with white outline",
+        "colors": [
+          "navy/blue T+G",
+          "red nested C",
+          "white outlines"
+        ],
+        "must_keep": [
+          "i-dots in Modification",
+          "white-filled o counters (Coast / Modification)",
+          "red C inside blue G monogram"
+        ]
+      },
+      "official": [
+        {
+          "url": "https://www.gulfcoastmod.com/Themes/Default/Content/images/logo.png",
+          "ok": true,
+          "path": "qa_logos/brand_refs/gcm/official_0.png"
+        }
+      ],
+      "serper": [],
+      "ts": "2026-09-26T13:46:44Z"
+    },
+    "trialta": {
+      "slug": "trialta",
+      "name": "Trialta Projects",
+      "domain": "trialtaprojects.com",
+      "branding": {
+        "wordmark": "square gray fan mark + TRI (gray) ALTA (lime) / PROJECTS",
+        "colors": [
+          "medium gray",
+          "lime green ALTA",
+          "silver PROJECTS"
+        ],
+        "must_keep": [
+          "two-tone TRI|ALTA color split (do not merge to one fill)",
+          "square fan emblem left of wordmark"
+        ]
+      },
+      "official": [
+        {
+          "url": "https://trialtaprojects.com/wp-content/uploads/2012/04/ta-logo-1.png",
+          "ok": true,
+          "path": "qa_logos/brand_refs/trialta/official_0.png"
+        }
+      ],
+      "serper": [],
+      "ts": "2026-09-26T13:46:44Z"
+    },
+    "whitecap": {
+      "slug": "whitecap",
+      "name": "Whitecap Resources Inc.",
+      "domain": "wcap.ca",
+      "branding": {
+        "wordmark": "wave mark + WHITECAP / RESOURCES INC (white on dark)",
+        "colors": [
+          "white on black"
+        ],
+        "must_keep": [
+          "wave crests as smooth strokes",
+          "condensed sans WHITECAP"
+        ]
+      },
+      "official": [
+        {
+          "url": "https://www.wcap.ca/application/themes/whitecap/images/whitecapLogo.png",
+          "ok": true,
+          "path": "qa_logos/brand_refs/whitecap/official_0.png"
+        }
+      ],
+      "serper": [],
+      "ts": "2026-09-26T13:46:44Z"
+    },
+    "worley": {
+      "slug": "worley",
+      "name": "Worley",
+      "domain": "worley.com",
+      "branding": {
+        "wordmark": "multicolor ribbon globe + lowercase worley",
+        "colors": [
+          "red",
+          "green",
+          "cyan ribbons",
+          "white wordmark"
+        ],
+        "must_keep": [
+          "ribbon globe as separate color bands",
+          "lowercase worley"
+        ]
+      },
+      "official": [
+        {
+          "url": "https://www.worley.com/-/media/images/worley/logos/global/header-logo-updated.png",
+          "ok": true,
+          "path": "qa_logos/brand_refs/worley/official_0.png"
+        }
+      ],
+      "serper": [],
+      "ts": "2026-09-26T13:46:44Z"
+    }
+  },
+  "updated_at": "2026-09-26T13:46:44Z",
+  "source": "serper.dev + official site URLs (LogoFinder-compatible)"
+}

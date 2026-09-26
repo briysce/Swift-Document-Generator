@@ -1,13 +1,33 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
+// ignore: implementation_imports
+import 'package:pdf/src/svg/parser.dart';
 import 'package:swift_shipping_label/brand_assets.dart';
 import 'package:swift_shipping_label/label_data.dart';
 import 'package:swift_shipping_label/pdf/bol_label_pdf.dart';
 import 'package:swift_shipping_label/pdf/shipping_label_pdf.dart';
+import 'package:xml/xml.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('Swift lockup SVG is vector paths in the PNG fallback\'s own box',
+      () async {
+    // The PDF painter scales by viewBox width and ignores its origin, and
+    // falls back to the PNG in the same box — so the two must share it.
+    final svg = await rootBundle.loadString(SwiftBrandAssets.logoOrangeSvg);
+    expect(svg.contains('<image'), isFalse,
+        reason: 'a raster in an SVG wrapper is not a vector');
+    expect(svg.contains('<path'), isTrue);
+    final vb = SvgParser(xml: XmlDocument.parse(svg)).viewBox;
+    final data = await rootBundle.load(SwiftBrandAssets.logoOrange);
+    final png = img.decodeImage(data.buffer.asUint8List())!;
+    expect(vb.x, 0);
+    expect(vb.y, 0);
+    expect(vb.width, png.width.toDouble());
+    expect(vb.height, png.height.toDouble());
+  });
 
   test('PDF Swift lockup is swift_supply_logo_orange.png, not document/solid',
       () async {

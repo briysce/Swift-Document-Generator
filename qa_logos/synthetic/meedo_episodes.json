@@ -1,0 +1,3025 @@
+{
+  "version": 1,
+  "episodes": [
+    {
+      "id": "E0001",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "96a8908",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Swift bars rect-snapped in swift_orange but traced as curves in swift_orange_solid",
+      "first_read": "The isoperimetric complexity gate was rejecting long thin bars.",
+      "evidence": "Per-column histogram of the solid bar: 3 stray antialiasing pixels out of 268,100. minAreaRect bounded them and stretched the bar 89 to 91 px tall across 2980 px; coverage 0.9993 to 0.9776, under the gate. On a 300 px bar the same crumbs also tilted it 0.28 degrees.",
+      "cause": "minAreaRect is a bounding estimator, so a handful of outlier pixels sets both the size and the angle of the whole rectangle.",
+      "fix": "Consensus fit: extents from a ladder of boundary trims, orientation from second moments, coverage picks the winner with the bounding fit still in the running.",
+      "verified": "All 926 corpus elements: 5 newly named, 0 worse. swift_orange_solid ideality 0.8502 to 0.8791.",
+      "method": "When a fit passes on one variant and fails on its near-twin, diff the inputs pixel by pixel before touching any threshold \u2014 the cause is usually a few pixels that a bounding or least-squares estimator lets decide. Use a consensus estimator and let a measured quantity choose among candidates.",
+      "tags": [
+        "consensus",
+        "estimator",
+        "shapes"
+      ],
+      "cases": [
+        "swift_orange_solid"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0002",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "96a8908",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "best_fit ranked a rectangle covering 0.80 above a polygon covering 0.97 on the same element",
+      "first_read": "The consensus rect change had caused a regression on propak.",
+      "evidence": "Scanning all candidates showed 14 elements where the degrees-of-freedom preference cost up to 17 points of coverage, predating the change.",
+      "cause": "'Prefer the constrained shape when both fit' was implemented as 'when both clear the floor', and the floor is a minimum that relaxes to 0.80 on small elements.",
+      "fix": "A freer shape outranks a tighter one only if it removes most of the tighter one's leftover error (as a fraction), and only while material error remains.",
+      "verified": "Element scan: 5 renamed, every one to a better fit; propak regression gone.",
+      "method": "Clearing a floor is not proof of fitting. Compare candidates by how much of the remaining error a freer model removes, measured as a fraction so it means the same at every size \u2014 and stop asking once the remaining error is immaterial, or the test turns hair-trigger.",
+      "tags": [
+        "metric-trap",
+        "ranking",
+        "shapes"
+      ],
+      "cases": [
+        "gcm",
+        "propak"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0003",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "ba4bf0f",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Reconstruction took about 5 minutes per logo",
+      "first_read": "Glyphs are compared at 64x64, so rendering them at 256 px is obvious waste \u2014 render smaller.",
+      "evidence": "At 128 px the normalized bitmap agreed with the 256 px one at only 0.9603 mean and 0.8510 at the 1st percentile, against a 0.86 match threshold and a winning score of 0.9545. It would have changed which font was chosen, for a 2.1x gain. Profiling cold and warm separately showed rendering, not comparison, was 98% of the time \u2014 and each logo is a fresh process.",
+      "cause": "Every process re-rendered 1,562 fonts across 66 characters.",
+      "fix": "Render once at full quality into a memory-mapped glyph store built on first use; hoist the corpus scan out of the two-candidate loop; exact branch-and-bound in match_run.",
+      "verified": "Cold start 265.3 s to 6.9 s; identical matches to the last digit (ScienceGothic-400, SUPPLY, 0.954527).",
+      "method": "An optimisation that should change nothing must be shown to change nothing \u2014 measure its effect at the decision threshold before shipping it. Profile cold and warm paths separately; a per-process tool pays the cold cost every time.",
+      "tags": [
+        "fonts",
+        "measure-before-optimising",
+        "performance"
+      ],
+      "cases": [],
+      "source": "backfill"
+    },
+    {
+      "id": "E0004",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "d1eed48",
+      "workstream": "logo-engine",
+      "outcome": "failure",
+      "problem": "Reported a 0.0035 regression in the default path that did not exist",
+      "first_read": "The shape-fitting change had regressed Swift vectorize anchors 0.9269 to 0.9234.",
+      "evidence": "The re-run used --min-height 3000 and two engines; every historical run used 1200 and three. Re-run at matching settings reproduced 0.9269 / 0.9356 exactly.",
+      "cause": "Nothing recorded the configuration beside the score, so incomparable runs looked comparable.",
+      "fix": "min_height and engines are now recorded on every row, in the summary and in the durable run snapshots.",
+      "verified": "Guardrail reproduced the baseline to four decimals.",
+      "method": "Never compare two runs until their configuration matches, and record configuration beside every score so the check is possible. A surprising regression is a configuration difference until proven otherwise.",
+      "tags": [
+        "configuration",
+        "measurement"
+      ],
+      "cases": [],
+      "source": "backfill"
+    },
+    {
+      "id": "E0005",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "195782e",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "The reconstruction gate could not tell which candidate was better within a pair",
+      "first_read": "Agreement with the source is the strongest signal (r=+0.57), so rank on it.",
+      "evidence": "Built every candidate on all 18 pairs and scored against the clean masters. Agreement ranked candidates within a pair no better than chance; trialta's reconstruction agreed at 0.180 vs the trace's 0.914 and scored better. A Lanczos fallback agrees almost perfectly because it IS the degraded source enlarged.",
+      "cause": "Agreement with the raster measures which pair is easy, and rewards changing nothing.",
+      "fix": "Rule derived from the study: when the trace produced no vector, ship the reconstruction unless it collapsed; tie-break reconstruction variants by build quality.",
+      "verified": "Corpus composite 0.7433 to 0.7567, v2 0.7455 to 0.7584, 0 regressions; the re-run matched the study to four decimals.",
+      "method": "A signal strong across cases can be useless within one. Validate a ranking signal inside the unit you are choosing within, and derive decision rules from a ground-truth study rather than argument. Fidelity to a degraded input rewards doing nothing.",
+      "tags": [
+        "gating",
+        "ground-truth-study",
+        "ranking"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg",
+        "trialta__import_combo"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0006",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "f17e227",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "The three largest reported wins had deleted GCM's red monogram",
+      "first_read": "composite ranked them the best candidates in the corpus (e.g. 0.8373 to 0.8619).",
+      "evidence": "Looking at the comparison sheet: the red C/G was gone. Red share of ink 0.108 in the master, 0.000 in the output.",
+      "cause": "Layers were seeded from exact 5-bit colour bins, so a JPEG-mottled red spread over dozens of sub-threshold bins never got a layer; and the white page counted as the largest 'ink' colour.",
+      "fix": "Pool bins into colours before seeding; remove the page (a neutral that owns the border); resolve antialiasing ramps and halos by hue family.",
+      "verified": "Red retained in 12/12 degraded variants, halos in 0/12; clean masters reduce to their true brand palettes.",
+      "method": "Never report an improvement without looking at the output. A blended score can rank a logo with a deleted element as the best result \u2014 the missing element is only part of one term.",
+      "tags": [
+        "colour",
+        "look-at-images",
+        "metric-trap"
+      ],
+      "cases": [
+        "gcm__blur_crush",
+        "gcm__downscale_jpeg",
+        "gcm__import_combo"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0007",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "f17e227",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Removing JPEG halos deleted PROPAK's red rule",
+      "first_read": "A thin colour attached to another colour is a halo.",
+      "evidence": "Checking red explicitly after the change: the rule has interior 0.000 at that size and sits beside its own pink fringe, so a pairwise test could read either as the halo of the other. It survived one run by 0.08 margin.",
+      "cause": "The rule was a single pairwise property; paint and rust can share it.",
+      "fix": "One colour per hue family: interior means paint; thin and sharing a painted colour's hue means fringe; an all-thin family keeps its strongest member.",
+      "verified": "Red kept everywhere, halos gone everywhere.",
+      "method": "When removing a class of artefact, explicitly re-check every element you meant to keep. A rule that removes rust will remove paint that resembles rust in the one respect the rule tests. Passing by a small margin is luck, not a fix.",
+      "tags": [
+        "colour",
+        "halo",
+        "regression-check"
+      ],
+      "cases": [
+        "propak__import_combo"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0008",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "3837921",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me's reviewer blocked correct restorations",
+      "first_read": "The reviewer was right and the outputs had lost colours.",
+      "evidence": "Pixel counts showed the outputs kept them: Swift's black shadow read as (2,0,0), HSV saturation 1.0, and was taken for red; GCM's navy text crushed to (0,1,12) read as black, so bringing it back blue was called a deletion.",
+      "cause": "HSV saturation explodes near black; dark colours carry their hue as a faint tint that a chroma threshold discards.",
+      "fix": "Absolute chroma everywhere, a dark-tint rule, and review against both the raw and prepared sketches.",
+      "verified": "Against clean masters over every candidate: 14 real deletions caught, 0 false alarms, 0 missed.",
+      "method": "Test a reviewer for false alarms against ground truth before trusting it \u2014 a reviewer that cries wolf gets ignored. Use absolute chroma, never HSV saturation, anywhere near black.",
+      "tags": [
+        "colour",
+        "false-alarm",
+        "review"
+      ],
+      "cases": [],
+      "source": "backfill"
+    },
+    {
+      "id": "E0009",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "83da4e3",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me's advice showed a 0% hit rate",
+      "first_read": "Its advice was poor.",
+      "evidence": "All 28 proposals had been judged without anyone acting on them; nobody read the file all session. Its most repeated proposal was a correct diagnosis of the next problem.",
+      "cause": "Proposals were scored by whether their case happened to move, whether or not they were taken; and repeats were filed as new proposals.",
+      "fix": "Decide before judging (accept with a baseline run, reject with a reason); escalate repeats; learn which engines not to propose on from rejection patterns; a standup at the start of every work cycle, written into CLAUDE.md.",
+      "verified": "28 proposals became 11; first standup decided 10; Meedo-Me learned to stop proposing on baseline and esrgan.",
+      "method": "Advice is only tested once someone acts on it \u2014 measure advice from acceptance, not from filing. Put the advisor in the path of the work, or it becomes a diary.",
+      "tags": [
+        "advice",
+        "hit-rate",
+        "process"
+      ],
+      "cases": [],
+      "source": "backfill"
+    },
+    {
+      "id": "E0010",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "83da4e3",
+      "workstream": "font-id",
+      "outcome": "partial",
+      "problem": "Identify the typeface of the orange SWIFT letters",
+      "first_read": "Run the glyph matcher against the corpus.",
+      "evidence": "Best match GravitasOne at 0.83, visibly a different face. The corpus is essentially Google Fonts. Web search found nothing for the logo.",
+      "cause": "Commercial display type and custom lettering are outside a free-font corpus.",
+      "fix": "Named the genre with confidence (ultra-bold italic wedge-serif display type; the slashes are a logo treatment), declined to invent a name, and gave a clean isolated extraction for WhatTheFont / Matcherator.",
+      "verified": "",
+      "method": "A weak top match in a limited corpus means 'not in the corpus', not 'closest relative'. Say so plainly and hand over the clean input a proper identifier needs.",
+      "tags": [
+        "corpus-limits",
+        "fonts",
+        "honesty"
+      ],
+      "cases": [
+        "swift_orange"
+      ],
+      "source": "backfill"
+    },
+    {
+      "id": "E0011",
+      "ts": "2026-09-25T03:32:38Z",
+      "commit": "83da4e3",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "A check suggested the SUPPLY font substitution was wrong",
+      "first_read": "ScienceGothic matched SUPPLY at only 0.34.",
+      "evidence": "The check had included the two orange bars as 'letters', shifting every comparison by two. Corrected: 0.9545 mean, 0.924-0.985 per letter.",
+      "cause": "A bug in my own verification script.",
+      "fix": "Fixed the check; the substitution was sound.",
+      "verified": "",
+      "method": "When a check contradicts a strong earlier result, suspect the check first \u2014 print exactly what it is comparing before acting on its verdict.",
+      "tags": [
+        "checks",
+        "self-doubt"
+      ],
+      "cases": [],
+      "source": "backfill"
+    },
+    {
+      "id": "E0012",
+      "ts": "2026-09-25T03:34:09Z",
+      "commit": "83da4e3",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Blur washed brand colours toward the page (TRIALTA green to mint, Arc and PROPAK red to pink)",
+      "first_read": "Sample each element's densest ink \u2014 the pixels furthest from the page.",
+      "evidence": "Degraded-only measurement: 0 worse. But the clean PROPAK master's red (199,48,47) became (50,15,14): its densest pixels were edges mixed with the dark blue letters. A chroma-based variant instead picked halos that prepare_for_engine had oversaturated, turning GCM navy cyan. Unconstrained sampling also drifted PROPAK's red toward blue-grey from neighbouring bleed.",
+      "cause": "Two purity estimators each fooled by a different contaminant; the real question is whether the element is washed at all.",
+      "fix": "Restore only when the element's average sits near the page (<=340 L1; washed 123-288, solid fills >=405) AND differs from its densest same-hue ink by >=110; sample only same-hue pixels; never touch neutrals.",
+      "verified": "6 layers restored, 0 worse, all 6 clean masters unchanged; mean error to intended colour 55.5 to 39.8; visually green and red return. PROPAK's thin rule only reaches 224 off \u2014 no pixel in the sketch is pure, and going further would invent.",
+      "method": "Gate a restoration on the condition it restores, and verify clean inputs stay unchanged \u2014 not only that damaged ones improve. When a 'purity' estimate is fooled, ask which contaminant fooled it; two different contaminants mean the estimator is the wrong question.",
+      "tags": [
+        "clean-inputs",
+        "colour",
+        "regression-check",
+        "washed"
+      ],
+      "cases": [
+        "arc__blur_crush",
+        "propak__blur_crush",
+        "trialta__blur_crush",
+        "trialta__import_combo"
+      ],
+      "source": "manual"
+    },
+    {
+      "id": "E0013",
+      "ts": "2026-09-25T03:48:47Z",
+      "commit": "6e64032",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me's memory was reachable only from Python in this repo; the Jan-based app, Claude Code and agents each needed it",
+      "first_read": "Build a context-stitching engine inside the Jan fork",
+      "evidence": "Jan already speaks MCP natively, as do Claude Code and most agents; an engine inside Jan would tie the memory to one client",
+      "cause": "Memory and its faces were coupled by design choice, not necessity",
+      "fix": "A zero-dependency stdio MCP server over the ledger, reviewer and episodes; read-only mode drops every writer; reviewer paths confined to the repo and MEEDO_ALLOWED_DIRS",
+      "verified": "Official MCP SDK 2.2.0 client drove both modes end to end; 10 unit tests including symlink escape, foreign cwd, and stdout purity while a tool prints",
+      "method": "Serve shared memory over a protocol every face already speaks instead of building it into one face. Verify a protocol implementation with the official client, not a reading of the spec. On stdio, route prints to stderr \u2014 one stray line corrupts the session.",
+      "tags": [
+        "architecture",
+        "mcp",
+        "security"
+      ],
+      "cases": [],
+      "source": "session"
+    },
+    {
+      "id": "E0014",
+      "ts": "2026-09-25T04:20:08Z",
+      "commit": "a333184",
+      "workstream": "logo",
+      "outcome": "success",
+      "problem": "small same-colour elements dropped (GCM Modification i-dots); reviewer colour-only missed them",
+      "first_read": "brand_colour share barely moved while separate blobs vanished",
+      "evidence": "synthetic navy word+dots: colour check passed, element_count blocked after drop of 2+ components below 70% keep",
+      "cause": "reviewer measured ink share by hue family, not connected components",
+      "fix": "",
+      "verified": "",
+      "method": "count connected ink components (area>=8) on sketch vs output; block when drop>=2 and keep<70%",
+      "tags": [
+        "element_count",
+        "gcm",
+        "reviewer"
+      ],
+      "cases": [],
+      "source": "manual"
+    },
+    {
+      "id": "E0015",
+      "ts": "2026-09-25T04:23:50Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "trialta__downscale_jpeg/traced: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 32 ink elements, output has 8 (24 dropped) \u2014 small same-colour pieces are missing",
+      "cause": "Not a real problem: the reviewer's first dot check counted noise crumbs as dots on a logo that has none.",
+      "fix": "Dot check rebuilt on correspondence: a sketch's dot must still have ink under it in the output; dots must be compact, solid and apart from the letters.",
+      "verified": "",
+      "method": "Validate a new check on the whole corpus, including logos without the feature it looks for, and look at every block before its verdicts enter the record.",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0016",
+      "ts": "2026-09-25T04:25:02Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "trialta__plate_halo/traced: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 28 ink elements, output has 7 (21 dropped) \u2014 small same-colour pieces are missing",
+      "cause": "Not a real problem: the reviewer's first dot check counted noise crumbs as dots on a logo that has none.",
+      "fix": "Dot check rebuilt on correspondence: a sketch's dot must still have ink under it in the output; dots must be compact, solid and apart from the letters.",
+      "verified": "",
+      "method": "Validate a new check on the whole corpus, including logos without the feature it looks for, and look at every block before its verdicts enter the record.",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0017",
+      "ts": "2026-09-25T04:38:37Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "trialta__downscale_jpeg/idealize/prepared: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 4 small ink satellites, output has 1 (3 dropped) \u2014 dots/accents are missing",
+      "cause": "Not a real problem: the reviewer's first dot check counted noise crumbs as dots on a logo that has none.",
+      "fix": "Dot check rebuilt on correspondence: a sketch's dot must still have ink under it in the output; dots must be compact, solid and apart from the letters.",
+      "verified": "",
+      "method": "Validate a new check on the whole corpus, including logos without the feature it looks for, and look at every block before its verdicts enter the record.",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0018",
+      "ts": "2026-09-25T04:40:59Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "trialta__plate_halo/idealize/prepared: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 14 small ink satellites, output has 2 (12 dropped) \u2014 dots/accents are missing",
+      "cause": "Not a real problem: the reviewer's first dot check counted noise crumbs as dots on a logo that has none.",
+      "fix": "Dot check rebuilt on correspondence: a sketch's dot must still have ink under it in the output; dots must be compact, solid and apart from the letters.",
+      "verified": "",
+      "method": "Validate a new check on the whole corpus, including logos without the feature it looks for, and look at every block before its verdicts enter the record.",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0019",
+      "ts": "2026-09-25T04:44:28Z",
+      "commit": "bb2359c",
+      "workstream": "logo",
+      "outcome": "success",
+      "problem": "Trialta letterforms collapse to blobs; font match named nothing on clean TRIALTA",
+      "first_read": "glyph matching broken or fonts missing",
+      "evidence": "mixed-colour run gray TRI+green ALTA scored 0.807 < MIN_RUN_SCORE 0.86; colour-segregated runs scored 0.87\u20130.95 Oswald; icon fragments diluted gray TRI until contiguous subsequences recovered T,R,I",
+      "cause": "group_runs ignored fill colour, so two designed words were scored as one typesetting pass; baseline-sharing icon scrap diluted TRI",
+      "fix": "",
+      "verified": "",
+      "method": "Segregate glyph runs by colour family; filter hairlines; on failed runs try contiguous subsequences. Keep element_count on compact satellites only and skip when sketch has >4 (JPEG crumbs).",
+      "tags": [
+        "colour-run",
+        "font",
+        "glyph",
+        "trialta"
+      ],
+      "cases": [],
+      "source": "manual"
+    },
+    {
+      "id": "E0020",
+      "ts": "2026-09-25T04:46:24Z",
+      "commit": "5d42fb4",
+      "workstream": "process",
+      "outcome": "success",
+      "problem": "Agents treated Meedo-Me as optional post-hoc critic; advice sat unread",
+      "first_read": "Meedo-Me is just another tool to call when convenient",
+      "evidence": "User directive 2026-09-25: keep Meedo-Me heavily involved so it can learn, grow, adapt, adjust, and experiment as project manager/assistant. Historical 28 ignored proposals scored hit-rate 0% while correct.",
+      "cause": "No standing rule forced standup\u2192decide\u2192recall\u2192review\u2192propose every cycle; improve loop observed but did not propose",
+      "fix": "",
+      "verified": "",
+      "method": "Always-apply cursor rule meedo-me-pm.mdc; CLAUDE.md cycle; improve loop auto-propose after observe; never leave open proposals undecided; accept only what will be acted on now.",
+      "tags": [
+        "meedo",
+        "pm",
+        "process"
+      ],
+      "cases": [],
+      "source": "manual"
+    },
+    {
+      "id": "E0021",
+      "ts": "2026-09-26T02:58:52Z",
+      "commit": "52b5f81",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Cursor picked up after Claude Code but continued from a stale handoff: it thought the Jan fork was still blocked on the user and never saw the OpenClaw/Ollama work",
+      "first_read": "Cursor ignored the notes",
+      "evidence": "The OpenClaw/Ollama work existed only in the container, uncommitted; thought_trace.md still listed the fork as a blocking decision after briysce/meedo-me had been created and pushed",
+      "cause": "Work not pushed at the end of a work unit, and the state file not updated when state changed",
+      "fix": "Pushed the pending work (20c3885, meedo-me b229088); merged Cursor's branch (2ffe644); rewrote the handoff section of thought_trace.md",
+      "verified": "",
+      "method": "Push at the end of every work unit, and update the thought trace the moment state changes (a repo created, a decision made). The next agent sees only what is committed and written down.",
+      "tags": [
+        "cursor",
+        "handoff",
+        "process"
+      ],
+      "cases": [],
+      "source": "mcp"
+    },
+    {
+      "id": "E0022",
+      "ts": "2026-09-26T02:58:52Z",
+      "commit": "52b5f81",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "i-dots erased before any engine drew them (GCM \"Modification\", PROPAK \"Services\")",
+      "first_read": "The engines lose small elements while tracing",
+      "evidence": "Stage-by-stage trace: prune_ink_speckles removed all 3 GCM dots (below 1.2% of the largest island); separately idealize._components dropped everything under 24 px. The baseline engine, which only upsamples the prepared image, lost the same dots.",
+      "cause": "Size floors used as noise tests in two places; a 16-25 px dot beside a 6,000 px monogram is below any sensible size cut",
+      "fix": "Keep an island as a mark when it is compact, >=3 px each way, beside a letter, sized like that letter's strokes (0.6-2.5x), in its core ink, and not inside a counter (0673cf2, 577dd87)",
+      "verified": "Prepared inputs byte-identical on 16/18 sketches (all Swift); only GCM's lost dots return. GCM import_combo reconstruction 0.7846 -> 0.8142 with dots and red intact.",
+      "method": "A size floor is not a noise test. Judge small pieces by shape relative to their neighbours, trace a loss stage by stage before fixing, and look at every piece a new rule keeps \u2014 each first version here also kept crumbs on Swift.",
+      "tags": [
+        "dots",
+        "preparation",
+        "small-elements"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg",
+        "gcm__import_combo",
+        "propak__downscale_jpeg"
+      ],
+      "source": "mcp"
+    },
+    {
+      "id": "E0023",
+      "ts": "2026-09-26T02:58:52Z",
+      "commit": "52b5f81",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Newer reconstructions scored lower than 09-20 on GCM and PROPAK, which read as a regression",
+      "first_read": "Something since 09-20 made the reconstruction worse",
+      "evidence": "Side by side with the clean masters: the 09-20 GCM reconstruction had deleted the red monogram; the 09-20 PROPAK one drew its red rule in blue and dropped the dot. Today's keep both colours and the dots, at -0.004 on one scale.",
+      "cause": "The composite metrics rewarded the deletions",
+      "fix": "",
+      "verified": "",
+      "method": "When a newer output scores lower, look at both before calling it a regression; a score that rises when a brand colour disappears is measuring the wrong thing.",
+      "tags": [
+        "look-at-the-images",
+        "metrics",
+        "regression-check"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg",
+        "propak__downscale_jpeg"
+      ],
+      "source": "mcp"
+    },
+    {
+      "id": "E0024",
+      "ts": "2026-09-26T02:58:52Z",
+      "commit": "52b5f81",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Is the engine backsliding since the mid-September stoppage?",
+      "first_read": "August means (0.80) vs September (0.74) look like a 5-point backslide",
+      "evidence": "The test set was rewritten on 09-19. Rebuilt August's exact inputs from git (degrade code byte-identical) and ran the Aug 22 engine, the 09-08 pre-stoppage engine and today's on identical inputs: 0 of 36 worse per logo on both sets; 2-3 Swift cases better (up to +0.018).",
+      "cause": "Means across different test sets and configurations are not comparable",
+      "fix": "",
+      "verified": "",
+      "method": "To answer \"did we backslide\", run the old engine and the new one on identical inputs and compare per logo; never compare means across test sets or configurations.",
+      "tags": [
+        "assessment",
+        "measurement",
+        "regression-check"
+      ],
+      "cases": [],
+      "source": "mcp"
+    },
+    {
+      "id": "E0025",
+      "ts": "2026-09-26T12:51:06Z",
+      "commit": "cad7206",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Correspondence checks (dots, letters) called present elements missing on some outputs",
+      "first_read": "The outputs really lost those elements",
+      "evidence": "Outputs are cropped to their ink, so naive resizing misplaced dots by 1-2 px (PROPAK's surviving dot called missing). Moments alone read ESRGAN's fragmented letters as x-scale 0.51 against a true 1.04, and ECC then converged to a sheared transform; OpenCV also rewrote the start matrix in place when ECC failed.",
+      "cause": "Registration assumed one good starting point and allowed transforms the pipeline cannot produce",
+      "fix": "Stretch-and-shift only; several starts (ink extents, bulk moments, identity) each refined by a small correlation search; presence judged along each element's skeleton, not its area (cad7206)",
+      "verified": "100 outputs: every flag confirmed by eye, no false alarms; Arc's missing tagline letters now caught",
+      "method": "Before judging correspondence, register with only the transforms the pipeline can produce, from several starts; check each verdict by eye on the native output, never on a stretched copy.",
+      "tags": [
+        "false-alarms",
+        "registration",
+        "reviewer"
+      ],
+      "cases": [],
+      "source": "mcp"
+    },
+    {
+      "id": "E0045",
+      "ts": "2026-09-26T13:17:27Z",
+      "commit": "11c1b58",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Board #7: PROPAK Services i-dot reported lost later in prepare_for_engine",
+      "first_read": "Survives despeckle but is dropped by a later prepare stage (same class as GCM E0022)",
+      "evidence": "Stage-trace on clean qa_logos/synthetic/clean/propak.png: 47px 8x6 blue island survives knockout/halo/prune/chroma/snap/crop; elements_of finds area 34. On synthetic degraded recipes (downscale_jpeg/import_combo/blur_crush) the separate tittle is already gone/merged in the RAW degrade \u2014 not lost later in prepare.",
+      "cause": "The board note was stale relative to current degrade recipes + E0022 mark retention. Prepare-path retention is already correct for clean masters; degraded residual needs reconstruction/font/design_fit, not looser despeckle.",
+      "fix": "No prepare-path code change. Locked behaviour with test_prepare_idot_retention.py (clean PROPAK + GCM golden + synthetic stem/tittle). Marked board #7 done; residual \u2192 #4.",
+      "verified": "pytest tools/logo_vectorizer/tests/test_prepare_idot_retention.py \u2014 3 passed",
+      "method": "When a small mark is 'lost in prepare', stage-trace the clean master AND the degraded RAW before changing thresholds. If the island is already merged in the degrade, further prepare looseness only keeps junk; hand residual recovery to reconstruction/design_fit.",
+      "tags": [
+        "board-7",
+        "dots",
+        "preparation",
+        "propak"
+      ],
+      "cases": [
+        "gcm",
+        "propak"
+      ],
+      "source": "manual",
+      "renumbered_from": "E0026"
+    },
+    {
+      "id": "E0046",
+      "ts": "2026-09-26T13:18:57Z",
+      "commit": "abbe5d2",
+      "workstream": "logo-engine",
+      "outcome": "partial",
+      "problem": "PROPAK Services i-dot reported lost later in prepare_for_engine (board #7)",
+      "first_read": "Despeckle or a late prepare stage deletes the tittle after it survived earlier passes",
+      "evidence": "Clean golden propak: tittle island area 47 survives knockout\u2192halo\u2192despeckle\u2192chroma\u2192crop\u2192snap\u2192punch3; elements_of finds area\u224834 blue mark. Synthetic degraded recipes (seed 42): chromatic profile at Services i shows red rule then stem with no separate tittle gap in RAW; prepare cannot lose what the degrade already merged.",
+      "cause": "Board note was stale relative to E0022 fixes. Separate-island loss was prune/size-floor (fixed). Remaining degraded failure mode is fusion/destruction inside the degrade recipe, which needs reconstruction/font/design_fit \u2014 not another prepare threshold.",
+      "fix": "Do not retune prune_ink_speckles for this case. Add regression that clean PROPAK keeps the Services i-dot through prepare; route degraded tittle recovery to board #4.",
+      "verified": "Looked at clean crop (tittle present) and downscale Services zoom pre/post prepare (stem remains; no separate tittle in raw degraded).",
+      "method": "When a small mark is 'lost in prepare', stage-trace ink at the clean centroid through each pass AND inspect the RAW degrade for a separate chromatic island before blaming despeckle. If the island is already gone in RAW, the fix is reconstruction/design, not prepare. Record the finding in the journal and an episode so the other agent does not re-tune the same gate.",
+      "tags": [
+        "cursor",
+        "diagnosis",
+        "dots",
+        "prepare",
+        "propak"
+      ],
+      "cases": [
+        "propak",
+        "propak__downscale_jpeg",
+        "propak__import_combo"
+      ],
+      "source": "manual",
+      "renumbered_from": "E0027"
+    },
+    {
+      "id": "E0047",
+      "ts": "2026-09-26T13:21:44Z",
+      "commit": "4b3d64c",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me must keep improving as a shared utility across agents and projects",
+      "first_read": "Meedo-Me only gets attention on a dedicated ticket; agents skip multi-step standup",
+      "evidence": "User asked both Claude Code and Cursor to tweak/fix/refine Meedo-Me as issues arise and deepen integration. Agents were calling ledger and journal standups separately (easy to skip one).",
+      "cause": "No standing shared duty + no single cycle command; board #3 read as Claude-only autonomy work",
+      "fix": "COORDINATION \u00a79 + CLAUDE.md + skill: both agents own continuous Meedo refine. Board #3 shared. meedo_cycle (CLI+MCP) prints ledger+journal+snapshot and reminds agents to fix Meedo friction in-session. Prefer one MCP memory across projects.",
+      "verified": "pytest test_meedo_cycle; meedo_cycle CLI prints combined standup",
+      "method": "Treat Meedo-Me product bugs as in-session work for whichever agent hits them. Lower ceremony with one cycle command. Record methods under workstream meedo-me. Deepen integration by attaching faces to the same MCP server, not cloning memory.",
+      "tags": [
+        "claude",
+        "cursor",
+        "integration",
+        "meedo-me",
+        "process"
+      ],
+      "cases": [],
+      "source": "manual",
+      "renumbered_from": "E0028"
+    },
+    {
+      "id": "E0029",
+      "ts": "2026-09-26T13:27:12Z",
+      "commit": "f91b029",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Board #9: thin strokes (PROPAK red rule, 1px borders) need centre-line tracing without treating dense lockups as thin wordmarks",
+      "first_read": "Widen is_thin_stroke_mark density gate so Propak enters the thin path",
+      "evidence": "Propak density ~0.39; lessons already forbade density<=0.30 (Trialta fills broke). Propak red rule is a separate 5\u20136px\u00d7457 island; protect was None because centerline_protect_mask required whole-logo thin.",
+      "cause": "Thin-path gating is whole-logo; thin *components* inside dense lockups were invisible to protect/stamp/shape naming",
+      "fix": "elongated_thin_components + OR into centerline_protect_mask; stamp_centerline stamps rule skeletons on dense logos; fit_centerline_stroke for 1\u20133px/sub-40px rules; idealize emits stroke with stroke=colour. 6px Propak bar still names as rect.",
+      "verified": "pytest test_centerline_thin_rules.py + test_shapes + test_prepare_idot_retention + test_meedo_review (36 passed with skimage)",
+      "method": "When a thin feature lives inside a dense lockup, detect the component (aspect/thickness/density) rather than reopening the whole-logo thin gate. Prefer filled rect when it fits; centre-line stroke only for 1\u20133px rules and fragments below the 40px floor.",
+      "tags": [
+        "board-9",
+        "centerline",
+        "propak",
+        "thin-stroke"
+      ],
+      "cases": [
+        "propak"
+      ],
+      "source": "manual"
+    },
+    {
+      "id": "E0026",
+      "ts": "2026-09-26T13:27:36Z",
+      "commit": "11c1b58",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me's reviewer blocked the rebuilt Swift master (and every app export) for 'deleting' its charcoal outline",
+      "first_read": "Looked like the export lost the dark ink, or the app's pure black differs from the scan's charcoal.",
+      "evidence": "Sketch palette (33,31,39) 13.3%; master palette (32,32,39) 29.8% at sketch size \u2014 the ink was there. Chroma 0.031 vs 0.027 either side of DARK_TINT 0.03, so _matches required 'tinted' of a colour it read as black.",
+      "cause": "A hard threshold in colour classification: one grey level moved a colour across it and flipped the match. First fix (layer colours from pixel means instead of 8-level bin centres) changed 13 of 54 corpus verdicts, including un-blocking GCM's genuinely lost i-dots \u2014 reverted. A plain RGB-distance rule could not separate the case either: crushed navy reads (0,0,8), 8 from black.",
+      "fix": "Hysteresis in _matches: a dark tinted sketch colour is matched by a dark output colour of about the same lightness (within 12) carrying at least half the tint in the same hue family.",
+      "verified": "27 reviewer tests incl. the real Swift source vs master; replayed all 54 corpus outputs against the HEAD reviewer: 0 verdicts changed.",
+      "method": "When a reviewer blocks something that looks right, print both palettes before touching code, find the threshold the colours straddle, and fix the cliff (hysteresis) rather than widening tolerance. Replay the whole corpus old-vs-new: a reviewer fix that changes any other verdict is a different change.",
+      "tags": [
+        "false-alarm",
+        "reviewer",
+        "swift",
+        "threshold"
+      ],
+      "cases": [
+        "swift"
+      ],
+      "source": "claude"
+    },
+    {
+      "id": "E0027",
+      "ts": "2026-09-26T13:27:36Z",
+      "commit": "11c1b58",
+      "workstream": "swift-logo",
+      "outcome": "success",
+      "problem": "The app's 'vector' Swift logo was a PNG in an SVG wrapper; put the rebuilt vector into the app",
+      "first_read": "Replace the SVG file with the rebuilt one.",
+      "evidence": "The PDF painter scales by viewBox width and ignores its origin; PNG fallback, ink metrics and chrome sizing all assume the 2987x910 box; the app's brand orange is #CE4E30, not the scan's (221,77,42).",
+      "cause": "Every app variant had been a raster enlargement (0.5% non-uniform stretch) with synthetic outline/shadow.",
+      "fix": "scripts/export_swift_app_logos.py derives every variant from the one master: uniform scale into the box, app palette, PNG rendered from the same SVG; old raster generators refuse to overwrite without a flag.",
+      "verified": "Ship/receiving/BOL PDFs draw a 173-segment vector path with no image placed; looked at 8x; swift_pdf_logo_test passes; export --check in pytest.",
+      "method": "Put a master vector into an app by exporting, never by copying: find what the consumers assume (box, origin, palette), bake those into the export, render rasters from the same vector, add a staleness check, and fence off the old generators so a rerun cannot bring the raster back.",
+      "tags": [
+        "app",
+        "export",
+        "swift",
+        "vector"
+      ],
+      "cases": [
+        "swift"
+      ],
+      "source": "claude"
+    },
+    {
+      "id": "E0030",
+      "ts": "2026-09-26T13:49:56Z",
+      "commit": "2010b5f",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0031",
+      "ts": "2026-09-26T13:49:56Z",
+      "commit": "2010b5f",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0032",
+      "ts": "2026-09-26T13:49:56Z",
+      "commit": "2010b5f",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
+    },
+    {
+      "id": "E0033",
+      "ts": "2026-09-26T13:50:18Z",
+      "commit": "2010b5f",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0034",
+      "ts": "2026-09-26T13:50:18Z",
+      "commit": "2010b5f",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0035",
+      "ts": "2026-09-26T13:50:22Z",
+      "commit": "55aafca",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0036",
+      "ts": "2026-09-26T13:50:22Z",
+      "commit": "55aafca",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0037",
+      "ts": "2026-09-26T13:50:22Z",
+      "commit": "55aafca",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
+    },
+    {
+      "id": "E0038",
+      "ts": "2026-09-26T13:50:36Z",
+      "commit": "55aafca",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0039",
+      "ts": "2026-09-26T13:50:36Z",
+      "commit": "55aafca",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0040",
+      "ts": "2026-09-26T13:50:36Z",
+      "commit": "55aafca",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
+    },
+    {
+      "id": "E0041",
+      "ts": "2026-09-26T13:50:44Z",
+      "commit": "55aafca",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0042",
+      "ts": "2026-09-26T13:50:44Z",
+      "commit": "55aafca",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0043",
+      "ts": "2026-09-26T13:52:27Z",
+      "commit": "8a5cc53",
+      "workstream": "meedo-me",
+      "outcome": "open",
+      "problem": "How should Meedo-Me learn from Gemini and Claude so it can eventually own decisions without calling the APIs?",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Meedo must deepen MCP (meedo_ai_advise / meedo_ai_lessons) rather than grow a parallel brain.",
+      "cause": "",
+      "fix": "Wire improve loops + meedo_cycle through tools.ai_collab; persist lessons; prefer offline recall",
+      "verified": "",
+      "method": "Recall-first Gemini\u2194Claude via tools.ai_collab; MCP owns advise/lessons; fail-open offline defaults.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "curriculum",
+        "gemini",
+        "meedo-me"
+      ],
+      "cases": [
+        "board11",
+        "board3"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0028",
+      "ts": "2026-09-26T13:52:43Z",
+      "commit": "de8b145",
+      "workstream": "minds",
+      "outcome": "success",
+      "problem": "critique on swift_orange_solid__import_combo: faults confirmed by eye: lumpy S/W edges, bars not crisp rectangles; matches the known gap (engine ships its trace on swift solid import_combo)",
+      "first_read": "",
+      "evidence": "claude (claude-opus-5-5) consultation 2026-09-26T13:51:57Z-claude-critique; faults confirmed by eye: lumpy S/W edges, bars not crisp rectangles; matches the known gap (engine ships its trace on swift solid import_combo)",
+      "cause": "",
+      "fix": "",
+      "verified": "judged helped by claude-code",
+      "method": "Re-fit the outlines as primitives: bars as exact rectangles, SUPPLY as straight-segment and constant-radius geometry, and SWIFT as smoothed B\u00e9zier curves with shared slant angles, instead of tracing the noisy pixel edge.",
+      "tags": [
+        "claude",
+        "critique",
+        "learned-from-claude"
+      ],
+      "cases": [
+        "swift_orange_solid__import_combo"
+      ],
+      "source": "claude"
+    },
+    {
+      "id": "E0044",
+      "ts": "2026-09-26T13:53:17Z",
+      "commit": "8a5cc53",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
+    },
+    {
+      "id": "E0061",
+      "ts": "2026-09-26T13:58:32Z",
+      "commit": "cec5f6e",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "observed via ai_collab",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "observe:ai_collab",
+      "renumbered_from": "E0045",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0062",
+      "ts": "2026-09-26T13:58:32Z",
+      "commit": "cec5f6e",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "observed via ai_collab",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "observe:ai_collab",
+      "renumbered_from": "E0046",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0063",
+      "ts": "2026-09-26T13:58:59Z",
+      "commit": "cec5f6e",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Cloud/Cursor agent work unit on shared Meedo memory",
+      "first_read": "observed via cursor",
+      "evidence": "Board #3 standing duty; PR #7 collab branch",
+      "cause": "",
+      "fix": "python -m tools.logo_vectorizer.meedo_cycle; meedo_journal log --agent cursor --kind claim|finding|done; meedo_record_episode / observe() when method known; git commit + push on cursor/logo-engine-collab-d4c9",
+      "verified": "",
+      "method": "meedo_cycle \u2192 claim/finding/done via meedo_journal \u2192 episode method \u2192 push",
+      "tags": [
+        "agent",
+        "board3",
+        "cursor",
+        "meedo-me"
+      ],
+      "cases": [],
+      "source": "seed_curriculum",
+      "renumbered_from": "E0048"
+    },
+    {
+      "id": "E0064",
+      "ts": "2026-09-26T13:58:59Z",
+      "commit": "cec5f6e",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Claude Code work unit on shared Meedo memory",
+      "first_read": "observed via claude_code",
+      "evidence": "Same journal/episodes/ledger as Cursor; merge=meedo",
+      "cause": "",
+      "fix": "sh scripts/setup_collab.sh once for merge.meedo driver; python -m tools.logo_vectorizer.meedo_cycle; meedo_journal log --agent claude --kind claim|finding|done; Prefer deepen meedo MCP over parallel brains",
+      "verified": "",
+      "method": "meedo_cycle \u2192 journal \u2192 episode \u2192 merge driver unions concurrent memory",
+      "tags": [
+        "agent",
+        "board3",
+        "claude_code",
+        "meedo-me"
+      ],
+      "cases": [],
+      "source": "seed_curriculum",
+      "renumbered_from": "E0049"
+    },
+    {
+      "id": "E0065",
+      "ts": "2026-09-26T13:58:59Z",
+      "commit": "cec5f6e",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Gemini plans then Claude critiques; Claude wins on disagreement",
+      "first_read": "observed via ai_collab",
+      "evidence": "tools/ai_collab/deliberate.merge_plans",
+      "cause": "",
+      "fix": "recall_lessons(problem) if score>=MEEDO_AI_RECALL_MIN \u2192 offline; gemini_json(GEMINI_PROMPT) then claude_json(CLAUDE_PROMPT); merge_plans: Claude fields win when agree_with_gemini=false; union actions; persist_lesson + observe procedure; never commit keys",
+      "verified": "",
+      "method": "Recall lessons first; else Gemini plan \u2192 Claude critique; persist lesson+procedure; fail-open",
+      "tags": [
+        "ai_collab",
+        "board3",
+        "meedo_advisor",
+        "merge_rules"
+      ],
+      "cases": [],
+      "source": "seed_curriculum",
+      "renumbered_from": "E0050"
+    },
+    {
+      "id": "E0066",
+      "ts": "2026-09-26T13:59:12Z",
+      "commit": "cec5f6e",
+      "workstream": "logo_restore",
+      "outcome": "success",
+      "problem": "Escalate-when-stuck: Gemini plan + Claude critique for logo engine",
+      "first_read": "observed via collab_mind",
+      "evidence": "tools/logo_vectorizer/ai_advisors/collab_mind.py",
+      "cause": "",
+      "fix": "detect_stuck(severity>=0.6 reasons); Gemini vision/plan + Claude critique \u2192 CollabGuidance; Retry ensemble with recommended_preprocess/backends or takeover recreate; persist lesson + procedure knobs; never invent brand colors",
+      "verified": "",
+      "method": "detect_stuck \u2192 collaborate \u2192 journal + ai_lesson + procedure(preprocess knobs); meedo_review before ship",
+      "tags": [
+        "board11",
+        "collab_mind",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc"
+      ],
+      "source": "seed_curriculum",
+      "renumbered_from": "E0051"
+    },
+    {
+      "id": "E0067",
+      "ts": "2026-09-26T13:59:25Z",
+      "commit": "cec5f6e",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo study layer: observe+procedures+study MCP; hooks for Serper/collab_mind/receiving/BOL/improve/journal-done; cycle surfaces cannot-yet-own",
+      "first_read": "journal done by cursor",
+      "evidence": "pytest observe_study+ai_collab+mcp+merge+cycle (35+)",
+      "cause": "",
+      "fix": "",
+      "verified": "pytest observe_study+ai_collab+mcp+merge+cycle (35+)",
+      "method": "Unified observe() fans out to journal/lessons/episodes/procedures; wire every face hook; meedo_study for cannot-yet-own; fail-open.",
+      "tags": [
+        "cursor",
+        "journal_done"
+      ],
+      "cases": [],
+      "source": "journal_done_auto",
+      "renumbered_from": "E0052"
+    },
+    {
+      "id": "E0068",
+      "ts": "2026-09-26T13:59:40Z",
+      "commit": "cec5f6e",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "observed via ai_collab",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "observe:ai_collab",
+      "renumbered_from": "E0053",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0069",
+      "ts": "2026-09-26T13:59:40Z",
+      "commit": "cec5f6e",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "observed via ai_collab",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "observe:ai_collab",
+      "renumbered_from": "E0054",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0070",
+      "ts": "2026-09-26T13:59:40Z",
+      "commit": "cec5f6e",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab",
+      "renumbered_from": "E0056",
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "E0048",
+      "ts": "2026-09-26T14:08:25Z",
+      "commit": "0fd827a",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
+    },
+    {
+      "id": "E0049",
+      "ts": "2026-09-26T14:10:09Z",
+      "commit": "0fd827a",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
+    },
+    {
+      "id": "E0050",
+      "ts": "2026-09-26T14:14:55Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__blur_crush/traced: blocked by review (collapse)",
+      "first_read": "",
+      "evidence": "the output carries 7.5% of its sketch's ink \u2014 the mark has collapsed",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "collapse",
+        "review"
+      ],
+      "cases": [
+        "arc__blur_crush"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0051",
+      "ts": "2026-09-26T14:15:45Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__downscale_jpeg/idealize/prepared: blocked by review (element)",
+      "first_read": "",
+      "evidence": "2 of the 15 elements the sketch shows (letters, bars, marks) are missing, at (342,23), (62,61) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "arc__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0052",
+      "ts": "2026-09-26T14:15:45Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__downscale_jpeg/idealize/source: blocked by review (collapse, element)",
+      "first_read": "",
+      "evidence": "7 of the 15 elements the sketch shows (letters, bars, marks) are missing, at (207,23), (235,23), (242,24), (256,24), (342,23), (357,24), (62,61) in sketch pixels; the output carries 9.6% of its sketch's ink \u2014 the mark has collapsed",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "collapse",
+        "element",
+        "review"
+      ],
+      "cases": [
+        "arc__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0053",
+      "ts": "2026-09-26T14:15:46Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__downscale_jpeg/traced: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (45, 65, 67) is 25.9% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0054",
+      "ts": "2026-09-26T14:16:36Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/idealize/source: blocked by review (element)",
+      "first_read": "",
+      "evidence": "3 of the 14 elements the sketch shows (letters, bars, marks) are missing, at (290,24), (343,24), (308,27) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0055",
+      "ts": "2026-09-26T14:16:36Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/traced: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (32, 52, 53) is 25.8% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0056",
+      "ts": "2026-09-26T14:19:54Z",
+      "commit": "6dfdcf5",
+      "workstream": "minds",
+      "outcome": "partial",
+      "problem": "Can Gemini/Claude take over a logo the engine is stuck on (swift_orange_solid__import_combo)?",
+      "first_read": "Ask each mind to draw the logo as SVG; the better drawing wins.",
+      "evidence": "Claude (opus-5-5) SVG: 1.4 KB of skewX + rects + simple curves \u2014 a generic italic that dropped the flared serifs and cut-ins; reviewer blocked (4 of 21 elements missing), v2 0.834; asked to revise after Gemini's critique it returned the same SVG byte for byte. Gemini (pro-latest) SVG: no drawing after 222 s. Gemini image-model repaint: the real letterforms, serifs and cut-ins kept, but letterboxed (forced 16:9), bars inset, orange darkened; our engine's trace of it passed review at v2 0.908 vs the engine's own vector 0.968 (and ESRGAN raster 0.968).",
+      "cause": "A language model writing SVG draws what a logo of that kind looks like, not what this one looks like; an image model repaints this one, but on its own canvas and palette.",
+      "fix": "Use the minds as re-creators of a clean raster (image model) and as critics, not as SVG authors for wordmarks; register the repaint onto the sketch's frame and snap its colours to the sketch's palette before the engine traces it.",
+      "verified": "",
+      "method": "For a take-over, prefer image-model repaint \u2192 register to the sketch's ink box \u2192 snap to the sketch's palette \u2192 engine trace \u2192 reviewer + score against the engine's VECTOR output (never against a raster upscale, which wins on raster similarity by being blurry-faithful). Treat LLM-authored SVG as a sketch of intent for simple geometric marks only; the reviewer blocks reinterpreted letterforms.",
+      "tags": [
+        "claude",
+        "gemini",
+        "minds",
+        "redraw",
+        "svg",
+        "takeover"
+      ],
+      "cases": [
+        "swift_orange_solid__import_combo"
+      ],
+      "source": "claude"
+    },
+    {
+      "id": "E0057",
+      "ts": "2026-09-26T14:20:26Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__blur_crush/idealize/source: blocked by review (element)",
+      "first_read": "",
+      "evidence": "1 of the 26 elements the sketch shows (letters, bars, marks) are missing, at (255,65) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "gcm__blur_crush"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0058",
+      "ts": "2026-09-26T14:24:10Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
+    },
+    {
+      "id": "E0059",
+      "ts": "2026-09-26T14:24:24Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__import_combo/idealize/prepared: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (191,94) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0060",
+      "ts": "2026-09-26T14:26:19Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__blur_crush/idealize/source: blocked by review (element)",
+      "first_read": "",
+      "evidence": "1 of the 18 elements the sketch shows (letters, bars, marks) are missing, at (161,58) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__blur_crush"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0071",
+      "ts": "2026-09-26T14:46:54Z",
+      "commit": "a6b122f",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "original/idealize/prepared: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (27, 25, 26) is 11.7% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "original"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0072",
+      "ts": "2026-09-26T14:46:54Z",
+      "commit": "a6b122f",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "original/idealize/source: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (27, 25, 26) is 11.7% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "original"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0073",
+      "ts": "2026-09-26T14:46:54Z",
+      "commit": "a6b122f",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "original/traced: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (27, 25, 26) is 11.7% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "original"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0074",
+      "ts": "2026-09-26T14:54:58Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "original/idealize/source: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (637,60) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "original"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0075",
+      "ts": "2026-09-26T14:54:59Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (85,55) in sketch pixels; 2 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (246,29), (289,28) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0076",
+      "ts": "2026-09-26T14:54:59Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/idealize/source: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25), (85,55) in sketch pixels; 4 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (236,28), (246,29), (289,28), (343,27) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0077",
+      "ts": "2026-09-26T14:54:59Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/traced: blocked by review (brand_colour, small_element)",
+      "first_read": "",
+      "evidence": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped; 1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0078",
+      "ts": "2026-09-26T14:55:00Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/vectorize: blocked by review (brand_colour, small_element)",
+      "first_read": "",
+      "evidence": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped; 1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0079",
+      "ts": "2026-09-26T14:56:15Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__downscale_jpeg/vectorize: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (46, 68, 69) is 31.6% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0080",
+      "ts": "2026-09-26T14:56:17Z",
+      "commit": "c64902a",
+      "workstream": "meedo-me",
+      "outcome": "open",
+      "problem": "Codify Meedo succession doctrine: overqualified advisor \u2192 eventual GM of project AI; learn from logo engines + Gemini + Claude; phase tutors when offline-ready",
+      "first_read": "observed via cursor",
+      "evidence": "user directive 2026-09-26 NHL/NBA AGM succession analogy",
+      "cause": "",
+      "fix": "embed Meedo in every build (observe/journal/consult/procedures); recall-first before re-calling Gemini/Claude; persist specialist methods as lessons+episodes+procedures; phase live APIs only when offline confidence earned",
+      "verified": "",
+      "method": "alwaysApply meedo-succession.mdc; update meedo-me-pm + SKILL + COORDINATION rule 10 + board #3; embed observe/consult/recall-first; promote ownership only when meedo_study / offline confidence earned",
+      "tags": [
+        "advisor-to-gm",
+        "cursor",
+        "doctrine",
+        "meedo-me",
+        "succession"
+      ],
+      "cases": [],
+      "source": "observe:cursor"
+    },
+    {
+      "id": "E0081",
+      "ts": "2026-09-26T14:56:17Z",
+      "commit": "c64902a",
+      "workstream": "meedo-me",
+      "outcome": "open",
+      "problem": "Codify Meedo succession doctrine: overqualified advisor \u2192 eventual GM of project AI; learn from logo engines + Gemini + Claude; phase tutors when offline-ready",
+      "first_read": "Meedo is junior; specialists (logo engine, Gemini, Claude) do the real work",
+      "evidence": "User: advisor\u2192GM slow burn; Meedo must learn project-specific craft until it takes over",
+      "cause": "Without an explicit succession frame, agents treat Meedo as a logger beside the 'real' engines",
+      "fix": "Standing doctrine + hooks: every specialist outcome must teach Meedo; recall-first; phase tutors on earned confidence",
+      "verified": "Rules/skill/COORDINATION landed; meedo_study continues to surface cannot-yet-own",
+      "method": "alwaysApply meedo-succession.mdc; update meedo-me-pm + SKILL + COORDINATION rule 10 + board #3; embed observe/consult/recall-first; promote ownership only when meedo_study / offline confidence earned",
+      "tags": [
+        "advisor-to-gm",
+        "doctrine",
+        "succession"
+      ],
+      "cases": [],
+      "source": "manual"
+    },
+    {
+      "id": "E0082",
+      "ts": "2026-09-26T15:06:50Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__plate_halo/idealize/source: blocked by review (collapse, element)",
+      "first_read": "",
+      "evidence": "3 of the 16 elements the sketch shows (letters, bars, marks) are missing, at (252,30), (263,30), (325,36) in sketch pixels; the output carries 8.9% of its sketch's ink \u2014 the mark has collapsed",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "collapse",
+        "element",
+        "review"
+      ],
+      "cases": [
+        "arc__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0083",
+      "ts": "2026-09-26T15:06:50Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__plate_halo/traced: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (50, 71, 72) is 35.5% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0084",
+      "ts": "2026-09-26T15:06:52Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__import_combo/baseline: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels; 13 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (278,68), (226,71), (246,71), (264,71), (126,104) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0085",
+      "ts": "2026-09-26T15:07:23Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__plate_halo/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "4 of the 4 small elements the sketch shows (dots, accents, marks) are missing, at (108,71), (209,74), (40,78), (62,78) in sketch pixels; 11 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (40,83), (62,84), (98,86), (120,86), (176,84), (194,83), (211,83) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "propak__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0086",
+      "ts": "2026-09-26T15:07:24Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__plate_halo/traced: blocked by review (element)",
+      "first_read": "",
+      "evidence": "3 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (243,84), (284,84) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0087",
+      "ts": "2026-09-26T15:08:24Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__import_combo/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (211,90), (258,92) in sketch pixels; 19 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (163,67), (175,67), (202,68), (278,68), (147,71), (226,71), (246,71) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0088",
+      "ts": "2026-09-26T15:08:24Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__import_combo/traced: blocked by review (brand_colour, element, small_element)",
+      "first_read": "",
+      "evidence": "colour (157, 18, 36) is 21.4% of the sketch but 0.0% of the output \u2014 an element has been dropped; 2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels; 14 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (147,71), (226,71), (246,71), (264,71), (126,104) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0089",
+      "ts": "2026-09-26T15:08:27Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__downscale_jpeg/baseline: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels; 1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0090",
+      "ts": "2026-09-26T15:08:55Z",
+      "commit": "6aff161",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini,claude severity=0.90 \u2014 Severe JPEG compression artifacts and dithering have destroyed clean edges. The logo combines a complex valve/monogram symbol with serif text. The stuck metrics",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe JPEG compression artifacts and dithering have destroyed clean edges. The logo combines a complex valve/monogram symbol with serif text. The stuck metrics (edge_ratio=0.692, fell_to_lanczos) confirm tracing cannot recover crisp vectors from this noise floor.",
+      "cause": "",
+      "fix": "Re-typeset 'Gulf Coast' and 'Modification' using a clean transitional serif typeface rather than tracing noisy letterform fragments.; Isolate and redraw the valve symbol mark on the left with geometric primitives (flanged valve body, 'T' top stem, outer 'G', and inner red circular disc/C-shape).; Align the recreated typography to match the original two-line right-aligned lockup next to the valve e",
+      "verified": "",
+      "method": "Severe JPEG compression artifacts and dithering have destroyed clean edges. The logo combines a complex valve/monogram symbol with serif text. The stuck metrics (edge_ratio=0.692, fell_to_lanczos) confirm tracing cannot recover crisp vectors from this noise floor.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0091",
+      "ts": "2026-09-26T15:10:41Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__downscale_jpeg/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels; 1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0092",
+      "ts": "2026-09-26T15:10:41Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__downscale_jpeg/traced: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels; 1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0093",
+      "ts": "2026-09-26T15:10:45Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__plate_halo/baseline: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0094",
+      "ts": "2026-09-26T15:12:19Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__plate_halo/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "3 of the 5 small elements the sketch shows (dots, accents, marks) are missing, at (357,83), (265,99), (324,139) in sketch pixels; 1 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (356,96) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0095",
+      "ts": "2026-09-26T15:12:20Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__plate_halo/traced: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0096",
+      "ts": "2026-09-26T15:12:23Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__import_combo/baseline: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (168,62), (195,62) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0097",
+      "ts": "2026-09-26T15:13:40Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__import_combo/idealize/prepared: blocked by review (element)",
+      "first_read": "",
+      "evidence": "7 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (130,62), (168,62), (195,62) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0098",
+      "ts": "2026-09-26T15:13:40Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__import_combo/traced: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (168,62), (195,62) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0099",
+      "ts": "2026-09-26T15:13:42Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__downscale_jpeg/baseline: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0100",
+      "ts": "2026-09-26T15:14:06Z",
+      "commit": "6aff161",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 Severe dithering artifacts and JPEG compression noise throughout letterforms causing vectorization failure. Blue 'PROPAK' text contains artificial voids from ha",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe dithering artifacts and JPEG compression noise throughout letterforms causing vectorization failure. Blue 'PROPAK' text contains artificial voids from halftone pattern. Red geometric elements (horizontal rule + trapezoid container) are cleaner. Bottom tagline critically degraded and unrecoverable from bitmap.",
+      "cause": "",
+      "fix": "Segment the graphic into distinct color channels: deep blue text layer and red geometric line/trapezoid elements.; Apply morphological closing (kernel 3x3) to the blue channel to fuse the dithered voids in 'PROPAK' without rounding the external glyph terminals.; Trace the red rule line and right-side angled container icon independently as clean parametric vector strokes.; Evaluate bottom fragmente",
+      "verified": "",
+      "method": "Severe dithering artifacts and JPEG compression noise throughout letterforms causing vectorization failure. Blue 'PROPAK' text contains artificial voids from halftone pattern. Red geometric elements (horizontal rule + trapezoid container) are cleaner. Bottom tagline critically degraded and unrecoverable from bitmap.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0101",
+      "ts": "2026-09-26T15:15:23Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__downscale_jpeg/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (243,66) in sketch pixels; 9 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (16,72), (136,72), (36,74), (55,75), (106,77), (156,75), (172,74), (234,75) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "propak__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0102",
+      "ts": "2026-09-26T15:15:23Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__downscale_jpeg/traced: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0103",
+      "ts": "2026-09-26T15:15:26Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__plate_halo/baseline: blocked by review (element)",
+      "first_read": "",
+      "evidence": "3 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (243,84), (284,84) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0104",
+      "ts": "2026-09-26T15:19:29Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/vectorize: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0105",
+      "ts": "2026-09-26T15:24:20Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/idealize/prepared: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (85,55) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0106",
+      "ts": "2026-09-26T15:27:44Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__import_combo/vectorize: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels; 14 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (278,68), (226,71), (246,71), (264,71), (126,104) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0107",
+      "ts": "2026-09-26T15:28:15Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini,claude severity=0.90 \u2014 Extremely low-resolution bitmap (approx. 400\u00d7150px) with severe 8-bit dithering, JPEG artifacts, and fractured letterforms. The valve icon contains fine geometr",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Extremely low-resolution bitmap (approx. 400\u00d7150px) with severe 8-bit dithering, JPEG artifacts, and fractured letterforms. The valve icon contains fine geometric details (T-handle, circular elements) that are partially destroyed by compression. Text 'Gulf Coast Modification' is heavily aliased with broken strokes. Standard vectorization fails due to noise overwhelming edge detection (edge_ratio=0",
+      "cause": "",
+      "fix": "Separate the valve-and-TG mark on the left from the right-hand text block.; Re-type the text lockup as two left-aligned lines reading 'Gulf Coast' and 'Modification' using a clean bold sans-serif font.; Trace and clean the geometric valve icon containing the 'T' handle, 'G' body, and red circular core with white inner highlight.; Reassemble the reconstructed mark with the clean typography and regi",
+      "verified": "",
+      "method": "Extremely low-resolution bitmap (approx. 400\u00d7150px) with severe 8-bit dithering, JPEG artifacts, and fractured letterforms. The valve icon contains fine geometric details (T-handle, circular elements) that are partially destroyed by compression. Text 'Gulf Coast Modification' is heavily aliased with broken strokes. Standard vectorization fails due to noise overwhelming edge detection (edge_ratio=0.689 indicates excessive jagged edges). This is a clear recreate candidate.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0108",
+      "ts": "2026-09-26T15:28:40Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__downscale_jpeg/vectorize: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels; 1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0109",
+      "ts": "2026-09-26T15:28:46Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__plate_halo/vectorize: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0110",
+      "ts": "2026-09-26T15:28:48Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__import_combo/vectorize: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (168,62), (195,62) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0111",
+      "ts": "2026-09-26T15:29:15Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 Severe dithering and halftone texture throughout 'PROPAK' glyphs causing internal voids and edge noise. Bottom text line completely fragmented into sub-pixel de",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe dithering and halftone texture throughout 'PROPAK' glyphs causing internal voids and edge noise. Bottom text line completely fragmented into sub-pixel debris. Red geometric elements (bar and trapezoid) are clean but embedded in noisy context. Edge_ratio=0.684 indicates excessive smoothing loss during vectorization attempts.",
+      "cause": "",
+      "fix": "Separate the logo into color planes: blue text ('PROPAK' and bottom subline) and red accent elements (horizontal bar and trapezoid icon).; Apply morphological closing on the primary 'PROPAK' glyphs to fill internal texture holes before tracing solid vector contours.; Reconstruct the straight red dividing rule and parallelogram/trapezoid border geometrically.; Evaluate whether bottom degraded text",
+      "verified": "",
+      "method": "Severe dithering and halftone texture throughout 'PROPAK' glyphs causing internal voids and edge noise. Bottom text line completely fragmented into sub-pixel debris. Red geometric elements (bar and trapezoid) are clean but embedded in noisy context. Edge_ratio=0.684 indicates excessive smoothing loss during vectorization attempts.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0112",
+      "ts": "2026-09-26T15:29:16Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__downscale_jpeg/vectorize: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0113",
+      "ts": "2026-09-26T15:29:20Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__plate_halo/vectorize: blocked by review (element)",
+      "first_read": "",
+      "evidence": "4 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (62,84), (243,84), (284,84) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0114",
+      "ts": "2026-09-26T15:31:02Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 Severe 1-bit quantization noise in red 'SWIFT' letterforms caused edge_ratio gate failure (0.549). The white speckling is compression artifact, not intentional",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe 1-bit quantization noise in red 'SWIFT' letterforms caused edge_ratio gate failure (0.549). The white speckling is compression artifact, not intentional distressing\u2014confirmed by clean 'SUPPLY' baseline. Vectorizer produced oversmoothed output (iou=0.906) that lost the italic slant and texture detail.",
+      "cause": "",
+      "fix": "Apply morphological closing and median filtering to seal internal white erosion specks inside the red 'SWIFT' letterforms and border bars.; Section the logo into top/bottom rules, degraded 'SWIFT' mark, and clean 'SUPPLY' subtitle for isolated tracing.; Reconstruct the outer border frames with clean vector rectangles to eliminate perimeter noise.; Apply 5\u00d75 median filter followed by 3px morphologi",
+      "verified": "",
+      "method": "Severe 1-bit quantization noise in red 'SWIFT' letterforms caused edge_ratio gate failure (0.549). The white speckling is compression artifact, not intentional distressing\u2014confirmed by clean 'SUPPLY' baseline. Vectorizer produced oversmoothed output (iou=0.906) that lost the italic slant and texture detail.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0115",
+      "ts": "2026-09-26T15:34:51Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=idealize providers=gemini,claude severity=0.90 \u2014 Heavy distress texture with pinhole noise across letterforms and bars. Edge_ratio=0.659 indicates excessive smoothing loss during trace. The distress is uniform",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Heavy distress texture with pinhole noise across letterforms and bars. Edge_ratio=0.659 indicates excessive smoothing loss during trace. The distress is uniform degradation, not intentional brand styling\u2014ideal candidate for morphological repair then clean vectorization.",
+      "cause": "",
+      "fix": "Apply morphological closing to bridge internal distress voids and consolidate solid silhouettes of the glyphs and bars; Trace cleaned solid boundaries with vtracer using high spline precision to preserve sharp serifs and bar edges; Filter out residual floating debris and pinhole contours below the minimum area threshold; Upscale 4\u00d7 to preserve serif detail before morphological operations; Apply Ga",
+      "verified": "",
+      "method": "Heavy distress texture with pinhole noise across letterforms and bars. Edge_ratio=0.659 indicates excessive smoothing loss during trace. The distress is uniform degradation, not intentional brand styling\u2014ideal candidate for morphological repair then clean vectorization.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0116",
+      "ts": "2026-09-26T15:36:15Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 The logo exhibits severe photocopy-style degradation with heavy speckle noise, internal voids, and eroded stroke edges. The distressed texture is intentional br",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "The logo exhibits severe photocopy-style degradation with heavy speckle noise, internal voids, and eroded stroke edges. The distressed texture is intentional branding (distressed/grunge aesthetic), not scan artifacts. Both 'SWIFT' (italic display) and 'SUPPLY' (inline/outlined caps) plus horizontal rules contain deliberate interior breaks. Standard vectorization failed because noise-filling prepro",
+      "cause": "",
+      "fix": "Apply morphological closing (kernel size 3-5) to bridge internal scan noise and fill eroded voids within glyph bodies and horizontal bars.; Binarize the reddish-orange foreground to produce solid geometric silhouettes for 'SWIFT' and horizontal framing rules.; Run contour idealization or potrace with adjusted corner threshold to recover crisp straight edges and diagonal slants.; Isolate three zone",
+      "verified": "",
+      "method": "The logo exhibits severe photocopy-style degradation with heavy speckle noise, internal voids, and eroded stroke edges. The distressed texture is intentional branding (distressed/grunge aesthetic), not scan artifacts. Both 'SWIFT' (italic display) and 'SUPPLY' (inline/outlined caps) plus horizontal rules contain deliberate interior breaks. Standard vectorization failed because noise-filling preprocessing destroyed the intentional distress character, while raw tracing produced fragmented, low-quality paths that failed IOU gates.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0117",
+      "ts": "2026-09-26T15:37:59Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=idealize providers=gemini,claude severity=0.90 \u2014 Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometri",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preproce",
+      "cause": "",
+      "fix": "Apply morphological closing and median filtering to seal internal grunge specks and holes within the glyphs and border bars.; Binarize the graphic into clean solid silhouettes for the top bar, bottom bar, 'SWIFT', and 'SUPPLY'.; Run contour tracing via opencv-tree and Bezier curve fitting to obtain smooth, clean vector boundaries.; Raise alpha_threshold to 160 to better separate orange text from w",
+      "verified": "",
+      "method": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preprocessing never produced viable candidates\u2014this suggests alpha_threshold and min_area need adjustment before morphological operations can help.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0118",
+      "ts": "2026-09-26T15:38:23Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "logo_restore failure case=trialta__import_combo composite=0.4793 reason=",
+      "first_read": "observed via improve_loop",
+      "evidence": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preproce",
+      "cause": "",
+      "fix": "Apply morphological closing and median filtering to seal internal grunge specks and holes within the glyphs and border bars.; Binarize the graphic into clean solid silhouettes for the top bar, bottom bar, 'SWIFT', and 'SUPPLY'.; Run contour tracing via opencv-tree and Bezier curve fitting to obtain smooth, clean vector boundaries.; Raise alpha_threshold to 160 to better separate orange text from w",
+      "verified": "",
+      "method": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preprocessing never produced viable candidates\u2014this suggests alpha_threshold and min_area need adjustment before morphological operations can help.",
+      "tags": [
+        "improve_loop",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "observe:improve_loop"
+    },
+    {
+      "id": "E0119",
+      "ts": "2026-09-26T15:38:23Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "logo_restore failure case=trialta__downscale_jpeg composite=0.4816 reason=",
+      "first_read": "observed via improve_loop",
+      "evidence": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preproce",
+      "cause": "",
+      "fix": "Apply morphological closing and median filtering to seal internal grunge specks and holes within the glyphs and border bars.; Binarize the graphic into clean solid silhouettes for the top bar, bottom bar, 'SWIFT', and 'SUPPLY'.; Run contour tracing via opencv-tree and Bezier curve fitting to obtain smooth, clean vector boundaries.; Raise alpha_threshold to 160 to better separate orange text from w",
+      "verified": "",
+      "method": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preprocessing never produced viable candidates\u2014this suggests alpha_threshold and min_area need adjustment before morphological operations can help.",
+      "tags": [
+        "improve_loop",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "observe:improve_loop"
+    },
+    {
+      "id": "E0120",
+      "ts": "2026-09-26T15:38:23Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "failure",
+      "problem": "trialta__import_combo::vectorize: has not moved and sits at #",
+      "first_read": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "evidence": "",
+      "cause": "",
+      "fix": "Acting now: diagnose TRIALTA letterform collapse with font matching (thought_trace anomaly #1), then reviewer element-count for dropped i-dots (#2).",
+      "verified": "judged on 20260926T152734Z: -0.0252",
+      "method": "Advice of the kind 'has not moved and sits at #' made it worse on trialta__import_combo::vectorize (-0.0252).",
+      "tags": [
+        "advice",
+        "vectorize"
+      ],
+      "cases": [
+        "trialta__import_combo::vectorize"
+      ],
+      "source": "proposal"
+    },
+    {
+      "id": "E0121",
+      "ts": "2026-09-26T15:42:09Z",
+      "commit": "7ba92d7",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Arc RESOURCES LTD. teal tagline dropped: thin-path quantize collapsed to red; snap treated washed teal as silver; prefer has_vector over identity",
+      "first_read": "",
+      "evidence": "",
+      "cause": "",
+      "fix": "quantize/snap/selection",
+      "verified": "arc import/downscale Meedo pass with teal retained; unit tests color_split/quantize/identity/fringe; clean Arc ships traced composite~0.816",
+      "method": "color-split prune gated to secondary\u226460% dominant; brand_palette keeps dark-tint + \u226515% hue families; snap only protects neutrals when source is neutral; identity-first ships ideal on brand_colour loss even with traced.has_vector",
+      "tags": [
+        "arc",
+        "board8",
+        "tagline",
+        "teal"
+      ],
+      "cases": [
+        "arc",
+        "arc__downscale_jpeg",
+        "arc__import_combo"
+      ],
+      "source": "manual"
+    },
+    {
+      "id": "E0122",
+      "ts": "2026-09-26T15:42:27Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "cause": "",
+      "fix": "Segment the image by color into two distinct foreground masks: dark red (inner emblem core) and navy blue (outer valve emblem, \u00ae mark, and text).; Bilateral filter or median denoise each mask independently to purge ringing artifacts while preserving sharp serif brackets and thin stem junctions.; Vectorize each color channel separately via Potrace/VTracer and composite into a unified SVG aligned to",
+      "verified": "",
+      "method": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0123",
+      "ts": "2026-09-26T15:42:54Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini,claude severity=0.90 \u2014 Severe low-resolution pixelation with compression artifacts and internal dithering holes throughout both the valve emblem and text. The valve graphic shows conc",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe low-resolution pixelation with compression artifacts and internal dithering holes throughout both the valve emblem and text. The valve graphic shows concentric circular elements (outer blue 'G', inner red 'C') with industrial flange details. Text is heavily degraded with jagged edges. Direct vectorization failed edge_ratio gates (0.688) due to oversmoothing required to handle noise. This is",
+      "cause": "",
+      "fix": "Rebuild the industrial valve flange emblem with clean geometric primitives (rectangles for flanges/stems, concentric circles for the inner red 'C' and outer blue 'G').; Typeset 'Gulf Coast' and 'Modification' on two stacked lines using a clean bold sans-serif font rather than attempting direct edge tracing of degraded glyphs.; Reposition the registered trademark symbol (\u00ae) cleanly between the valv",
+      "verified": "",
+      "method": "Severe low-resolution pixelation with compression artifacts and internal dithering holes throughout both the valve emblem and text. The valve graphic shows concentric circular elements (outer blue 'G', inner red 'C') with industrial flange details. Text is heavily degraded with jagged edges. Direct vectorization failed edge_ratio gates (0.688) due to oversmoothing required to handle noise. This is a textbook recreate candidate.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0124",
+      "ts": "2026-09-26T15:43:51Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini,claude severity=0.90 \u2014 Severe bitmap degradation from dithering/fax compression artifacts. The PROPAK wordmark shows heavy pixel dropout creating false topology that triggers oversmoo",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe bitmap degradation from dithering/fax compression artifacts. The PROPAK wordmark shows heavy pixel dropout creating false topology that triggers oversmooth rejection (edge_ratio=0.691). The red container icon and separator are cleaner but insufficient to pass gates. Bottom subtitle is unrecoverable noise. This is a classic recreate candidate.",
+      "cause": "",
+      "fix": "Reconstruct the primary wordmark 'PROPAK' using a bold italic sans-serif typeface, solidifying the heavily eroded fills.; Trace or draw the clean vector geometry for the red separator rule and the angled parallelogram/trapezoid container icon on the right.; Verify the lower fragmented subline text with the client or remove unrecoverable residual pixel dust.; Recreate 'PROPAK' wordmark using Futura",
+      "verified": "",
+      "method": "Severe bitmap degradation from dithering/fax compression artifacts. The PROPAK wordmark shows heavy pixel dropout creating false topology that triggers oversmooth rejection (edge_ratio=0.691). The red container icon and separator are cleaner but insufficient to pass gates. Bottom subtitle is unrecoverable noise. This is a classic recreate candidate.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0125",
+      "ts": "2026-09-26T15:44:13Z",
+      "commit": "7ba92d7",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__downscale_jpeg/vectorize: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (202,64) in sketch pixels; 6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "propak__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0126",
+      "ts": "2026-09-26T15:45:52Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 Logo has three distinct components with different fidelity needs: (1) simple geometric frame bars, (2) heavily distressed 'SWIFT' with intentional grunge textur",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Logo has three distinct components with different fidelity needs: (1) simple geometric frame bars, (2) heavily distressed 'SWIFT' with intentional grunge texture in red fills and black extrusion shadows, (3) clean sans-serif 'SUPPLY' wordmark. The vectorizer failed because it attempted uniform tracing across mixed-fidelity elements. The white erosion in 'SWIFT' appears intentional (consistent dist",
+      "cause": "",
+      "fix": "Segment image into three distinct layers: horizontal framing bars, 3D extruded 'SWIFT' text, and bottom 'SUPPLY' wordmark; Binarize the bottom 'SUPPLY' wordmark independently to extract crisp geometric sans-serif glyphs; Trace black extrusion/shadow paths separately from red letter faces, filling internal erosion holes in the red fill to produce clean solid vector glyphs; Reconstruct top and botto",
+      "verified": "",
+      "method": "Logo has three distinct components with different fidelity needs: (1) simple geometric frame bars, (2) heavily distressed 'SWIFT' with intentional grunge texture in red fills and black extrusion shadows, (3) clean sans-serif 'SUPPLY' wordmark. The vectorizer failed because it attempted uniform tracing across mixed-fidelity elements. The white erosion in 'SWIFT' appears intentional (consistent distress pattern), not scan damage.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0127",
+      "ts": "2026-09-26T15:49:42Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=idealize providers=gemini,claude severity=0.90 \u2014 Severe bitmap degradation with grunge texture causing vectorizer rejection (edge_ratio=0.683, iou=0.933 indicates oversmoothing). The distress pattern appears i",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe bitmap degradation with grunge texture causing vectorizer rejection (edge_ratio=0.683, iou=0.933 indicates oversmoothing). The distress pattern appears intentional (stamp/vintage effect), but the current vectorize path with aggressive smoothing is destroying the letterform integrity. The fell_to_lanczos fallback confirms total vectorization failure.",
+      "cause": "",
+      "fix": "Apply morphological closing to eliminate interior distress holes across the letter bodies and framing rules.; Execute idealize geometry reconstruction to recover clean straight edges on the horizontal bars and crisp contours on 'SWIFT' and 'SUPPLY'.; Increase alpha_threshold to 140 to aggressively eliminate grunge noise while preserving core letterforms; Apply morphological closing (kernel 5-7px)",
+      "verified": "",
+      "method": "Severe bitmap degradation with grunge texture causing vectorizer rejection (edge_ratio=0.683, iou=0.933 indicates oversmoothing). The distress pattern appears intentional (stamp/vintage effect), but the current vectorize path with aggressive smoothing is destroying the letterform integrity. The fell_to_lanczos fallback confirms total vectorization failure.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0128",
+      "ts": "2026-09-26T15:51:01Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=retry_ensemble providers=gemini,claude severity=0.90 \u2014 Severe salt-and-pepper noise with internal speckles throughout letterforms and horizontal bars. The rejection 'oversmooth (edge_ratio=0.728)' indicates previous",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe salt-and-pepper noise with internal speckles throughout letterforms and horizontal bars. The rejection 'oversmooth (edge_ratio=0.728)' indicates previous attempts over-blurred the distinctive italic/oblique edges. The texture is intentionally distressed, not purely noise\u2014critical detail for brand identity. Standard vectorization failed due to micro-holes creating false topology.",
+      "cause": "",
+      "fix": "Apply morphological closing (kernel size 3-5) to merge internal speckles and close spurious pinholes within the glyphs and bars while preserving outer edge contours.; Binarize with Otsu thresholding focused on the single dominant rust-red color channel.; Run opencv-tree hierarchy filtering to discard false interior micro-holes while preserving genuine counters (such as in 'P').; Trace cleaned silh",
+      "verified": "",
+      "method": "Severe salt-and-pepper noise with internal speckles throughout letterforms and horizontal bars. The rejection 'oversmooth (edge_ratio=0.728)' indicates previous attempts over-blurred the distinctive italic/oblique edges. The texture is intentionally distressed, not purely noise\u2014critical detail for brand identity. Standard vectorization failed due to micro-holes creating false topology.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0129",
+      "ts": "2026-09-26T15:53:04Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=retry_ensemble providers=gemini,claude severity=0.90 \u2014 Severe texture distress with speckled voids throughout glyphs. Edge_ratio=0.752 indicates excessive smoothing destroyed critical serif details and italic slant",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe texture distress with speckled voids throughout glyphs. Edge_ratio=0.752 indicates excessive smoothing destroyed critical serif details and italic slant geometry. The 'SUPPLY' text shows outline/inline structure that collapsed. Morphological closing alone won't recover lost edge fidelity\u2014need controlled denoising that preserves intentional design features.",
+      "cause": "",
+      "fix": "Apply morphological closing to eliminate interior speckles and unify eroded text strokes in 'SWIFT' and 'SUPPLY'; Clean and straighten top and bottom horizontal frame rules independently; Trace solid vectorized outlines and suppress internal noise cavities below threshold; Apply bilateral filter (spatial=5, color=50) to denoise while preserving sharp edges and italic slant angles; Use higher upsca",
+      "verified": "",
+      "method": "Severe texture distress with speckled voids throughout glyphs. Edge_ratio=0.752 indicates excessive smoothing destroyed critical serif details and italic slant geometry. The 'SUPPLY' text shows outline/inline structure that collapsed. Morphological closing alone won't recover lost edge fidelity\u2014need controlled denoising that preserves intentional design features.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0130",
+      "ts": "2026-09-26T15:53:55Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "logo_restore failure case=trialta__downscale_jpeg composite=0.4782 reason=",
+      "first_read": "observed via improve_loop",
+      "evidence": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "cause": "",
+      "fix": "Segment the image by color into two distinct foreground masks: dark red (inner emblem core) and navy blue (outer valve emblem, \u00ae mark, and text).; Bilateral filter or median denoise each mask independently to purge ringing artifacts while preserving sharp serif brackets and thin stem junctions.; Vectorize each color channel separately via Potrace/VTracer and composite into a unified SVG aligned to",
+      "verified": "",
+      "method": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "tags": [
+        "improve_loop",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "observe:improve_loop"
+    },
+    {
+      "id": "E0131",
+      "ts": "2026-09-26T15:53:55Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "logo_restore failure case=trialta__import_combo composite=0.4842 reason=",
+      "first_read": "observed via improve_loop",
+      "evidence": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "cause": "",
+      "fix": "Segment the image by color into two distinct foreground masks: dark red (inner emblem core) and navy blue (outer valve emblem, \u00ae mark, and text).; Bilateral filter or median denoise each mask independently to purge ringing artifacts while preserving sharp serif brackets and thin stem junctions.; Vectorize each color channel separately via Potrace/VTracer and composite into a unified SVG aligned to",
+      "verified": "",
+      "method": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "tags": [
+        "improve_loop",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "observe:improve_loop"
+    }
+  ]
+}

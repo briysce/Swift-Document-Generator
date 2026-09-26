@@ -274,6 +274,11 @@ def main() -> int:
 
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
+    if "--overwrite-vector-master" not in sys.argv:
+        print("The Swift brand logos are exported from the vector master by "
+              "scripts/export_swift_app_logos.py. This script rebuilds them from a raster "
+              "and would replace that vector; pass --overwrite-vector-master to do it anyway.", file=sys.stderr)
+        return 2
 
     solid = _ensure_solid_archive()
     _sync_solid_svg(solid)

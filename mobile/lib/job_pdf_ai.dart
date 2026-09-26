@@ -1,17 +1,17 @@
 import 'bulk/bulk_label_models.dart';
-import 'claude_client.dart';
+import 'order_ack_ai.dart';
 import 'gemini_client.dart';
 
 /// Gemini overlay for Swift OA / packing-list field extraction and
-/// leftover address-book merge decisions, plus a Claude "common sense" pass
+/// leftover address-book merge decisions, plus a Meedo-Me "common sense" pass
 /// over the individual bulk order lines.
 class JobPdfAi {
-  JobPdfAi({GeminiClient? client, ClaudeClient? claude})
+  JobPdfAi({GeminiClient? client, OrderAckAi? orderAckAi})
       : _gemini = client ?? GeminiClient(),
-        _claude = claude ?? ClaudeClient();
+        _orderAckAi = orderAckAi ?? OrderAckAi();
 
   final GeminiClient _gemini;
-  final ClaudeClient _claude;
+  final OrderAckAi _orderAckAi;
 
   Future<OrderAckParseResult> enrich(OrderAckParseResult parsed, String text) async {
     if (!GeminiClient.isConfigured) return parsed;
@@ -85,40 +85,42 @@ Rules:
             deliveryAddr.isNotEmpty,
       );
     }
-    return enrichHeaderWithClaude(out, text);
+    return enrichHeaderWithAi(out, text);
   }
 
-  /// Claude "common sense" pass over the OA/packing-list header — always
+  /// Meedo-Me "common sense" pass over the OA/packing-list header — always
   /// runs (not just as a fallback), same reconciliation rule as the Bulk
   /// line pass: only fills a field the regex+Gemini pass left completely
-  /// empty; when a field already has a value and Claude reads it
-  /// differently, the existing value is kept and Claude's read is noted in
+  /// empty; when a field already has a value and Meedo-Me reads it
+  /// differently, the existing value is kept and Meedo-Me's read is noted in
   /// [OrderAckParseResult.warnings] instead of silently overriding it.
-  Future<OrderAckParseResult> enrichHeaderWithClaude(
+  Future<OrderAckParseResult> enrichHeaderWithAi(
     OrderAckParseResult parsed,
     String text,
   ) async {
-    if (!ClaudeClient.isConfigured) return parsed;
-    final header = await _claude.extractOrderAckHeader(text);
+    if (!OrderAckAi.isConfigured) return parsed;
+    final header = await _orderAckAi.extractOrderAckHeader(text);
     if (header == null) return parsed;
-    return applyClaudeHeaderSuggestion(parsed, header);
+    return applyAiHeaderSuggestion(parsed, header);
   }
 
-  /// Pure reconciliation used by [enrichHeaderWithClaude] (and unit tests).
-  static OrderAckParseResult applyClaudeHeaderSuggestion(
+  /// Pure reconciliation used by [enrichHeaderWithAi] (and unit tests).
+  static OrderAckParseResult applyAiHeaderSuggestion(
     OrderAckParseResult parsed,
-    ClaudeOrderAckHeader header,
+    AiOrderAckHeader header,
   ) {
-    bool differs(String current, String claude) {
-      if (claude.isEmpty) return false;
+    bool differs(String current, String candidate) {
+      if (candidate.isEmpty) return false;
       if (current.isEmpty) return false;
-      return current.trim().toLowerCase() != claude.trim().toLowerCase();
+      return current.trim().toLowerCase() != candidate.trim().toLowerCase();
     }
 
     final disagreements = <String>[];
-    void check(String label, String current, String claude) {
-      if (differs(current, claude)) {
-        disagreements.add('$label: using "$current" — Claude read "$claude"');
+    void check(String label, String current, String candidate) {
+      if (differs(current, candidate)) {
+        disagreements.add(
+          '$label: using "$current" — Meedo-Me read "$candidate"',
+        );
       }
     }
 
@@ -150,42 +152,42 @@ Rules:
     );
 
     final notes = <String>[
-      if (header.reasoning.isNotEmpty) 'Claude review: ${header.reasoning}',
+      if (header.reasoning.isNotEmpty) 'Meedo-Me review: ${header.reasoning}',
       if (header.flags.isNotEmpty)
-        'Claude is unsure about: ${header.flags.join(", ")} — please confirm.',
-      ...disagreements.map((d) => 'Claude review — $d'),
+        'Meedo-Me is unsure about: ${header.flags.join(", ")} — please confirm.',
+      ...disagreements.map((d) => 'Meedo-Me review — $d'),
     ];
     if (notes.isEmpty) return merged;
     return merged.copyWith(warnings: [...merged.warnings, ...notes]);
   }
 
-  /// Claude "common sense" pass over every bulk order line — always runs
+  /// Meedo-Me "common sense" pass over every bulk order line — always runs
   /// (not just as a fallback), and always attaches its reasoning to
   /// [BulkLabelLine.aiNote] / [BulkIncompleteLine.aiNote] so the review
   /// screen can show it. Never silently overrides a regex-parsed identity:
   /// when the regex found nothing at all (an [OrderAckParseResult.incompleteLines]
-  /// row), Claude's value fills the gap but stays flagged `missingIdentity`
+  /// row), Meedo-Me's value fills the gap but stays flagged `missingIdentity`
   /// so the user must still confirm it; when the regex already found a
-  /// value, Claude's read is attached as a note (agreement or an
+  /// value, Meedo-Me's read is attached as a note (agreement or an
   /// alternative) but never replaces it.
   Future<OrderAckParseResult> enrichLines(
     OrderAckParseResult parsed,
     String text,
   ) async {
-    if (!ClaudeClient.isConfigured) return parsed;
-    final claudeLines = await _claude.extractOrderAckLines(text);
-    if (claudeLines == null || claudeLines.isEmpty) return parsed;
-    return applyClaudeLineSuggestions(parsed, claudeLines);
+    if (!OrderAckAi.isConfigured) return parsed;
+    final aiLines = await _orderAckAi.extractOrderAckLines(text);
+    if (aiLines == null || aiLines.isEmpty) return parsed;
+    return applyAiLineSuggestions(parsed, aiLines);
   }
 
   /// Pure reconciliation used by [enrichLines] (and unit tests).
-  static OrderAckParseResult applyClaudeLineSuggestions(
+  static OrderAckParseResult applyAiLineSuggestions(
     OrderAckParseResult parsed,
-    List<ClaudeOrderAckLine> claudeLines,
+    List<AiOrderAckLine> aiLines,
   ) {
     String norm(String s) => s.replaceAll(RegExp(r'\s+'), '').toUpperCase();
-    final byCpo = <String, ClaudeOrderAckLine>{};
-    for (final cl in claudeLines) {
+    final byCpo = <String, AiOrderAckLine>{};
+    for (final cl in aiLines) {
       final key = norm(cl.cpoDisplay);
       if (key.isEmpty) continue;
       byCpo.putIfAbsent(key, () => cl);
@@ -197,16 +199,16 @@ Rules:
       final match = byCpo[norm(line.cpoDisplay)];
       String note;
       if (match == null) {
-        note = 'Claude’s review did not separately match this CPO '
+        note = 'Meedo-Me’s review did not separately match this CPO '
             'reference.';
       } else {
         final agrees = match.idKind == line.idKind &&
             match.idValue.trim().toLowerCase() ==
                 line.tagOrPart.trim().toLowerCase();
         note = agrees
-            ? 'Claude agrees: ${line.idKind.fieldLabel} ${line.tagOrPart}. '
+            ? 'Meedo-Me agrees: ${line.idKind.fieldLabel} ${line.tagOrPart}. '
                 '${match.reasoning}'
-            : 'Claude read this differently (${match.confidence} '
+            : 'Meedo-Me read this differently (${match.confidence} '
                 'confidence): ${match.idKind?.fieldLabel ?? 'no identity'} '
                 '${match.idValue}. ${match.reasoning}';
       }
@@ -219,7 +221,7 @@ Rules:
       if (match != null &&
           match.idKind != null &&
           match.idValue.trim().isNotEmpty) {
-        // Regex found nothing for this line; Claude did. Fill the gap, but
+        // Regex found nothing for this line; Meedo-Me did. Fill the gap, but
         // keep it flagged as AI-suggested — never silently trusted.
         updatedLines.add(
           BulkLabelLine(
@@ -247,7 +249,7 @@ Rules:
           reason: inc.reason,
           aiNote: match?.reasoning.trim().isNotEmpty == true
               ? match!.reasoning.trim()
-              : 'Claude’s review also found no TAG#/PART#/ITEM# for '
+              : 'Meedo-Me’s review also found no TAG#/PART#/ITEM# for '
                   'this line.',
         ),
       );

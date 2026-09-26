@@ -1,0 +1,3571 @@
+{
+  "version": 1,
+  "observations": [
+    {
+      "run_id": "20260919T215744Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "git_sha": "eb68457",
+      "git_subject": "Make Meedo-Me the engine's memory and advisor, plus a third critic",
+      "note": "backfill from improve_log",
+      "mean_composite": 0.7384,
+      "anchor_mean": 0.9118,
+      "n_scored": 54,
+      "moved": {},
+      "cases": {
+        "arc__downscale_jpeg::baseline": 0.6431,
+        "arc__downscale_jpeg::vectorize": 0.717,
+        "arc__downscale_jpeg::esrgan": 0.6381,
+        "arc__blur_crush::baseline": 0.4463,
+        "arc__blur_crush::vectorize": 0.4461,
+        "arc__blur_crush::esrgan": 0.4722,
+        "arc__import_combo::baseline": 0.6628,
+        "arc__import_combo::vectorize": 0.6913,
+        "arc__import_combo::esrgan": 0.6691,
+        "gcm__downscale_jpeg::baseline": 0.8346,
+        "gcm__downscale_jpeg::vectorize": 0.8373,
+        "gcm__downscale_jpeg::esrgan": 0.797,
+        "gcm__blur_crush::baseline": 0.7299,
+        "gcm__blur_crush::vectorize": 0.733,
+        "gcm__blur_crush::esrgan": 0.7148,
+        "gcm__import_combo::baseline": 0.7505,
+        "gcm__import_combo::vectorize": 0.7513,
+        "gcm__import_combo::esrgan": 0.7839,
+        "propak__downscale_jpeg::baseline": 0.8018,
+        "propak__downscale_jpeg::vectorize": 0.7975,
+        "propak__downscale_jpeg::esrgan": 0.8347,
+        "propak__blur_crush::baseline": 0.6564,
+        "propak__blur_crush::vectorize": 0.6542,
+        "propak__blur_crush::esrgan": 0.7074,
+        "propak__import_combo::baseline": 0.6806,
+        "propak__import_combo::vectorize": 0.746,
+        "propak__import_combo::esrgan": 0.8163,
+        "swift_orange__downscale_jpeg::baseline": 0.9283,
+        "swift_orange__downscale_jpeg::vectorize": 0.9179,
+        "swift_orange__downscale_jpeg::esrgan": 0.6678,
+        "swift_orange__blur_crush::baseline": 0.9316,
+        "swift_orange__blur_crush::vectorize": 0.9312,
+        "swift_orange__blur_crush::esrgan": 0.9417,
+        "swift_orange__import_combo::baseline": 0.9117,
+        "swift_orange__import_combo::vectorize": 0.9218,
+        "swift_orange__import_combo::esrgan": 0.8843,
+        "swift_orange_solid__downscale_jpeg::baseline": 0.9275,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9313,
+        "swift_orange_solid__downscale_jpeg::esrgan": 0.9312,
+        "swift_orange_solid__blur_crush::baseline": 0.93,
+        "swift_orange_solid__blur_crush::vectorize": 0.9302,
+        "swift_orange_solid__blur_crush::esrgan": 0.9408,
+        "swift_orange_solid__import_combo::baseline": 0.933,
+        "swift_orange_solid__import_combo::vectorize": 0.9292,
+        "swift_orange_solid__import_combo::esrgan": 0.9231,
+        "trialta__downscale_jpeg::baseline": 0.531,
+        "trialta__downscale_jpeg::vectorize": 0.5373,
+        "trialta__downscale_jpeg::esrgan": 0.5803,
+        "trialta__blur_crush::baseline": 0.4419,
+        "trialta__blur_crush::vectorize": 0.4021,
+        "trialta__blur_crush::esrgan": 0.4242,
+        "trialta__import_combo::baseline": 0.5016,
+        "trialta__import_combo::vectorize": 0.5045,
+        "trialta__import_combo::esrgan": 0.5228
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "certain: the shipping path could not reach reconstruction before 1bbdf49"
+    },
+    {
+      "run_id": "20260919T225928Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "git_sha": "eb68457",
+      "git_subject": "Make Meedo-Me the engine's memory and advisor, plus a third critic",
+      "note": "backfill from improve_log",
+      "mean_composite": 0.7384,
+      "anchor_mean": 0.9118,
+      "n_scored": 54,
+      "moved": {},
+      "cases": {
+        "arc__downscale_jpeg::baseline": 0.6431,
+        "arc__downscale_jpeg::vectorize": 0.717,
+        "arc__downscale_jpeg::esrgan": 0.6381,
+        "arc__blur_crush::baseline": 0.4463,
+        "arc__blur_crush::vectorize": 0.4461,
+        "arc__blur_crush::esrgan": 0.4722,
+        "arc__import_combo::baseline": 0.6628,
+        "arc__import_combo::vectorize": 0.6913,
+        "arc__import_combo::esrgan": 0.6691,
+        "gcm__downscale_jpeg::baseline": 0.8346,
+        "gcm__downscale_jpeg::vectorize": 0.8373,
+        "gcm__downscale_jpeg::esrgan": 0.797,
+        "gcm__blur_crush::baseline": 0.7299,
+        "gcm__blur_crush::vectorize": 0.733,
+        "gcm__blur_crush::esrgan": 0.7148,
+        "gcm__import_combo::baseline": 0.7505,
+        "gcm__import_combo::vectorize": 0.7513,
+        "gcm__import_combo::esrgan": 0.7839,
+        "propak__downscale_jpeg::baseline": 0.8018,
+        "propak__downscale_jpeg::vectorize": 0.7975,
+        "propak__downscale_jpeg::esrgan": 0.8347,
+        "propak__blur_crush::baseline": 0.6564,
+        "propak__blur_crush::vectorize": 0.6542,
+        "propak__blur_crush::esrgan": 0.7074,
+        "propak__import_combo::baseline": 0.6806,
+        "propak__import_combo::vectorize": 0.746,
+        "propak__import_combo::esrgan": 0.8163,
+        "swift_orange__downscale_jpeg::baseline": 0.9283,
+        "swift_orange__downscale_jpeg::vectorize": 0.9179,
+        "swift_orange__downscale_jpeg::esrgan": 0.6678,
+        "swift_orange__blur_crush::baseline": 0.9316,
+        "swift_orange__blur_crush::vectorize": 0.9312,
+        "swift_orange__blur_crush::esrgan": 0.9417,
+        "swift_orange__import_combo::baseline": 0.9117,
+        "swift_orange__import_combo::vectorize": 0.9218,
+        "swift_orange__import_combo::esrgan": 0.8843,
+        "swift_orange_solid__downscale_jpeg::baseline": 0.9275,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9313,
+        "swift_orange_solid__downscale_jpeg::esrgan": 0.9312,
+        "swift_orange_solid__blur_crush::baseline": 0.93,
+        "swift_orange_solid__blur_crush::vectorize": 0.9302,
+        "swift_orange_solid__blur_crush::esrgan": 0.9408,
+        "swift_orange_solid__import_combo::baseline": 0.933,
+        "swift_orange_solid__import_combo::vectorize": 0.9292,
+        "swift_orange_solid__import_combo::esrgan": 0.9231,
+        "trialta__downscale_jpeg::baseline": 0.531,
+        "trialta__downscale_jpeg::vectorize": 0.5373,
+        "trialta__downscale_jpeg::esrgan": 0.5803,
+        "trialta__blur_crush::baseline": 0.4419,
+        "trialta__blur_crush::vectorize": 0.4021,
+        "trialta__blur_crush::esrgan": 0.4242,
+        "trialta__import_combo::baseline": 0.5016,
+        "trialta__import_combo::vectorize": 0.5045,
+        "trialta__import_combo::esrgan": 0.5228
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "certain: before 1bbdf49"
+    },
+    {
+      "run_id": "20260919T233324Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "git_sha": "eb68457",
+      "git_subject": "Make Meedo-Me the engine's memory and advisor, plus a third critic",
+      "note": "backfill from improve_log",
+      "mean_composite": 0.7384,
+      "anchor_mean": 0.9118,
+      "n_scored": 54,
+      "moved": {},
+      "cases": {
+        "arc__downscale_jpeg::baseline": 0.6431,
+        "arc__downscale_jpeg::vectorize": 0.717,
+        "arc__downscale_jpeg::esrgan": 0.6381,
+        "arc__blur_crush::baseline": 0.4463,
+        "arc__blur_crush::vectorize": 0.4461,
+        "arc__blur_crush::esrgan": 0.4722,
+        "arc__import_combo::baseline": 0.6628,
+        "arc__import_combo::vectorize": 0.6913,
+        "arc__import_combo::esrgan": 0.6691,
+        "gcm__downscale_jpeg::baseline": 0.8346,
+        "gcm__downscale_jpeg::vectorize": 0.8373,
+        "gcm__downscale_jpeg::esrgan": 0.797,
+        "gcm__blur_crush::baseline": 0.7299,
+        "gcm__blur_crush::vectorize": 0.733,
+        "gcm__blur_crush::esrgan": 0.7148,
+        "gcm__import_combo::baseline": 0.7505,
+        "gcm__import_combo::vectorize": 0.7513,
+        "gcm__import_combo::esrgan": 0.7839,
+        "propak__downscale_jpeg::baseline": 0.8018,
+        "propak__downscale_jpeg::vectorize": 0.7975,
+        "propak__downscale_jpeg::esrgan": 0.8347,
+        "propak__blur_crush::baseline": 0.6564,
+        "propak__blur_crush::vectorize": 0.6542,
+        "propak__blur_crush::esrgan": 0.7074,
+        "propak__import_combo::baseline": 0.6806,
+        "propak__import_combo::vectorize": 0.746,
+        "propak__import_combo::esrgan": 0.8163,
+        "swift_orange__downscale_jpeg::baseline": 0.9283,
+        "swift_orange__downscale_jpeg::vectorize": 0.9179,
+        "swift_orange__downscale_jpeg::esrgan": 0.6678,
+        "swift_orange__blur_crush::baseline": 0.9316,
+        "swift_orange__blur_crush::vectorize": 0.9312,
+        "swift_orange__blur_crush::esrgan": 0.9417,
+        "swift_orange__import_combo::baseline": 0.9117,
+        "swift_orange__import_combo::vectorize": 0.9218,
+        "swift_orange__import_combo::esrgan": 0.8843,
+        "swift_orange_solid__downscale_jpeg::baseline": 0.9275,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9313,
+        "swift_orange_solid__downscale_jpeg::esrgan": 0.9312,
+        "swift_orange_solid__blur_crush::baseline": 0.93,
+        "swift_orange_solid__blur_crush::vectorize": 0.9302,
+        "swift_orange_solid__blur_crush::esrgan": 0.9408,
+        "swift_orange_solid__import_combo::baseline": 0.933,
+        "swift_orange_solid__import_combo::vectorize": 0.9292,
+        "swift_orange_solid__import_combo::esrgan": 0.9231,
+        "trialta__downscale_jpeg::baseline": 0.531,
+        "trialta__downscale_jpeg::vectorize": 0.5373,
+        "trialta__downscale_jpeg::esrgan": 0.5803,
+        "trialta__blur_crush::baseline": 0.4419,
+        "trialta__blur_crush::vectorize": 0.4021,
+        "trialta__blur_crush::esrgan": 0.4242,
+        "trialta__import_combo::baseline": 0.5016,
+        "trialta__import_combo::vectorize": 0.5045,
+        "trialta__import_combo::esrgan": 0.5228
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "certain: before 1bbdf49"
+    },
+    {
+      "run_id": "20260920T004154Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "git_sha": "eb68457",
+      "git_subject": "Make Meedo-Me the engine's memory and advisor, plus a third critic",
+      "note": "backfill from improve_log",
+      "mean_composite": 0.7384,
+      "anchor_mean": 0.9118,
+      "n_scored": 54,
+      "moved": {},
+      "cases": {
+        "arc__downscale_jpeg::baseline": 0.6431,
+        "arc__downscale_jpeg::vectorize": 0.717,
+        "arc__downscale_jpeg::esrgan": 0.6381,
+        "arc__blur_crush::baseline": 0.4463,
+        "arc__blur_crush::vectorize": 0.4461,
+        "arc__blur_crush::esrgan": 0.4722,
+        "arc__import_combo::baseline": 0.6628,
+        "arc__import_combo::vectorize": 0.6913,
+        "arc__import_combo::esrgan": 0.6691,
+        "gcm__downscale_jpeg::baseline": 0.8346,
+        "gcm__downscale_jpeg::vectorize": 0.8373,
+        "gcm__downscale_jpeg::esrgan": 0.797,
+        "gcm__blur_crush::baseline": 0.7299,
+        "gcm__blur_crush::vectorize": 0.733,
+        "gcm__blur_crush::esrgan": 0.7148,
+        "gcm__import_combo::baseline": 0.7505,
+        "gcm__import_combo::vectorize": 0.7513,
+        "gcm__import_combo::esrgan": 0.7839,
+        "propak__downscale_jpeg::baseline": 0.8018,
+        "propak__downscale_jpeg::vectorize": 0.7975,
+        "propak__downscale_jpeg::esrgan": 0.8347,
+        "propak__blur_crush::baseline": 0.6564,
+        "propak__blur_crush::vectorize": 0.6542,
+        "propak__blur_crush::esrgan": 0.7074,
+        "propak__import_combo::baseline": 0.6806,
+        "propak__import_combo::vectorize": 0.746,
+        "propak__import_combo::esrgan": 0.8163,
+        "swift_orange__downscale_jpeg::baseline": 0.9283,
+        "swift_orange__downscale_jpeg::vectorize": 0.9179,
+        "swift_orange__downscale_jpeg::esrgan": 0.6678,
+        "swift_orange__blur_crush::baseline": 0.9316,
+        "swift_orange__blur_crush::vectorize": 0.9312,
+        "swift_orange__blur_crush::esrgan": 0.9417,
+        "swift_orange__import_combo::baseline": 0.9117,
+        "swift_orange__import_combo::vectorize": 0.9218,
+        "swift_orange__import_combo::esrgan": 0.8843,
+        "swift_orange_solid__downscale_jpeg::baseline": 0.9275,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9313,
+        "swift_orange_solid__downscale_jpeg::esrgan": 0.9312,
+        "swift_orange_solid__blur_crush::baseline": 0.93,
+        "swift_orange_solid__blur_crush::vectorize": 0.9302,
+        "swift_orange_solid__blur_crush::esrgan": 0.9408,
+        "swift_orange_solid__import_combo::baseline": 0.933,
+        "swift_orange_solid__import_combo::vectorize": 0.9292,
+        "swift_orange_solid__import_combo::esrgan": 0.9231,
+        "trialta__downscale_jpeg::baseline": 0.531,
+        "trialta__downscale_jpeg::vectorize": 0.5373,
+        "trialta__downscale_jpeg::esrgan": 0.5803,
+        "trialta__blur_crush::baseline": 0.4419,
+        "trialta__blur_crush::vectorize": 0.4021,
+        "trialta__blur_crush::esrgan": 0.4242,
+        "trialta__import_combo::baseline": 0.5016,
+        "trialta__import_combo::vectorize": 0.5045,
+        "trialta__import_combo::esrgan": 0.5228
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "certain: before 1bbdf49"
+    },
+    {
+      "run_id": "20260920T044325Z",
+      "ts": "2026-09-20T04:54:33Z",
+      "git_sha": "c5e6b02",
+      "git_subject": "Record every improve-loop run to Meedo-Me's ledger automatically",
+      "note": "improve loop baseline, vectorize, esrgan",
+      "mean_composite": 0.7384,
+      "anchor_mean": 0.9118,
+      "n_scored": 54,
+      "moved": {},
+      "cases": {
+        "arc__downscale_jpeg::baseline": 0.6431,
+        "arc__downscale_jpeg::vectorize": 0.717,
+        "arc__downscale_jpeg::esrgan": 0.6381,
+        "arc__blur_crush::baseline": 0.4463,
+        "arc__blur_crush::vectorize": 0.4461,
+        "arc__blur_crush::esrgan": 0.4722,
+        "arc__import_combo::baseline": 0.6628,
+        "arc__import_combo::vectorize": 0.6913,
+        "arc__import_combo::esrgan": 0.6691,
+        "gcm__downscale_jpeg::baseline": 0.8346,
+        "gcm__downscale_jpeg::vectorize": 0.8373,
+        "gcm__downscale_jpeg::esrgan": 0.797,
+        "gcm__blur_crush::baseline": 0.7299,
+        "gcm__blur_crush::vectorize": 0.733,
+        "gcm__blur_crush::esrgan": 0.7148,
+        "gcm__import_combo::baseline": 0.7505,
+        "gcm__import_combo::vectorize": 0.7513,
+        "gcm__import_combo::esrgan": 0.7839,
+        "propak__downscale_jpeg::baseline": 0.8018,
+        "propak__downscale_jpeg::vectorize": 0.7975,
+        "propak__downscale_jpeg::esrgan": 0.8347,
+        "propak__blur_crush::baseline": 0.6564,
+        "propak__blur_crush::vectorize": 0.6542,
+        "propak__blur_crush::esrgan": 0.7074,
+        "propak__import_combo::baseline": 0.6806,
+        "propak__import_combo::vectorize": 0.746,
+        "propak__import_combo::esrgan": 0.8163,
+        "swift_orange__downscale_jpeg::baseline": 0.9283,
+        "swift_orange__downscale_jpeg::vectorize": 0.9179,
+        "swift_orange__downscale_jpeg::esrgan": 0.6678,
+        "swift_orange__blur_crush::baseline": 0.9316,
+        "swift_orange__blur_crush::vectorize": 0.9312,
+        "swift_orange__blur_crush::esrgan": 0.9417,
+        "swift_orange__import_combo::baseline": 0.9117,
+        "swift_orange__import_combo::vectorize": 0.9218,
+        "swift_orange__import_combo::esrgan": 0.8843,
+        "swift_orange_solid__downscale_jpeg::baseline": 0.9275,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9313,
+        "swift_orange_solid__downscale_jpeg::esrgan": 0.9312,
+        "swift_orange_solid__blur_crush::baseline": 0.93,
+        "swift_orange_solid__blur_crush::vectorize": 0.9302,
+        "swift_orange_solid__blur_crush::esrgan": 0.9408,
+        "swift_orange_solid__import_combo::baseline": 0.933,
+        "swift_orange_solid__import_combo::vectorize": 0.9292,
+        "swift_orange_solid__import_combo::esrgan": 0.9231,
+        "trialta__downscale_jpeg::baseline": 0.531,
+        "trialta__downscale_jpeg::vectorize": 0.5373,
+        "trialta__downscale_jpeg::esrgan": 0.5803,
+        "trialta__blur_crush::baseline": 0.4419,
+        "trialta__blur_crush::vectorize": 0.4021,
+        "trialta__blur_crush::esrgan": 0.4242,
+        "trialta__import_combo::baseline": 0.5016,
+        "trialta__import_combo::vectorize": 0.5045,
+        "trialta__import_combo::esrgan": 0.5228
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "certain: before 1bbdf49"
+    },
+    {
+      "run_id": "20260920T114909Z",
+      "ts": "2026-09-20T12:29:40Z",
+      "git_sha": "1bbdf49",
+      "git_subject": "Give the shipping path a way to reach the reconstruction engine",
+      "note": "improve loop baseline, vectorize",
+      "mean_composite": 0.7388,
+      "anchor_mean": 0.9251,
+      "n_scored": 36,
+      "moved": {
+        "swift_orange__downscale_jpeg::vectorize": -0.0073,
+        "swift_orange_solid__import_combo::vectorize": -0.0063,
+        "swift_orange__import_combo::vectorize": -0.0045,
+        "swift_orange_solid__downscale_jpeg::vectorize": -0.0038
+      },
+      "cases": {
+        "arc__downscale_jpeg::baseline": 0.6435,
+        "arc__downscale_jpeg::vectorize": 0.7164,
+        "arc__blur_crush::baseline": 0.446,
+        "arc__blur_crush::vectorize": 0.4459,
+        "arc__import_combo::baseline": 0.6628,
+        "arc__import_combo::vectorize": 0.6915,
+        "gcm__downscale_jpeg::baseline": 0.8343,
+        "gcm__downscale_jpeg::vectorize": 0.8358,
+        "gcm__blur_crush::baseline": 0.7285,
+        "gcm__blur_crush::vectorize": 0.7333,
+        "gcm__import_combo::baseline": 0.7507,
+        "gcm__import_combo::vectorize": 0.7511,
+        "propak__downscale_jpeg::baseline": 0.8022,
+        "propak__downscale_jpeg::vectorize": 0.7975,
+        "propak__blur_crush::baseline": 0.6562,
+        "propak__blur_crush::vectorize": 0.6541,
+        "propak__import_combo::baseline": 0.6807,
+        "propak__import_combo::vectorize": 0.7458,
+        "swift_orange__downscale_jpeg::baseline": 0.9285,
+        "swift_orange__downscale_jpeg::vectorize": 0.9106,
+        "swift_orange__blur_crush::baseline": 0.9313,
+        "swift_orange__blur_crush::vectorize": 0.9317,
+        "swift_orange__import_combo::baseline": 0.9103,
+        "swift_orange__import_combo::vectorize": 0.9173,
+        "swift_orange_solid__downscale_jpeg::baseline": 0.9268,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9275,
+        "swift_orange_solid__blur_crush::baseline": 0.9301,
+        "swift_orange_solid__blur_crush::vectorize": 0.9302,
+        "swift_orange_solid__import_combo::baseline": 0.9335,
+        "swift_orange_solid__import_combo::vectorize": 0.9229,
+        "trialta__downscale_jpeg::baseline": 0.5309,
+        "trialta__downscale_jpeg::vectorize": 0.5369,
+        "trialta__blur_crush::baseline": 0.4419,
+        "trialta__blur_crush::vectorize": 0.402,
+        "trialta__import_combo::baseline": 0.5017,
+        "trialta__import_combo::vectorize": 0.5047
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": true
+      },
+      "config_source": "inferred: Swift scores differ from every shipping-path run"
+    },
+    {
+      "run_id": "20260920T123110Z",
+      "ts": "2026-09-20T12:38:19Z",
+      "git_sha": "d1eed48",
+      "git_subject": "Record what a run was configured with, beside what it scored",
+      "note": "improve loop baseline, vectorize",
+      "mean_composite": 0.7395,
+      "anchor_mean": 0.927,
+      "n_scored": 36,
+      "moved": {
+        "swift_orange__downscale_jpeg::vectorize": 0.0073,
+        "swift_orange_solid__import_combo::vectorize": 0.0063,
+        "swift_orange__import_combo::vectorize": 0.0045,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.0038
+      },
+      "cases": {
+        "arc__downscale_jpeg::baseline": 0.6431,
+        "arc__downscale_jpeg::vectorize": 0.717,
+        "arc__blur_crush::baseline": 0.4463,
+        "arc__blur_crush::vectorize": 0.4461,
+        "arc__import_combo::baseline": 0.6628,
+        "arc__import_combo::vectorize": 0.6913,
+        "gcm__downscale_jpeg::baseline": 0.8346,
+        "gcm__downscale_jpeg::vectorize": 0.8373,
+        "gcm__blur_crush::baseline": 0.7299,
+        "gcm__blur_crush::vectorize": 0.733,
+        "gcm__import_combo::baseline": 0.7505,
+        "gcm__import_combo::vectorize": 0.7513,
+        "propak__downscale_jpeg::baseline": 0.8018,
+        "propak__downscale_jpeg::vectorize": 0.7975,
+        "propak__blur_crush::baseline": 0.6564,
+        "propak__blur_crush::vectorize": 0.6542,
+        "propak__import_combo::baseline": 0.6806,
+        "propak__import_combo::vectorize": 0.746,
+        "swift_orange__downscale_jpeg::baseline": 0.9283,
+        "swift_orange__downscale_jpeg::vectorize": 0.9179,
+        "swift_orange__blur_crush::baseline": 0.9316,
+        "swift_orange__blur_crush::vectorize": 0.9312,
+        "swift_orange__import_combo::baseline": 0.9117,
+        "swift_orange__import_combo::vectorize": 0.9218,
+        "swift_orange_solid__downscale_jpeg::baseline": 0.9275,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9313,
+        "swift_orange_solid__blur_crush::baseline": 0.93,
+        "swift_orange_solid__blur_crush::vectorize": 0.9302,
+        "swift_orange_solid__import_combo::baseline": 0.933,
+        "swift_orange_solid__import_combo::vectorize": 0.9292,
+        "trialta__downscale_jpeg::baseline": 0.531,
+        "trialta__downscale_jpeg::vectorize": 0.5373,
+        "trialta__blur_crush::baseline": 0.4419,
+        "trialta__blur_crush::vectorize": 0.4021,
+        "trialta__import_combo::baseline": 0.5016,
+        "trialta__import_combo::vectorize": 0.5045
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "inferred: every score equals the shipping path"
+    },
+    {
+      "run_id": "20260920T142001Z",
+      "ts": "2026-09-20T14:52:08Z",
+      "git_sha": "ba4bf0f",
+      "git_subject": "Render the font corpus once per machine, not once per logo",
+      "note": "improve loop vectorize",
+      "mean_composite": 0.7432,
+      "anchor_mean": 0.9268,
+      "n_scored": 18,
+      "moved": {
+        "swift_orange__import_combo::vectorize": -0.0329,
+        "swift_orange_solid__import_combo::vectorize": 0.0173,
+        "swift_orange_solid__blur_crush::vectorize": 0.0097,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.0051
+      },
+      "cases": {
+        "arc__downscale_jpeg::vectorize": 0.717,
+        "arc__blur_crush::vectorize": 0.4461,
+        "arc__import_combo::vectorize": 0.6913,
+        "gcm__downscale_jpeg::vectorize": 0.8373,
+        "gcm__blur_crush::vectorize": 0.733,
+        "gcm__import_combo::vectorize": 0.7513,
+        "propak__downscale_jpeg::vectorize": 0.7975,
+        "propak__blur_crush::vectorize": 0.6542,
+        "propak__import_combo::vectorize": 0.746,
+        "swift_orange__downscale_jpeg::vectorize": 0.9179,
+        "swift_orange__blur_crush::vectorize": 0.9312,
+        "swift_orange__import_combo::vectorize": 0.8889,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9364,
+        "swift_orange_solid__blur_crush::vectorize": 0.9399,
+        "swift_orange_solid__import_combo::vectorize": 0.9465,
+        "trialta__downscale_jpeg::vectorize": 0.5373,
+        "trialta__blur_crush::vectorize": 0.4021,
+        "trialta__import_combo::vectorize": 0.5045
+      },
+      "config": {
+        "min_height": 1200,
+        "engines": [
+          "vectorize"
+        ],
+        "idealize": true
+      },
+      "config_source": "inferred: differs from the shipping path only on 4 Swift cases, where the old gate chose reconstruction"
+    },
+    {
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-20T18:34:02Z",
+      "git_sha": "195782e",
+      "git_subject": "Derive the gate from the corpus instead of arguing it",
+      "note": "improve loop vectorize",
+      "mean_composite": 0.7567,
+      "anchor_mean": 0.9285,
+      "n_scored": 18,
+      "moved": {
+        "swift_orange_solid__import_combo::vectorize": -0.0173,
+        "swift_orange_solid__downscale_jpeg::vectorize": -0.0051,
+        "gcm__blur_crush::vectorize": 0.0757,
+        "trialta__downscale_jpeg::vectorize": 0.0564,
+        "propak__downscale_jpeg::vectorize": 0.0363,
+        "gcm__import_combo::vectorize": 0.0333,
+        "swift_orange__import_combo::vectorize": 0.0329,
+        "gcm__downscale_jpeg::vectorize": 0.0246,
+        "propak__blur_crush::vectorize": 0.005
+      },
+      "cases": {
+        "arc__downscale_jpeg::vectorize": 0.717,
+        "arc__blur_crush::vectorize": 0.4461,
+        "arc__import_combo::vectorize": 0.6913,
+        "gcm__downscale_jpeg::vectorize": 0.8619,
+        "gcm__blur_crush::vectorize": 0.8087,
+        "gcm__import_combo::vectorize": 0.7846,
+        "propak__downscale_jpeg::vectorize": 0.8338,
+        "propak__blur_crush::vectorize": 0.6592,
+        "propak__import_combo::vectorize": 0.746,
+        "swift_orange__downscale_jpeg::vectorize": 0.9179,
+        "swift_orange__blur_crush::vectorize": 0.9312,
+        "swift_orange__import_combo::vectorize": 0.9218,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9313,
+        "swift_orange_solid__blur_crush::vectorize": 0.9399,
+        "swift_orange_solid__import_combo::vectorize": 0.9292,
+        "trialta__downscale_jpeg::vectorize": 0.5937,
+        "trialta__blur_crush::vectorize": 0.4021,
+        "trialta__import_combo::vectorize": 0.5045
+      },
+      "config": {
+        "min_height": 1200,
+        "engines": [
+          "vectorize"
+        ],
+        "idealize": true
+      },
+      "config_source": "certain: the derived-gate measurement run (LOGO_IDEALIZE=1)"
+    },
+    {
+      "run_id": "20260926T152734Z",
+      "ts": "2026-09-26T15:38:23Z",
+      "config": {
+        "min_height": 320,
+        "engines": [
+          "baseline",
+          "vectorize"
+        ],
+        "idealize": false,
+        "minds": false,
+        "minds_rank": false
+      },
+      "git_sha": "f25d7b0",
+      "git_subject": "Keep Arc teal through thin-path quantize and palette snap.",
+      "note": "improve loop baseline, vectorize",
+      "mean_composite": 0.7518,
+      "anchor_mean": 0.9257,
+      "n_scored": 36,
+      "moved": {},
+      "cases": {
+        "arc__import_combo::baseline": 0.7029,
+        "arc__import_combo::vectorize": 0.7214,
+        "arc__downscale_jpeg::baseline": 0.6473,
+        "arc__downscale_jpeg::vectorize": 0.6886,
+        "arc__plate_halo::baseline": 0.7397,
+        "arc__plate_halo::vectorize": 0.7614,
+        "gcm__import_combo::baseline": 0.6727,
+        "gcm__import_combo::vectorize": 0.7082,
+        "gcm__downscale_jpeg::baseline": 0.7776,
+        "gcm__downscale_jpeg::vectorize": 0.7775,
+        "gcm__plate_halo::baseline": 0.7494,
+        "gcm__plate_halo::vectorize": 0.7701,
+        "propak__import_combo::baseline": 0.6318,
+        "propak__import_combo::vectorize": 0.6346,
+        "propak__downscale_jpeg::baseline": 0.7242,
+        "propak__downscale_jpeg::vectorize": 0.7064,
+        "propak__plate_halo::baseline": 0.7336,
+        "propak__plate_halo::vectorize": 0.7241,
+        "swift_orange__import_combo::baseline": 0.8919,
+        "swift_orange__import_combo::vectorize": 0.8919,
+        "swift_orange__downscale_jpeg::baseline": 0.923,
+        "swift_orange__downscale_jpeg::vectorize": 0.9091,
+        "swift_orange__plate_halo::baseline": 0.9214,
+        "swift_orange__plate_halo::vectorize": 0.9027,
+        "swift_orange_solid__import_combo::baseline": 0.9458,
+        "swift_orange_solid__import_combo::vectorize": 0.9458,
+        "swift_orange_solid__downscale_jpeg::baseline": 0.9447,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9447,
+        "swift_orange_solid__plate_halo::baseline": 0.9439,
+        "swift_orange_solid__plate_halo::vectorize": 0.9439,
+        "trialta__import_combo::baseline": 0.5211,
+        "trialta__import_combo::vectorize": 0.4793,
+        "trialta__downscale_jpeg::baseline": 0.5316,
+        "trialta__downscale_jpeg::vectorize": 0.4816,
+        "trialta__plate_halo::baseline": 0.5436,
+        "trialta__plate_halo::vectorize": 0.5286
+      }
+    },
+    {
+      "run_id": "20260926T154151Z",
+      "ts": "2026-09-26T15:53:55Z",
+      "config": {
+        "min_height": 400,
+        "engines": [
+          "baseline",
+          "vectorize"
+        ],
+        "idealize": false,
+        "minds": false,
+        "minds_rank": false
+      },
+      "git_sha": "7ba92d7",
+      "git_subject": "Gate color-split prune and brand hue slots to avoid Propak snap warp.",
+      "note": "improve loop baseline, vectorize",
+      "mean_composite": 0.7607,
+      "anchor_mean": 0.9265,
+      "n_scored": 36,
+      "moved": {},
+      "cases": {
+        "arc__import_combo::baseline": 0.7046,
+        "arc__import_combo::vectorize": 0.7044,
+        "arc__downscale_jpeg::baseline": 0.6446,
+        "arc__downscale_jpeg::vectorize": 0.6707,
+        "arc__plate_halo::baseline": 0.7368,
+        "arc__plate_halo::vectorize": 0.7643,
+        "gcm__import_combo::baseline": 0.7668,
+        "gcm__import_combo::vectorize": 0.7678,
+        "gcm__downscale_jpeg::baseline": 0.7773,
+        "gcm__downscale_jpeg::vectorize": 0.7786,
+        "gcm__plate_halo::baseline": 0.7487,
+        "gcm__plate_halo::vectorize": 0.7722,
+        "propak__import_combo::baseline": 0.6825,
+        "propak__import_combo::vectorize": 0.7258,
+        "propak__downscale_jpeg::baseline": 0.7252,
+        "propak__downscale_jpeg::vectorize": 0.7555,
+        "propak__plate_halo::baseline": 0.7342,
+        "propak__plate_halo::vectorize": 0.7217,
+        "swift_orange__import_combo::baseline": 0.8919,
+        "swift_orange__import_combo::vectorize": 0.8919,
+        "swift_orange__downscale_jpeg::baseline": 0.9227,
+        "swift_orange__downscale_jpeg::vectorize": 0.9087,
+        "swift_orange__plate_halo::baseline": 0.9272,
+        "swift_orange__plate_halo::vectorize": 0.907,
+        "swift_orange_solid__import_combo::baseline": 0.946,
+        "swift_orange_solid__import_combo::vectorize": 0.946,
+        "swift_orange_solid__downscale_jpeg::baseline": 0.9445,
+        "swift_orange_solid__downscale_jpeg::vectorize": 0.9445,
+        "swift_orange_solid__plate_halo::baseline": 0.9439,
+        "swift_orange_solid__plate_halo::vectorize": 0.9439,
+        "trialta__import_combo::baseline": 0.518,
+        "trialta__import_combo::vectorize": 0.4842,
+        "trialta__downscale_jpeg::baseline": 0.5318,
+        "trialta__downscale_jpeg::vectorize": 0.4782,
+        "trialta__plate_halo::baseline": 0.5432,
+        "trialta__plate_halo::vectorize": 0.5284
+      }
+    }
+  ],
+  "proposals": [
+    {
+      "run_id": "20260919T215744Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 3,
+      "headline": "trialta__blur_crush::vectorize: palette is gone, geometry survived",
+      "case": "trialta__blur_crush::vectorize",
+      "rationale": "palette_fidelity=0.003, ink_iou=0.2638. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
+      "status": "accepted",
+      "id": "6f103481",
+      "kind": "palette is gone, geometry survived",
+      "raised": 4,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "Acting now. Restoring washed colours in the reconstruction path: chroma restored along the sketch's own hue for coloured elements, lightness for neutrals, and never a hue invented from grey \u2014 honouring the recorded lesson this proposal cites.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:35Z",
+      "accepted_run": "20260920T174511Z"
+    },
+    {
+      "run_id": "20260919T215744Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 3,
+      "headline": "trialta__blur_crush::esrgan: palette is gone, geometry survived",
+      "case": "trialta__blur_crush::esrgan",
+      "rationale": "palette_fidelity=0.0, ink_iou=0.2207. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
+      "status": "rejected",
+      "id": "61666154",
+      "kind": "palette is gone, geometry survived",
+      "raised": 4,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "ESRGAN produces a raster. The goal is the reconstructed vector, so colour recovery is being built in the reconstruction path, where it can be judged.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:36Z"
+    },
+    {
+      "run_id": "20260919T215744Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 3,
+      "headline": "trialta__blur_crush::baseline: palette is gone, geometry survived",
+      "case": "trialta__blur_crush::baseline",
+      "rationale": "palette_fidelity=0.0037, ink_iou=0.2712. The shape is recoverable and the colour is not, so this is a colour-recovery problem. Do not invent a brand colour from grey \u2014 that is already a recorded lesson.",
+      "status": "rejected",
+      "id": "39dfd08f",
+      "kind": "palette is gone, geometry survived",
+      "raised": 4,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "baseline is the control (prepare plus cubic upscale). Improving it would move the yardstick, not the product.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:36Z"
+    },
+    {
+      "run_id": "20260919T233324Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 2,
+      "headline": "arc__blur_crush::baseline has not moved and sits at 0.4463",
+      "case": "arc__blur_crush::baseline",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "id": "cc22b567",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "baseline is the control. Improving it would move the yardstick, not the product.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:37Z"
+    },
+    {
+      "run_id": "20260919T233324Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 2,
+      "headline": "arc__blur_crush::esrgan has not moved and sits at 0.4722",
+      "case": "arc__blur_crush::esrgan",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "id": "b03c2dea",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "ESRGAN produces a raster; the direction is the reconstructed vector. Not worth effort on this engine.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:36Z"
+    },
+    {
+      "run_id": "20260919T233324Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 2,
+      "headline": "arc__blur_crush::vectorize has not moved and sits at 0.4461",
+      "case": "arc__blur_crush::vectorize",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "accepted",
+      "id": "785527b3",
+      "kind": "has not moved and sits at #",
+      "raised": 3,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "Acting now, as part of the same colour recovery. This sketch's red is washed to (248,117,167) and its teal nearly gone; the new palette reading keeps both, so the reconstruction may now recover what the trace drops. Judge it honestly on the next run.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:35Z",
+      "accepted_run": "20260920T174511Z"
+    },
+    {
+      "run_id": "20260919T233324Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 2,
+      "headline": "trialta__blur_crush::baseline has not moved and sits at 0.4419",
+      "case": "trialta__blur_crush::baseline",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "id": "31861396",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "baseline is the control. Improving it would move the yardstick, not the product.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:37Z"
+    },
+    {
+      "run_id": "20260919T233324Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 2,
+      "headline": "trialta__blur_crush::esrgan has not moved and sits at 0.4242",
+      "case": "trialta__blur_crush::esrgan",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "id": "ca0fc5ff",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "ESRGAN produces a raster; the direction is the reconstructed vector. Not worth effort on this engine.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:36Z"
+    },
+    {
+      "run_id": "20260919T233324Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 2,
+      "headline": "trialta__blur_crush::vectorize has not moved and sits at 0.4021",
+      "case": "trialta__blur_crush::vectorize",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "id": "ff3b0ccd",
+      "kind": "has not moved and sits at #",
+      "raised": 3,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "Same case and same cause as 6f103481, which is accepted. Judging both would count one piece of work twice.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:36Z"
+    },
+    {
+      "run_id": "20260919T233324Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 2,
+      "headline": "trialta__import_combo::baseline has not moved and sits at 0.5016",
+      "case": "trialta__import_combo::baseline",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "id": "a02e201c",
+      "kind": "has not moved and sits at #",
+      "raised": 2,
+      "last_raised": "20260920T004154Z",
+      "decision_reason": "baseline is the control. Improving it would move the yardstick, not the product.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-25T03:17:37Z"
+    },
+    {
+      "run_id": "20260919T233324Z",
+      "ts": "2026-09-20T04:41:30Z",
+      "priority": 2,
+      "headline": "trialta__import_combo::vectorize has not moved and sits at 0.5045",
+      "case": "trialta__import_combo::vectorize",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "hurt",
+      "id": "80ac95cb",
+      "kind": "has not moved and sits at #",
+      "raised": 3,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "Acting now: diagnose TRIALTA letterform collapse with font matching (thought_trace anomaly #1), then reviewer element-count for dropped i-dots (#2).",
+      "decided_by": "",
+      "decided_at": "2026-09-25T04:17:49Z",
+      "accepted_run": "20260920T174511Z",
+      "delta": -0.0252,
+      "resolved_run": "20260926T152734Z"
+    },
+    {
+      "id": "e7f95947",
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-25T04:46:36Z",
+      "priority": 1,
+      "headline": "Bisect the regression on swift_orange_solid__import_combo::vectorize",
+      "case": "swift_orange_solid__import_combo::vectorize",
+      "kind": "Bisect the regression on",
+      "rationale": "Dropped 0.0173 (0.9465 -> 0.9292). It passed before, so the change that broke it is in recent history.",
+      "status": "rejected",
+      "raised": 1,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "False premise: nothing to bisect. 142001Z was a reconstruction run (old gate) recorded as if it were the shipping path; the shipping path still scores 0.9292 exactly as on 09-19. The drop is real only inside the reconstruction path: the derived gate (195782e) keeps the trace when one exists and gave up 0.9465 here. Fixed by ranking candidates on craftsmanship (task #7 / Swift rebuild), not by bisecting. Runs now record LOGO_IDEALIZE and are compared only like with like.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-26T02:18:46Z",
+      "accepted_run": "20260920T174511Z"
+    },
+    {
+      "id": "9ed610d6",
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-25T04:46:36Z",
+      "priority": 1,
+      "headline": "Bisect the regression on swift_orange_solid__downscale_jpeg::vectorize",
+      "case": "swift_orange_solid__downscale_jpeg::vectorize",
+      "kind": "Bisect the regression on",
+      "rationale": "Dropped 0.0051 (0.9364 -> 0.9313). It passed before, so the change that broke it is in recent history.",
+      "status": "rejected",
+      "raised": 1,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "0.0051 drop is inside noise floor for cross-run compare; not spending a bisect until larger than NOISE_FLOOR*2 after matched min_height.",
+      "decided_by": "cursor-agent",
+      "decided_at": "2026-09-25T04:46:53Z"
+    },
+    {
+      "id": "9936714e",
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-25T04:46:36Z",
+      "priority": 2,
+      "headline": "arc__downscale_jpeg::vectorize has not moved and sits at 0.7170",
+      "case": "arc__downscale_jpeg::vectorize",
+      "kind": "has not moved and sits at #",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "raised": 1,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "Not acting this cycle \u2014 Trialta colour-run/font work is in flight; Arc thin-stroke needs its own experiment after Swift P1.",
+      "decided_by": "cursor-agent",
+      "decided_at": "2026-09-25T04:46:53Z"
+    },
+    {
+      "id": "63f5eef5",
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-25T04:46:36Z",
+      "priority": 2,
+      "headline": "arc__import_combo::vectorize has not moved and sits at 0.6913",
+      "case": "arc__import_combo::vectorize",
+      "kind": "has not moved and sits at #",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "raised": 1,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "Same as Arc downscale \u2014 deferred; different approach needed but not this cycle.",
+      "decided_by": "cursor-agent",
+      "decided_at": "2026-09-25T04:46:53Z"
+    },
+    {
+      "id": "eb128323",
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-25T04:46:36Z",
+      "priority": 2,
+      "headline": "propak__import_combo::vectorize has not moved and sits at 0.7460",
+      "case": "propak__import_combo::vectorize",
+      "kind": "has not moved and sits at #",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "raised": 1,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "PROPAK selection signal is thought_trace anomaly #4; deferred until after Swift P1 bisect.",
+      "decided_by": "cursor-agent",
+      "decided_at": "2026-09-25T04:46:53Z"
+    }
+  ],
+  "reviews": [
+    {
+      "ts": "2026-09-25T03:09:17Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T03:09:17Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T03:09:18Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:22:39Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:23:50Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 32 ink elements, output has 8 (24 dropped) \u2014 small same-colour pieces are missing"
+        }
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
+    },
+    {
+      "ts": "2026-09-25T04:25:02Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 28 ink elements, output has 7 (21 dropped) \u2014 small same-colour pieces are missing"
+        }
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
+    },
+    {
+      "ts": "2026-09-25T04:26:32Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:34Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:34Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:37Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 4 small ink satellites, output has 1 (3 dropped) \u2014 dots/accents are missing"
+        }
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
+    },
+    {
+      "ts": "2026-09-25T04:38:37Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:41Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:41Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 4 small ink satellites, output has 0 (4 dropped) \u2014 dots/accents are missing"
+        }
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
+    },
+    {
+      "ts": "2026-09-25T04:40:56Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 6 small ink satellites, output has 1 (5 dropped) \u2014 dots/accents are missing"
+        }
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
+    },
+    {
+      "ts": "2026-09-25T04:40:56Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 6 small ink satellites, output has 2 (4 dropped) \u2014 dots/accents are missing"
+        }
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
+    },
+    {
+      "ts": "2026-09-25T04:40:59Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 14 small ink satellites, output has 2 (12 dropped) \u2014 dots/accents are missing"
+        }
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
+    },
+    {
+      "ts": "2026-09-25T04:40:59Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 14 small ink satellites, output has 4 (10 dropped) \u2014 dots/accents are missing"
+        }
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
+    },
+    {
+      "ts": "2026-09-25T04:41:02Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:41:02Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:33Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:33Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:36Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:36Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:39Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:39Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:14:55Z",
+      "run_id": "",
+      "case": "arc__blur_crush",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "collapse",
+          "severity": "block",
+          "detail": "the output carries 7.5% of its sketch's ink \u2014 the mark has collapsed"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:15:45Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "2 of the 15 elements the sketch shows (letters, bars, marks) are missing, at (342,23), (62,61) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:15:45Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "7 of the 15 elements the sketch shows (letters, bars, marks) are missing, at (207,23), (235,23), (242,24), (256,24), (342,23), (357,24), (62,61) in sketch pixels",
+          "n": 7
+        },
+        {
+          "check": "collapse",
+          "severity": "block",
+          "detail": "the output carries 9.6% of its sketch's ink \u2014 the mark has collapsed"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:15:46Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (45, 65, 67) is 25.9% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            45,
+            65,
+            67
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:16:35Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:16:36Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "3 of the 14 elements the sketch shows (letters, bars, marks) are missing, at (290,24), (343,24), (308,27) in sketch pixels",
+          "n": 3
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:16:36Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (32, 52, 53) is 25.8% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            32,
+            52,
+            53
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:17:17Z",
+      "run_id": "",
+      "case": "arc__blur_crush",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "collapse",
+          "severity": "block",
+          "detail": "the output carries 7.5% of its sketch's ink \u2014 the mark has collapsed"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:18:02Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "2 of the 15 elements the sketch shows (letters, bars, marks) are missing, at (342,23), (62,61) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:18:02Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "7 of the 15 elements the sketch shows (letters, bars, marks) are missing, at (207,23), (235,23), (242,24), (256,24), (342,23), (357,24), (62,61) in sketch pixels",
+          "n": 7
+        },
+        {
+          "check": "collapse",
+          "severity": "block",
+          "detail": "the output carries 9.6% of its sketch's ink \u2014 the mark has collapsed"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:18:02Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (45, 65, 67) is 25.9% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            45,
+            65,
+            67
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:18:52Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:18:52Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "3 of the 14 elements the sketch shows (letters, bars, marks) are missing, at (290,24), (343,24), (308,27) in sketch pixels",
+          "n": 3
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:18:53Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (32, 52, 53) is 25.8% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            32,
+            52,
+            53
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:20:26Z",
+      "run_id": "",
+      "case": "gcm__blur_crush",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:20:26Z",
+      "run_id": "",
+      "case": "gcm__blur_crush",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 26 elements the sketch shows (letters, bars, marks) are missing, at (255,65) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:20:26Z",
+      "run_id": "",
+      "case": "gcm__blur_crush",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:22:06Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:22:07Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:22:07Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:24:24Z",
+      "run_id": "",
+      "case": "gcm__import_combo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (191,94) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:24:25Z",
+      "run_id": "",
+      "case": "gcm__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:24:25Z",
+      "run_id": "",
+      "case": "gcm__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:26:19Z",
+      "run_id": "",
+      "case": "propak__blur_crush",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:26:19Z",
+      "run_id": "",
+      "case": "propak__blur_crush",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 18 elements the sketch shows (letters, bars, marks) are missing, at (161,58) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:26:20Z",
+      "run_id": "",
+      "case": "propak__blur_crush",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:28:06Z",
+      "run_id": "",
+      "case": "propak__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:28:06Z",
+      "run_id": "",
+      "case": "propak__downscale_jpeg",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:28:06Z",
+      "run_id": "",
+      "case": "propak__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:29:33Z",
+      "run_id": "",
+      "case": "propak__import_combo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:29:33Z",
+      "run_id": "",
+      "case": "propak__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:29:34Z",
+      "run_id": "",
+      "case": "propak__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T14:46:54Z",
+      "run_id": "",
+      "case": "original",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (27, 25, 26) is 11.7% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            27,
+            25,
+            26
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:46:54Z",
+      "run_id": "",
+      "case": "original",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (27, 25, 26) is 11.7% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            27,
+            25,
+            26
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T14:46:54Z",
+      "run_id": "",
+      "case": "original",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (27, 25, 26) is 11.7% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            27,
+            25,
+            26
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:06:50Z",
+      "run_id": "",
+      "case": "arc__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:06:50Z",
+      "run_id": "",
+      "case": "arc__plate_halo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "3 of the 16 elements the sketch shows (letters, bars, marks) are missing, at (252,30), (263,30), (325,36) in sketch pixels",
+          "n": 3
+        },
+        {
+          "check": "collapse",
+          "severity": "block",
+          "detail": "the output carries 8.9% of its sketch's ink \u2014 the mark has collapsed"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:06:50Z",
+      "run_id": "",
+      "case": "arc__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (50, 71, 72) is 35.5% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            50,
+            71,
+            72
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:06:51Z",
+      "run_id": "20260926T150304Z",
+      "case": "arc__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:06:52Z",
+      "run_id": "20260926T150304Z",
+      "case": "gcm__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels",
+          "n": 2
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "13 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (278,68), (226,71), (246,71), (264,71), (126,104) ... in sketch pixels",
+          "n": 13
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:07:23Z",
+      "run_id": "",
+      "case": "propak__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "4 of the 4 small elements the sketch shows (dots, accents, marks) are missing, at (108,71), (209,74), (40,78), (62,78) in sketch pixels",
+          "n": 4
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "11 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (40,83), (62,84), (98,86), (120,86), (176,84), (194,83), (211,83) ... in sketch pixels",
+          "n": 11
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:07:23Z",
+      "run_id": "",
+      "case": "propak__plate_halo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:07:24Z",
+      "run_id": "",
+      "case": "propak__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "3 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (243,84), (284,84) in sketch pixels",
+          "n": 3
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:07:25Z",
+      "run_id": "20260926T145343Z",
+      "case": "propak__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:08:07Z",
+      "run_id": "20260926T145343Z",
+      "case": "swift_orange__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:08:24Z",
+      "run_id": "",
+      "case": "gcm__import_combo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (211,90), (258,92) in sketch pixels",
+          "n": 2
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "19 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (163,67), (175,67), (202,68), (278,68), (147,71), (226,71), (246,71) ... in sketch pixels",
+          "n": 19
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:08:24Z",
+      "run_id": "",
+      "case": "gcm__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:08:24Z",
+      "run_id": "",
+      "case": "gcm__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (157, 18, 36) is 21.4% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            157,
+            18,
+            36
+          ]
+        },
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels",
+          "n": 2
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "14 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (147,71), (226,71), (246,71), (264,71), (126,104) ... in sketch pixels",
+          "n": 14
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:08:25Z",
+      "run_id": "20260926T150304Z",
+      "case": "gcm__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:08:27Z",
+      "run_id": "20260926T150304Z",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:10:41Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:10:41Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:10:41Z",
+      "run_id": "",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:10:43Z",
+      "run_id": "20260926T150304Z",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:10:45Z",
+      "run_id": "20260926T150304Z",
+      "case": "gcm__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:12:19Z",
+      "run_id": "",
+      "case": "gcm__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "3 of the 5 small elements the sketch shows (dots, accents, marks) are missing, at (357,83), (265,99), (324,139) in sketch pixels",
+          "n": 3
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (356,96) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:12:20Z",
+      "run_id": "",
+      "case": "gcm__plate_halo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:12:20Z",
+      "run_id": "",
+      "case": "gcm__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:12:21Z",
+      "run_id": "20260926T150304Z",
+      "case": "gcm__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:12:23Z",
+      "run_id": "20260926T150304Z",
+      "case": "propak__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (168,62), (195,62) in sketch pixels",
+          "n": 6
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:13:40Z",
+      "run_id": "",
+      "case": "propak__import_combo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "7 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (130,62), (168,62), (195,62) in sketch pixels",
+          "n": 7
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:13:40Z",
+      "run_id": "",
+      "case": "propak__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:13:40Z",
+      "run_id": "",
+      "case": "propak__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (168,62), (195,62) in sketch pixels",
+          "n": 6
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:13:41Z",
+      "run_id": "20260926T150304Z",
+      "case": "propak__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:13:42Z",
+      "run_id": "20260926T150304Z",
+      "case": "propak__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+          "n": 6
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:15:23Z",
+      "run_id": "",
+      "case": "propak__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (243,66) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "9 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (16,72), (136,72), (36,74), (55,75), (106,77), (156,75), (172,74), (234,75) ... in sketch pixels",
+          "n": 9
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:15:23Z",
+      "run_id": "",
+      "case": "propak__downscale_jpeg",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:15:23Z",
+      "run_id": "",
+      "case": "propak__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+          "n": 6
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:15:24Z",
+      "run_id": "20260926T150304Z",
+      "case": "propak__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:15:26Z",
+      "run_id": "20260926T150304Z",
+      "case": "propak__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "3 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (243,84), (284,84) in sketch pixels",
+          "n": 3
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:16:44Z",
+      "run_id": "",
+      "case": "propak__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "4 of the 4 small elements the sketch shows (dots, accents, marks) are missing, at (108,71), (209,74), (40,78), (62,78) in sketch pixels",
+          "n": 4
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "11 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (40,83), (62,84), (98,86), (120,86), (176,84), (194,83), (211,83) ... in sketch pixels",
+          "n": 11
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:16:44Z",
+      "run_id": "",
+      "case": "propak__plate_halo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:16:44Z",
+      "run_id": "",
+      "case": "propak__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "3 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (243,84), (284,84) in sketch pixels",
+          "n": 3
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:16:45Z",
+      "run_id": "20260926T150304Z",
+      "case": "propak__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:17:27Z",
+      "run_id": "20260926T150304Z",
+      "case": "swift_orange__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:18:14Z",
+      "run_id": "20260926T151813Z",
+      "case": "arc__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:19:28Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (85,55) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "2 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (246,29), (289,28) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:19:28Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25), (85,55) in sketch pixels",
+          "n": 2
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "4 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (236,28), (246,29), (289,28), (343,27) in sketch pixels",
+          "n": 4
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:19:28Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            33,
+            54,
+            55
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:19:29Z",
+      "run_id": "20260926T151813Z",
+      "case": "arc__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            33,
+            54,
+            55
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:19:30Z",
+      "run_id": "20260926T151813Z",
+      "case": "arc__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:20:03Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (85,55) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "2 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (246,29), (289,28) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:20:03Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25), (85,55) in sketch pixels",
+          "n": 2
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "4 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (236,28), (246,29), (289,28), (343,27) in sketch pixels",
+          "n": 4
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:20:03Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            33,
+            54,
+            55
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:20:42Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 16 elements the sketch shows (letters, bars, marks) are missing, at (342,23) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:20:42Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "10 of the 16 elements the sketch shows (letters, bars, marks) are missing, at (50,24), (272,23), (175,24), (191,24), (235,23), (242,24), (256,24), (289,23) ... in sketch pixels",
+          "n": 10
+        },
+        {
+          "check": "collapse",
+          "severity": "block",
+          "detail": "the output carries 9.2% of its sketch's ink \u2014 the mark has collapsed"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:20:42Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (46, 68, 69) is 31.6% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            46,
+            68,
+            69
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:20:43Z",
+      "run_id": "20260926T151813Z",
+      "case": "arc__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (46, 68, 69) is 31.6% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            46,
+            68,
+            69
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:20:44Z",
+      "run_id": "20260926T151813Z",
+      "case": "arc__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:21:59Z",
+      "run_id": "",
+      "case": "arc__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:21:59Z",
+      "run_id": "",
+      "case": "arc__plate_halo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "3 of the 16 elements the sketch shows (letters, bars, marks) are missing, at (252,30), (263,30), (325,36) in sketch pixels",
+          "n": 3
+        },
+        {
+          "check": "collapse",
+          "severity": "block",
+          "detail": "the output carries 8.9% of its sketch's ink \u2014 the mark has collapsed"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:21:59Z",
+      "run_id": "",
+      "case": "arc__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (50, 71, 72) is 35.5% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            50,
+            71,
+            72
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:22:00Z",
+      "run_id": "20260926T151813Z",
+      "case": "arc__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:22:01Z",
+      "run_id": "20260926T151813Z",
+      "case": "gcm__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels",
+          "n": 2
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "15 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (278,68), (147,71), (226,71), (246,71), (264,71) ... in sketch pixels",
+          "n": 15
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:24:20Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (85,55) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:24:21Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25), (85,55) in sketch pixels",
+          "n": 2
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "4 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (236,28), (246,29), (289,28), (343,27) in sketch pixels",
+          "n": 4
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:24:21Z",
+      "run_id": "",
+      "case": "arc__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "brand_colour",
+          "severity": "block",
+          "detail": "colour (40, 56, 59) is 34.6% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+          "colour": [
+            40,
+            56,
+            59
+          ]
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:27:35Z",
+      "run_id": "20260926T152734Z",
+      "case": "arc__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:27:36Z",
+      "run_id": "20260926T152734Z",
+      "case": "arc__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:27:37Z",
+      "run_id": "20260926T152734Z",
+      "case": "arc__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:27:38Z",
+      "run_id": "20260926T152734Z",
+      "case": "arc__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:27:39Z",
+      "run_id": "20260926T152734Z",
+      "case": "arc__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:27:41Z",
+      "run_id": "20260926T152734Z",
+      "case": "arc__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:27:42Z",
+      "run_id": "20260926T152734Z",
+      "case": "gcm__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels",
+          "n": 2
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "15 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (278,68), (147,71), (226,71), (246,71), (264,71) ... in sketch pixels",
+          "n": 15
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:27:44Z",
+      "run_id": "20260926T152734Z",
+      "case": "gcm__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels",
+          "n": 2
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "14 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (278,68), (226,71), (246,71), (264,71), (126,104) ... in sketch pixels",
+          "n": 14
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:27:46Z",
+      "run_id": "20260926T152734Z",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:28:39Z",
+      "run_id": "20260926T152734Z",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:28:42Z",
+      "run_id": "20260926T152734Z",
+      "case": "gcm__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:28:46Z",
+      "run_id": "20260926T152734Z",
+      "case": "gcm__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:28:47Z",
+      "run_id": "20260926T152734Z",
+      "case": "propak__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (168,62), (195,62) in sketch pixels",
+          "n": 6
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:28:48Z",
+      "run_id": "20260926T152734Z",
+      "case": "propak__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (168,62), (195,62) in sketch pixels",
+          "n": 6
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:28:50Z",
+      "run_id": "20260926T152734Z",
+      "case": "propak__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+          "n": 6
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:29:16Z",
+      "run_id": "20260926T152734Z",
+      "case": "propak__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+          "n": 6
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:29:17Z",
+      "run_id": "20260926T152734Z",
+      "case": "propak__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "3 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (243,84), (284,84) in sketch pixels",
+          "n": 3
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:29:20Z",
+      "run_id": "20260926T152734Z",
+      "case": "propak__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "4 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (62,84), (243,84), (284,84) in sketch pixels",
+          "n": 4
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:30:04Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:31:24Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:31:53Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:32:23Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:33:04Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:33:45Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:34:12Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange_solid__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:35:05Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange_solid__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:35:31Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange_solid__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:36:29Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange_solid__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:37:08Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange_solid__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:38:19Z",
+      "run_id": "20260926T152734Z",
+      "case": "swift_orange_solid__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:38:20Z",
+      "run_id": "20260926T152734Z",
+      "case": "trialta__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:38:20Z",
+      "run_id": "20260926T152734Z",
+      "case": "trialta__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:38:21Z",
+      "run_id": "20260926T152734Z",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:38:22Z",
+      "run_id": "20260926T152734Z",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:38:22Z",
+      "run_id": "20260926T152734Z",
+      "case": "trialta__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:38:23Z",
+      "run_id": "20260926T152734Z",
+      "case": "trialta__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:41:52Z",
+      "run_id": "20260926T154151Z",
+      "case": "arc__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:41:53Z",
+      "run_id": "20260926T154151Z",
+      "case": "arc__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:41:54Z",
+      "run_id": "20260926T154151Z",
+      "case": "arc__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:41:56Z",
+      "run_id": "20260926T154151Z",
+      "case": "arc__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:41:56Z",
+      "run_id": "20260926T154151Z",
+      "case": "arc__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:41:58Z",
+      "run_id": "20260926T154151Z",
+      "case": "arc__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:41:59Z",
+      "run_id": "20260926T154151Z",
+      "case": "gcm__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:42:28Z",
+      "run_id": "20260926T154151Z",
+      "case": "gcm__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:42:30Z",
+      "run_id": "20260926T154151Z",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:43:15Z",
+      "run_id": "20260926T154151Z",
+      "case": "gcm__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:43:18Z",
+      "run_id": "20260926T154151Z",
+      "case": "gcm__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:43:21Z",
+      "run_id": "20260926T154151Z",
+      "case": "gcm__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:43:23Z",
+      "run_id": "20260926T154151Z",
+      "case": "propak__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:43:25Z",
+      "run_id": "20260926T154151Z",
+      "case": "propak__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:43:26Z",
+      "run_id": "20260926T154151Z",
+      "case": "propak__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+          "n": 6
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:44:13Z",
+      "run_id": "20260926T154151Z",
+      "case": "propak__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "small_element",
+          "severity": "block",
+          "detail": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (202,64) in sketch pixels",
+          "n": 1
+        },
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+          "n": 6
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:44:15Z",
+      "run_id": "20260926T154151Z",
+      "case": "propak__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "3 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (243,84), (284,84) in sketch pixels",
+          "n": 3
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:44:18Z",
+      "run_id": "20260926T154151Z",
+      "case": "propak__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "3 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (243,84), (284,84) in sketch pixels",
+          "n": 3
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T15:45:01Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:46:14Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:46:43Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:47:13Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:47:53Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:48:35Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:49:03Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange_solid__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:49:56Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange_solid__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:50:22Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange_solid__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:51:37Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange_solid__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:52:17Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange_solid__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:53:50Z",
+      "run_id": "20260926T154151Z",
+      "case": "swift_orange_solid__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:53:51Z",
+      "run_id": "20260926T154151Z",
+      "case": "trialta__import_combo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:53:52Z",
+      "run_id": "20260926T154151Z",
+      "case": "trialta__import_combo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:53:52Z",
+      "run_id": "20260926T154151Z",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:53:53Z",
+      "run_id": "20260926T154151Z",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:53:54Z",
+      "run_id": "20260926T154151Z",
+      "case": "trialta__plate_halo",
+      "candidate": "baseline",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-26T15:53:55Z",
+      "run_id": "20260926T154151Z",
+      "case": "trialta__plate_halo",
+      "candidate": "vectorize",
+      "context": "report",
+      "passed": true,
+      "findings": []
+    }
+  ],
+  "withheld_last": {
+    "run_id": "20260926T154151Z",
+    "count": 0,
+    "engines": [
+      "baseline",
+      "esrgan"
+    ]
+  }
+}
