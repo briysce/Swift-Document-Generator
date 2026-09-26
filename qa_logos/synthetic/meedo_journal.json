@@ -127,6 +127,19 @@
         "commit": "cda8b13"
       },
       "source": "cli"
+    },
+    {
+      "id": "Jb8cfe393",
+      "ts": "2026-09-26T13:29:38Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "finding",
+      "summary": "Arc golden prep: 3 layers (navy/red/near-black). Navy RESOURCES letters present as separate islands after prepare; glyph match returned 0. Big navy blob (1213px) at left may be merged geometry. No separate teal tagline in golden/customer fixture \u2014 'tagline' may mean RESOURCES wordmark. Trace-red issue likely colour assignment on navy\u2192red bleed. idealize glyph cold start ~68s.",
+      "evidence": {
+        "commit": "3635427",
+        "images_looked_at": true
+      },
+      "source": "cli"
     }
   ]
 }
