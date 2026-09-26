@@ -295,6 +295,70 @@ def strip_halo_fringe(
     return out
 
 
+def _is_small_mark(
+    arr: np.ndarray,
+    ix: np.ndarray,
+    iy: np.ndarray,
+    keep: np.ndarray,
+    keep_lab: np.ndarray,
+    keep_dt: np.ndarray,
+) -> bool:
+    """An i-dot, accent, period or ® — drawn on purpose, however small.
+
+    Size alone cannot tell a mark from a crumb: GCM's i-dots are 16-25 px
+    beside a 6,000 px monogram, so a size cut (1.2% of the largest island)
+    erased all three before any engine saw the logo, and every engine then
+    drew "Modificatıon". A mark is made of the logo's own ink — compact, as
+    opaque and as coloured as the letters — and sits close to them. JPEG and
+    import noise fails at least one of those: faint, ragged, off-colour, or
+    adrift in the page.
+    """
+    area = len(ix)
+    if area < 9:
+        return False
+    w = int(ix.max() - ix.min()) + 1
+    h = int(iy.max() - iy.min()) + 1
+    if min(w, h) < 3:
+        return False                     # a sliver, not a mark
+    if area / float(w * h) < 0.55 or max(w, h) > 2.5 * min(w, h):
+        return False
+    alpha = arr[iy, ix, 3].astype(np.float32)
+    if float(np.median(alpha)) < 200:
+        return False
+    pix = arr[iy, ix, :3].astype(np.float32)
+    # Beside the letters, as a dot sits above its stem: within two of its own
+    # sizes of kept ink, not adrift in the page. (Its gap to the stem is no
+    # test: at import scale a tittle sits 1-2 px above its stem, as close as
+    # fringe does.)
+    g = 2 * max(w, h) + 2
+    y0, y1 = max(0, int(iy.min()) - g), min(keep.shape[0], int(iy.max()) + g + 1)
+    x0, x1 = max(0, int(ix.min()) - g), min(keep.shape[1], int(ix.max()) + g + 1)
+    near = np.unique(keep_lab[y0:y1, x0:x1])
+    near = near[near > 0]
+    if not len(near):
+        return False
+    # Sized like the strokes beside it: a tittle is about as wide as its stem.
+    # Crumbs off Swift's letters are 2-4 px beside strokes of 40 and more; an
+    # i-dot in GCM's "Modification" is 4-5 px beside strokes of about 4.
+    for k in near:
+        comp = keep_lab == k
+        stroke = 2.0 * float(np.percentile(keep_dt[comp], 90))
+        if not (0.6 * stroke <= min(w, h) and max(w, h) <= 2.5 * stroke):
+            continue
+        # Made of the same ink as that stroke's core, not its fringe: blurred
+        # letters are ringed in pale fringe, and pale specks match it. Judged by
+        # the mark's own solid core, since blur washes a small dot's edges: an
+        # i-dot averaging (87,91,106) beside navy (21,35,69) is still navy at
+        # its centre.
+        core = comp & (keep_dt >= max(1.0, 0.5 * float(np.percentile(keep_dt[comp], 90))))
+        if not core.any():
+            continue
+        ink = np.median(arr[core][:, :3].astype(np.float32), axis=0)
+        if float((np.abs(pix - ink).sum(axis=1) <= 90).mean()) >= 0.25:
+            return True
+    return False
+
+
 def prune_ink_speckles(
     arr: np.ndarray,
     min_px: int = 18,
@@ -327,6 +391,9 @@ def prune_ink_speckles(
     keep_w, keep_h = max(6, int(bw * 0.08)), max(6, int(bh * 0.08))
     x0, x1 = int(xs.min()), int(xs.max())
     y0, y1 = int(ys.min()), int(ys.max())
+    kept = ink & ~drop
+    kept_lab, _ = ndimage.label(kept)
+    kept_dt = ndimage.distance_transform_edt(kept)
     for i in range(1, n + 1):
         if sizes[i] >= thr:
             continue
@@ -344,6 +411,9 @@ def prune_ink_speckles(
         if (int(ix.max() - ix.min()) + 1) >= keep_w or (
             int(iy.max() - iy.min()) + 1
         ) >= keep_h:
+            drop[lab == i] = False
+            continue
+        if _is_small_mark(out, ix, iy, kept, kept_lab, kept_dt):
             drop[lab == i] = False
     if protect is not None:
         drop = drop & ~protect

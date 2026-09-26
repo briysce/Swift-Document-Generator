@@ -172,3 +172,28 @@ def test_a_false_alarm_is_withdrawn_not_erased(tmp_path):
     assert got["blocked"] == 1 and got["retracted"] == 1 and "small_element" not in got["by_check"]
     assert len(load(ledger)["reviews"]) == 2
 
+
+def test_a_shared_loss_does_not_choose_between_candidates():
+    from tools.logo_vectorizer.meedo_review import lost_no_more
+
+    sketch = _logo(WORD + DOTS, size=(160, 80))
+    no_dots = review(_logo(WORD, size=(160, 80)), sketch)
+    one_dot = review(_logo(WORD + DOTS[:1], size=(160, 80)), sketch)
+    no_word = review(_logo(DOTS, size=(160, 80)), sketch)
+    assert lost_no_more(no_dots, no_dots)
+    assert lost_no_more(one_dot, no_dots) and not lost_no_more(no_dots, one_dot)
+    assert not lost_no_more(no_word, no_dots)
+
+
+
+def test_dots_are_found_on_an_output_cropped_to_its_ink():
+    """Preparation crops to the ink, so outputs are not on the sketch's canvas.
+    Stretching them onto it moved GCM's third dot far enough to misjudge it."""
+    page = (255, 255, 255)
+    sketch = _logo(WORD + DOTS, size=(160, 80), page=page)
+    cropped = sketch[18:55, 10:150]                  # the output frame: ink only
+    big = np.asarray(Image.fromarray(cropped).resize((140 * 6, 37 * 6), Image.Resampling.LANCZOS))
+    assert review(big, sketch).passed
+    no_dots = _logo(WORD, size=(160, 80), page=page)[18:55, 10:150]
+    big = np.asarray(Image.fromarray(no_dots).resize((140 * 6, 37 * 6), Image.Resampling.LANCZOS))
+    assert not review(big, sketch).passed

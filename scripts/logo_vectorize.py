@@ -281,6 +281,16 @@ def _meedo_review(cand: Candidate, prepared: np.ndarray, source: np.ndarray, cas
     return cand
 
 
+def _lost_no_more(a: Candidate, b: Candidate) -> bool:
+    """`a` lost nothing that `b` kept (see meedo_review.lost_no_more)."""
+    try:
+        from tools.logo_vectorizer.meedo_review import lost_no_more
+
+        return lost_no_more(a.review, b.review)
+    except Exception:  # noqa: BLE001 — without a reviewer, nothing is known
+        return False
+
+
 def _prefer_reconstruction(ideal: Candidate, traced: Candidate) -> bool:
     """Should the reconstruction ship instead of the trace?
 
@@ -605,6 +615,16 @@ def convert(
             if ideal.passed_review and not traced.passed_review:
                 winner = ideal
             elif ideal.passed_review and _prefer_reconstruction(ideal, traced):
+                winner = ideal
+            elif (
+                not ideal.passed_review
+                and not traced.passed_review
+                and _lost_no_more(ideal, traced)
+                and _prefer_reconstruction(ideal, traced)
+            ):
+                # Both blocked for the same loss (GCM: the i-dots are erased
+                # before either engine runs). The block cannot choose between
+                # them, so the derived rule does, as if neither were blocked.
                 winner = ideal
         if not winner.passed_review:
             print(

@@ -98,11 +98,14 @@ class Finding:
     severity: str  # "block" or "warn"
     detail: str
     colour: tuple[int, int, int] | None = None
+    n: int | None = None  # how many were lost, where the check counts
 
     def as_dict(self) -> dict:
         d = {"check": self.check, "severity": self.severity, "detail": self.detail}
         if self.colour is not None:
             d["colour"] = list(self.colour)
+        if self.n is not None:
+            d["n"] = self.n
         return d
 
 
@@ -290,14 +293,64 @@ def _check_small_elements(sketch: np.ndarray, output: np.ndarray, sketch_layers,
     dots = _small_elements(sketch, sketch_layers)
     if not dots:
         return []
-    ink = np.zeros(output.shape[:2], bool)
-    for m, c, _n in output_layers:
-        if not _is_page_white(c):
-            ink |= m.astype(bool)
+
+    def union(layers, shape):
+        m = np.zeros(shape, bool)
+        for lm, c, _n in layers:
+            if not _is_page_white(c):
+                m |= lm.astype(bool)
+        return m
+
+    def bulk(m):
+        """The big pieces only, so dots present on one side and missing on the
+        other cannot pull the alignment either way."""
+        k, lab, st, _ = cv2.connectedComponentsWithStats(m.astype(np.uint8), connectivity=8)
+        if k <= 1:
+            return m
+        areas = st[1:, cv2.CC_STAT_AREA]
+        return np.isin(lab, 1 + np.flatnonzero(areas >= 0.02 * areas.max()))
+
+    ink = union(output_layers, output.shape[:2])
+    s_bulk = bulk(union(sketch_layers, sketch.shape[:2]))
+    o_bulk = bulk(ink)
+    if not o_bulk.any() or not s_bulk.any():
+        return []
+    # Align by the ink, not the canvas: preparation crops to the ink, so an
+    # output stretched onto the sketch's canvas drifts, most at the far edge —
+    # where GCM's third i-dot sits. Centre and spread, not extent: when the
+    # missing dots are the topmost ink, extents shrink and the alignment would
+    # stretch the word over the empty spots. A few dots barely move the moments.
+    # Moments give the start; ECC registration on all the ink then gives the
+    # sub-pixel fit a 4-px dot needs. Moments alone were a pixel or two off on
+    # GCM and PROPAK — enough to call present dots missing and the reverse.
+    sy, sx = np.nonzero(s_bulk)
+    oy, ox = np.nonzero(o_bulk)
+    fx = float(ox.std()) / max(float(sx.std()), 1e-6)
+    fy = float(oy.std()) / max(float(sy.std()), 1e-6)
+    warp = np.array([[fx, 0.0, ox.mean() - fx * sx.mean()],
+                     [0.0, fy, oy.mean() - fy * sy.mean()]], np.float32)
+    try:
+        t = cv2.GaussianBlur(s_bulk.astype(np.float32), (0, 0), 1.0)
+        i = cv2.GaussianBlur(o_bulk.astype(np.float32), (0, 0), 1.0)
+        crit = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 200, 1e-6)
+        # A copy: OpenCV rewrites the matrix in place even when it then fails.
+        _, warp = cv2.findTransformECC(t, i, warp.copy(), cv2.MOTION_AFFINE, crit, None, 5)
+    except cv2.error:
+        pass                                # keep the moments estimate
+
+    def to_output(px, py):
+        return (warp[0, 0] * px + warp[0, 1] * py + warp[0, 2],
+                warp[1, 0] * px + warp[1, 1] * py + warp[1, 2])
+
+    scale = abs(float(warp[0, 0] * warp[1, 1] - warp[0, 1] * warp[1, 0]))
     missing = []
     for mask, (x, y, w, h) in dots:
-        near = cv2.dilate(mask.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
-        if (ink & near).sum() < DOT_KEPT * mask.sum():
+        ax, ay = to_output(x, y)
+        bx, by = to_output(x + w, y + h)
+        x0, x1 = int(round(min(ax, bx))) - 1, int(round(max(ax, bx))) + 1
+        y0, y1 = int(round(min(ay, by))) - 1, int(round(max(ay, by))) + 1
+        win = ink[max(0, y0):max(0, y1), max(0, x0):max(0, x1)]
+        if win.sum() < DOT_KEPT * mask.sum() * scale:
             missing.append(f"({x + w // 2},{y + h // 2})")
     if not missing:
         return []
@@ -307,6 +360,7 @@ def _check_small_elements(sketch: np.ndarray, output: np.ndarray, sketch_layers,
             "block",
             f"{len(missing)} of the {len(dots)} small elements the sketch shows "
             f"(dots, accents, marks) are missing, at {', '.join(missing)} in sketch pixels",
+            n=len(missing),
         )
     ]
 
@@ -404,6 +458,25 @@ def review(output, sketch, *also) -> Review:
             if not any(_same_finding(f, g) for g in first.findings):
                 first.findings.append(f)
     return first
+
+
+def lost_no_more(a: Review | None, b: Review | None) -> bool:
+    """Did `a` lose nothing that `b` kept?
+
+    When every candidate is blocked for the same loss, the block cannot choose
+    between them. GCM's i-dots are erased before any engine runs, so every
+    candidate lacked them and every one was blocked; falling back to the trace
+    then threw away a reconstruction that had lost nothing the trace kept.
+    """
+    fa = [f for f in (a.findings if a else []) if f.severity == "block"]
+    fb = [f for f in (b.findings if b else []) if f.severity == "block"]
+    for f in fa:
+        same = [g for g in fb if _same_finding(f, g)]
+        if not same:
+            return False
+        if f.n is not None and any(g.n is not None and f.n > g.n for g in same):
+            return False
+    return True
 
 
 def _same_finding(a: Finding, b: Finding) -> bool:
@@ -518,4 +591,4 @@ def catches(path: Path | None = None) -> dict:
     }
 
 
-__all__ = ["Finding", "Review", "catches", "palette", "record", "retract", "review"]
+__all__ = ["Finding", "Review", "catches", "lost_no_more", "palette", "record", "retract", "review"]
