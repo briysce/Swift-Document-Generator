@@ -2556,6 +2556,42 @@
         "episode": "E0121"
       },
       "source": "cli"
+    },
+    {
+      "id": "2026-09-26T22:34:44Z-claude",
+      "ts": "2026-09-26T22:34:44Z",
+      "agent": "claude",
+      "task": 4,
+      "kind": "resume",
+      "summary": "Back after the usage limit (22:26 UTC). Merged Cursor's 14:46\u201315:56 work (9c46b26); taking #4 and #12 back (Cursor quiet since 15:56)",
+      "evidence": {
+        "commit": "e501124"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "2026-09-26T22:34:44Z-claude-2",
+      "ts": "2026-09-26T22:34:44Z",
+      "agent": "claude",
+      "task": 4,
+      "kind": "finding",
+      "summary": "pairs.json had been regenerated with another seed (plate_halo replaced blur_crush; 12 pairs reseeded) \u2014 Cursor's Swift 0.9190 was measured on different inputs than the 0.9269 baseline. Restored the historical manifest; Run.config now fingerprints the corpus so different inputs are never compared",
+      "evidence": {
+        "commit": "e501124"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "2026-09-26T22:34:44Z-claude-3",
+      "ts": "2026-09-26T22:34:44Z",
+      "agent": "claude",
+      "task": 4,
+      "kind": "claim",
+      "summary": "Selection rule: measure minds ranking on all 18 pairs (New Bot's spec) before enabling LOGO_MINDS_RANK",
+      "evidence": {
+        "commit": "e501124"
+      },
+      "source": "manual"
     }
   ]
 }
