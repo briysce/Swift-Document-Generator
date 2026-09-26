@@ -94,3 +94,36 @@ def test_ai_lessons_union_prefers_offline_progress(tmp_path):
     assert set(lessons) == {"AL1", "AL2", "AL3"}
     assert lessons["AL1"]["times_applied_offline"] == 3
     assert "color-split" in lessons["AL1"]["method"]
+
+
+def test_procedures_union_prefers_higher_confidence(tmp_path):
+    a = {
+        "id": "P1",
+        "face": "serper",
+        "title": "brand crawl",
+        "steps": ["q1"],
+        "confidence": 0.3,
+        "offline_ready": False,
+        "times_applied_offline": 0,
+        "ts": "1",
+    }
+    b = {
+        "id": "P1",
+        "face": "serper",
+        "title": "brand crawl",
+        "steps": ["q1", "q2", "must_keep"],
+        "confidence": 0.8,
+        "offline_ready": True,
+        "times_applied_offline": 2,
+        "ts": "2",
+    }
+    ours = _w(tmp_path / "a", {"version": 1, "procedures": [a]})
+    theirs = _w(
+        tmp_path / "b",
+        {"version": 1, "procedures": [b, {"id": "P2", "face": "cursor", "title": "x", "steps": ["y"], "ts": "3"}]},
+    )
+    assert merge(ours, theirs)
+    procs = {p["id"]: p for p in json.loads((tmp_path / "a").read_text())["procedures"]}
+    assert set(procs) == {"P1", "P2"}
+    assert procs["P1"]["offline_ready"] is True
+    assert procs["P1"]["confidence"] == 0.8

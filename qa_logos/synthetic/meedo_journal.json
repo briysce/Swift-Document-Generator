@@ -519,6 +519,68 @@
         "branch": "cursor/logo-engine-collab-d4c9"
       },
       "source": "cli"
+    },
+    {
+      "id": "J110a0fc7",
+      "ts": "2026-09-26T13:58:59Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "finding",
+      "summary": "[cursor] meedo-me: Cloud/Cursor agent work unit on shared Meedo memory \u2192 meedo_cycle \u2192 claim/finding/done via meedo_journal \u2192 episode method \u2192 push",
+      "evidence": {
+        "observe": {
+          "face": "cursor",
+          "domain": "meedo-me",
+          "tried": "Cloud/Cursor agent work unit on shared Meedo memory",
+          "evidence": "Board #3 standing duty; PR #7 collab branch",
+          "method": "meedo_cycle \u2192 claim/finding/done via meedo_journal \u2192 episode method \u2192 push",
+          "outcome": "success",
+          "do_not_regress": [
+            "never commit .env secrets",
+            "Shipping SO/Contact lock",
+            "one Meedo brain via MCP"
+          ],
+          "providers": []
+        },
+        "commit": "cec5f6e"
+      },
+      "source": "seed_curriculum"
+    },
+    {
+      "id": "Ja7aeeabb",
+      "ts": "2026-09-26T13:59:25Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "done",
+      "summary": "Meedo study layer: observe+procedures+study MCP; hooks for Serper/collab_mind/receiving/BOL/improve/journal-done; cycle surfaces cannot-yet-own",
+      "evidence": {
+        "commit": "cec5f6e",
+        "tests": "pytest observe_study+ai_collab+mcp+merge+cycle (35+)",
+        "images_looked_at": true,
+        "measured_vs_previous": "n/a (Meedo product; 21/24 procedures offline-ready seeded)",
+        "branch": "cursor/logo-engine-collab-d4c9",
+        "needs_episode": true
+      },
+      "source": "cli"
+    },
+    {
+      "id": "Jed121558",
+      "ts": "2026-09-26T13:59:25Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "done",
+      "summary": "Meedo study layer: observe+procedures+study MCP; hooks for Serper/collab_mind/receiving/BOL/improve/journal-done; cycle surfaces cannot-yet-own",
+      "evidence": {
+        "method": "Unified observe() fans out to journal/lessons/episodes/procedures; wire every face hook; meedo_study for cannot-yet-own; fail-open.",
+        "commit": "cec5f6e",
+        "tests": "pytest observe_study+ai_collab+mcp+merge+cycle (35+)",
+        "images_looked_at": true,
+        "measured_vs_previous": "21/24 procedures offline-ready; meedo_study lists live-dependent lessons",
+        "branch": "cursor/logo-engine-collab-d4c9",
+        "episode_id": "E0052",
+        "episode_auto": true
+      },
+      "source": "cli"
     }
   ]
 }

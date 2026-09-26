@@ -56,7 +56,10 @@ INSTRUCTIONS = (
     "thin, or awkward — fix in-session and record under workstream meedo-me. "
     "Gemini and Claude APIs also advise via meedo_ai_advise; Meedo stores those "
     "lessons (meedo_ai_lessons) and prefers recalled offline advice when the "
-    "same problem returns — the hand-off path toward Meedo owning decisions."
+    "same problem returns — the hand-off path toward Meedo owning decisions. "
+    "Every face (Gemini/Claude/Serper/Cursor/Claude Code/OpenClaw/improve loops) "
+    "should record via observe → journal + lessons + episodes + procedures. "
+    "Call meedo_study to see what APIs did that Meedo cannot yet own offline."
 )
 
 
@@ -119,6 +122,20 @@ READ_TOOLS = {
                              "top": {"type": "integer", "minimum": 1, "maximum": 10}},
                             ["problem"]),
     },
+    "meedo_procedures": {
+        "description": "Recall fine-grained procedures Meedo studied from every face "
+                       "(Serper query patterns, preprocess knobs, WhatsApp digest shape, "
+                       "collab merge rules, brand must_keep). Prefer offline_ready hits.",
+        "inputSchema": _obj({"query": _S, "domain": _S, "face": _S,
+                             "top": {"type": "integer", "minimum": 1, "maximum": 10}},
+                            ["query"]),
+    },
+    "meedo_study": {
+        "description": "What faces (Gemini/Claude/Serper/Cursor/…) did that Meedo cannot "
+                       "yet own offline — blind spots, live-dependent lessons/procedures, "
+                       "journal dones missing episodes, offline-ready confidence.",
+        "inputSchema": _obj({}),
+    },
     "meedo_claude_progress": {
         "description": "Hourly-style progress digest for Claude Code (or cursor): board rows "
                        "they own, journal units in the window, and recent commits. Use for "
@@ -168,6 +185,16 @@ WRITE_TOOLS = {
             "force_live": {"type": "boolean"},
             "context_json": _S,
         }, ["problem"]),
+    },
+    "meedo_observe": {
+        "description": "Record what any face tried (method/evidence/outcome/do-not-regress) into "
+                       "Meedo's one memory: journal + ai_lessons + episodes + procedure playbook.",
+        "inputSchema": _obj({
+            "face": _S, "domain": _S, "tried": _S, "evidence": _S, "method": _S,
+            "outcome": {"type": "string", "enum": ["success", "failure", "partial", "open"]},
+            "steps": _SL, "do_not_regress": _SL, "tags": _SL, "cases": _SL,
+            "task": {"type": "integer"},
+        }, ["face", "tried"]),
     },
 }
 
@@ -254,6 +281,12 @@ def _call(name: str, args: dict, read_only: bool) -> object:
         r = L.knowledge_report()
         r["workstreams"] = E.workstreams()
         r["journal"] = J.standup()
+        try:
+            from tools.ai_collab.study import collect_study_report
+
+            r["study"] = collect_study_report()
+        except Exception:
+            r["study"] = {}
         return r
     if name == "meedo_review":
         from tools.logo_vectorizer.meedo_review import review
@@ -281,6 +314,22 @@ def _call(name: str, args: dict, read_only: bool) -> object:
             top=int(args.get("top", 3)),
             mark_recalled=False,
         )
+    if name == "meedo_procedures":
+        from tools.ai_collab.procedures import recall_procedures
+
+        return recall_procedures(
+            args["query"],
+            domain=args.get("domain", ""),
+            face=args.get("face", ""),
+            top=int(args.get("top", 5)),
+            mark_recalled=False,
+        )
+    if name == "meedo_study":
+        from tools.ai_collab.study import collect_study_report, format_study_report
+
+        data = collect_study_report()
+        data["text"] = format_study_report(data)
+        return data
     if read_only:
         raise PermissionError(f"{name} changes Meedo-Me's memory and this server is read-only")
     if name == "meedo_decide":
@@ -324,6 +373,24 @@ def _call(name: str, args: dict, read_only: bool) -> object:
             journal=True,
         )
         return advice.to_dict() if advice else {"status": "unavailable", "fail_open": True}
+    if name == "meedo_observe":
+        from tools.ai_collab.observe import observe
+
+        result = observe(
+            face=args["face"],
+            domain=args.get("domain") or "general",
+            tried=args["tried"],
+            evidence=args.get("evidence", ""),
+            method=args.get("method", ""),
+            outcome=args.get("outcome") or "open",
+            steps=args.get("steps"),
+            do_not_regress=args.get("do_not_regress"),
+            tags=args.get("tags"),
+            cases=args.get("cases"),
+            task=args.get("task", 3),
+            source="mcp",
+        )
+        return result.to_dict()
     raise KeyError(name)
 
 

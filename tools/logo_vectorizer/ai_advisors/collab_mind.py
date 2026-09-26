@@ -576,6 +576,47 @@ def journal_escalation(
     except Exception as exc:  # noqa: BLE001
         print(f"[collab_mind] ai lesson persist skipped: {exc}", file=sys.stderr)
 
+    # Unified observe → procedure playbook (preprocess knobs + merge rules).
+    try:
+        from tools.ai_collab.observe import observe
+
+        g = guidance.to_dict()
+        observe(
+            face="collab_mind",
+            domain="logo_restore",
+            tried=summary[:400],
+            evidence=guidance.diagnosis,
+            method=(guidance.diagnosis or "; ".join(guidance.actions[:3]))[:600],
+            outcome="partial",
+            actions=list(guidance.actions),
+            steps=list(guidance.actions)[:12],
+            knobs={
+                "preferred_path": guidance.preferred_path,
+                "takeover": guidance.takeover,
+                "severity": signal.severity,
+                "reasons": list(signal.reasons)[:6] if hasattr(signal, "reasons") else [],
+                "recommended_preprocess": dict(guidance.recommended_preprocess or {}),
+                "recommended_backends": list(guidance.recommended_backends or []),
+            },
+            do_not_regress=[
+                "never invent brand colors from gray",
+                "meedo_review must pass before shipping mind output",
+            ],
+            providers=list(guidance.providers_used),
+            tags=["collab_mind", "logo_restore", "escalate"],
+            cases=[case_id] if case_id else None,
+            task=task,
+            agree=guidance.agree,
+            journal=False,
+            lesson=False,  # already persisted above
+            episode=False,
+            procedure=True,
+            source="collab_mind",
+            raw=g,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"[collab_mind] observe skipped: {exc}", file=sys.stderr)
+
     return entry
 
 

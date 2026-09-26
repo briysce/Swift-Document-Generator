@@ -205,3 +205,43 @@ def test_ai_advise_and_lessons_tools(tmp_path, monkeypatch):
     # Read-only refuses the write tool.
     err, text = _call("meedo_ai_advise", {"problem": "x"}, True)
     assert err and "read-only" in text
+
+
+def test_study_procedures_and_observe_tools(tmp_path, monkeypatch):
+    from tools.ai_collab import procedures as proc_mod
+    from tools.ai_collab import learn as learn_mod
+    from tools.logo_vectorizer import meedo_journal as J
+    from tools.logo_vectorizer import meedo_episodes as E
+
+    monkeypatch.setattr(proc_mod, "DEFAULT_PATH", tmp_path / "meedo_procedures.json")
+    monkeypatch.setattr(learn_mod, "DEFAULT_PATH", tmp_path / "meedo_ai_lessons.json")
+    monkeypatch.setattr(J, "JOURNAL", tmp_path / "meedo_journal.json")
+    monkeypatch.setattr(E, "EPISODES", tmp_path / "meedo_episodes.json")
+
+    err, text = _call(
+        "meedo_observe",
+        {
+            "face": "cursor",
+            "domain": "meedo-me",
+            "tried": "MCP observe tool records procedures",
+            "method": "meedo_observe → persist_procedure",
+            "outcome": "success",
+            "steps": ["call meedo_observe", "recall with meedo_procedures"],
+        },
+    )
+    assert not err
+    body = json.loads(text)
+    assert body.get("procedure_id")
+
+    err, text = _call(
+        "meedo_procedures",
+        {"query": "MCP observe tool records procedures", "face": "cursor"},
+    )
+    assert not err
+    assert json.loads(text)
+
+    err, text = _call("meedo_study", {})
+    assert not err
+    study = json.loads(text)
+    assert "confidence" in study
+    assert "text" in study

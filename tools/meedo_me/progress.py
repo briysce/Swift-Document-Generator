@@ -232,7 +232,8 @@ def polish_with_ai(digest: str, data: dict) -> str:
                 "update (≤1200 chars). Keep all board #, statuses, and commit "
                 "SHAs. No fluff. Return the message body only in method or diagnosis."
             ),
-            extra_context={"digest": digest[:3500], "agent": data.get("agent")},
+            context={"digest": digest[:3500], "agent": data.get("agent")},
+            tags=["openclaw", "whatsapp", "progress"],
             journal=False,
         )
         if advice is None:
@@ -240,6 +241,47 @@ def polish_with_ai(digest: str, data: dict) -> str:
         body = (advice.method or advice.diagnosis or "").strip()
         if len(body) < 40:
             return digest
+        # Meedo studies WhatsApp digest shape so it can own polish offline.
+        try:
+            from tools.ai_collab.observe import observe
+
+            observe(
+                face="openclaw",
+                domain="meedo_progress",
+                tried="Polish hourly Claude/Cursor progress for WhatsApp",
+                evidence=f"agent={data.get('agent')} hours={data.get('hours')}",
+                method=(
+                    "Keep board #/status/SHA; ≤1200 chars; no fluff; "
+                    "E.164 target from MEEDO_WHATSAPP_TO in gitignored .env only."
+                ),
+                outcome="success",
+                steps=[
+                    "collect(agent, hours) from journal + COORDINATION + git",
+                    "format_digest → optional Gemini↔Claude polish",
+                    "openclaw message send --channel whatsapp --target $MEEDO_WHATSAPP_TO",
+                ],
+                knobs={
+                    "max_chars": 1200,
+                    "channel": "whatsapp",
+                    "env_keys": ["MEEDO_WHATSAPP_TO", "OPENCLAW_WHATSAPP_TO"],
+                },
+                do_not_regress=[
+                    "never commit phone numbers or API keys",
+                    "fail-open to unpolished digest when APIs dark",
+                ],
+                providers=list(advice.providers_used),
+                tags=["whatsapp", "openclaw", "progress"],
+                task=6,
+                journal=False,
+                lesson=True,
+                episode=False,
+                procedure=True,
+                offline_ready=True,
+                confidence=0.65,
+                source="progress_polish",
+            )
+        except Exception:
+            pass
         return body[:1500] + ("\n" if not body.endswith("\n") else "")
     except Exception as exc:  # noqa: BLE001
         print(f"[progress] AI polish skipped: {exc}", file=sys.stderr)

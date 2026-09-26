@@ -26,7 +26,7 @@
       ],
       "agree": null,
       "source": "ai_collab",
-      "ts": "2026-09-26T13:53:17Z",
+      "ts": "2026-09-26T13:59:40Z",
       "times_recalled": 0,
       "times_applied_offline": 0,
       "raw": {
@@ -184,6 +184,240 @@
         "agree": true,
         "handoff_to_meedo": true
       }
+    },
+    {
+      "id": "AL9bccc72f",
+      "domain": "meedo-me",
+      "problem": "Cloud/Cursor agent work unit on shared Meedo memory",
+      "diagnosis": "Board #3 standing duty; PR #7 collab branch",
+      "method": "meedo_cycle \u2192 claim/finding/done via meedo_journal \u2192 episode method \u2192 push",
+      "actions": [
+        "python -m tools.logo_vectorizer.meedo_cycle",
+        "meedo_journal log --agent cursor --kind claim|finding|done",
+        "meedo_record_episode / observe() when method known",
+        "git commit + push on cursor/logo-engine-collab-d4c9",
+        "Comment issue #6 for handoffs"
+      ],
+      "risks": [
+        "never commit .env secrets",
+        "Shipping SO/Contact lock",
+        "one Meedo brain via MCP"
+      ],
+      "providers": [],
+      "tags": [
+        "cursor",
+        "meedo-me",
+        "agent",
+        "board3"
+      ],
+      "cases": [],
+      "agree": null,
+      "source": "ai_collab",
+      "ts": "2026-09-26T13:58:59Z",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "raw": {}
+    },
+    {
+      "id": "AL15a22a55",
+      "domain": "meedo-me",
+      "problem": "Claude Code work unit on shared Meedo memory",
+      "diagnosis": "Same journal/episodes/ledger as Cursor; merge=meedo",
+      "method": "meedo_cycle \u2192 journal \u2192 episode \u2192 merge driver unions concurrent memory",
+      "actions": [
+        "sh scripts/setup_collab.sh once for merge.meedo driver",
+        "python -m tools.logo_vectorizer.meedo_cycle",
+        "meedo_journal log --agent claude --kind claim|finding|done",
+        "Prefer deepen meedo MCP over parallel brains"
+      ],
+      "risks": [
+        "union meedo_*.json never line-merge",
+        "never invent brand colors"
+      ],
+      "providers": [],
+      "tags": [
+        "claude_code",
+        "meedo-me",
+        "agent",
+        "board3"
+      ],
+      "cases": [],
+      "agree": null,
+      "source": "ai_collab",
+      "ts": "2026-09-26T13:58:59Z",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "raw": {}
+    },
+    {
+      "id": "AL3201ee88",
+      "domain": "meedo_advisor",
+      "problem": "Gemini plans then Claude critiques; Claude wins on disagreement",
+      "diagnosis": "tools/ai_collab/deliberate.merge_plans",
+      "method": "Recall lessons first; else Gemini plan \u2192 Claude critique; persist lesson+procedure; fail-open",
+      "actions": [
+        "recall_lessons(problem) if score>=MEEDO_AI_RECALL_MIN \u2192 offline",
+        "gemini_json(GEMINI_PROMPT) then claude_json(CLAUDE_PROMPT)",
+        "merge_plans: Claude fields win when agree_with_gemini=false; union actions",
+        "persist_lesson + observe procedure; never commit keys"
+      ],
+      "risks": [
+        "never invent brand colors from gray",
+        "never change Shipping afterPillGap/showRule/contactLabelToValue",
+        "fail-open when APIs dark"
+      ],
+      "providers": [
+        "gemini",
+        "claude",
+        "ai_collab"
+      ],
+      "tags": [
+        "ai_collab",
+        "meedo_advisor",
+        "merge_rules",
+        "board3"
+      ],
+      "cases": [],
+      "agree": null,
+      "source": "ai_collab",
+      "ts": "2026-09-26T13:58:59Z",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "raw": {}
+    },
+    {
+      "id": "AL3aab33db",
+      "domain": "meedo_progress",
+      "problem": "Hourly Claude Code progress \u2192 WhatsApp via OpenClaw",
+      "diagnosis": "tools/meedo_me/progress.py + connect whatsapp-progress",
+      "method": "collect digest \u2192 optional AI polish \u22641200 chars \u2192 openclaw message send; number only in .env",
+      "actions": [
+        "python -m tools.meedo_me.progress --agent claude --hours 1 --print",
+        "MEEDO_WHATSAPP_TO=+E.164 in gitignored .env",
+        "python -m tools.meedo_me.connect whatsapp-progress  # on PC with OpenClaw",
+        "openclaw channels status --probe"
+      ],
+      "risks": [
+        "never commit phone numbers",
+        "fail-open print digest if send fails"
+      ],
+      "providers": [
+        "openclaw"
+      ],
+      "tags": [
+        "openclaw",
+        "meedo_progress",
+        "whatsapp",
+        "board6"
+      ],
+      "cases": [],
+      "agree": null,
+      "source": "ai_collab",
+      "ts": "2026-09-26T13:58:59Z",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "raw": {}
+    },
+    {
+      "id": "AL1a3cd525",
+      "domain": "meedo_advisor",
+      "problem": "Gemini proposes structured plan JSON for stuck problems",
+      "diagnosis": "tools/ai_collab/deliberate.GEMINI_PROMPT + gemini_json",
+      "method": "Return diagnosis/priority/actions/method/risks JSON; handoff_to_meedo=true; fail-open None",
+      "actions": [
+        "load_env from gitignored .env",
+        "POST generativelanguage.googleapis.com generateContent (gemini-flash-latest)",
+        "extract_json \u2192 plan fields",
+        "Never invent brand colors; never touch Shipping lock constants"
+      ],
+      "risks": [
+        "never commit GOOGLE_API_KEY",
+        "fail-open on quota"
+      ],
+      "providers": [
+        "gemini"
+      ],
+      "tags": [
+        "gemini",
+        "meedo_advisor",
+        "face",
+        "board3"
+      ],
+      "cases": [],
+      "agree": null,
+      "source": "ai_collab",
+      "ts": "2026-09-26T13:59:12Z",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "raw": {}
+    },
+    {
+      "id": "ALceb6f557",
+      "domain": "meedo_advisor",
+      "problem": "Claude critiques Gemini plan and wins on disagreement",
+      "diagnosis": "tools/ai_collab/deliberate.CLAUDE_PROMPT + claude_json",
+      "method": "Critique/refine same schema; agree_with_gemini + overrides; Claude fields win when disagree",
+      "actions": [
+        "load ANTHROPIC_API_KEY from gitignored .env",
+        "POST Anthropic messages API (claude-sonnet-4-5)",
+        "merge_plans unions actions; Claude diagnosis/method/priority win on disagree"
+      ],
+      "risks": [
+        "never commit ANTHROPIC_API_KEY",
+        "fail-open on quota"
+      ],
+      "providers": [
+        "claude"
+      ],
+      "tags": [
+        "claude",
+        "meedo_advisor",
+        "face",
+        "board3"
+      ],
+      "cases": [],
+      "agree": null,
+      "source": "ai_collab",
+      "ts": "2026-09-26T13:59:12Z",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "raw": {}
+    },
+    {
+      "id": "ALb2645d09",
+      "domain": "logo_restore",
+      "problem": "Escalate-when-stuck: Gemini plan + Claude critique for logo engine",
+      "diagnosis": "tools/logo_vectorizer/ai_advisors/collab_mind.py",
+      "method": "detect_stuck \u2192 collaborate \u2192 journal + ai_lesson + procedure(preprocess knobs); meedo_review before ship",
+      "actions": [
+        "detect_stuck(severity>=0.6 reasons)",
+        "Gemini vision/plan + Claude critique \u2192 CollabGuidance",
+        "Retry ensemble with recommended_preprocess/backends or takeover recreate",
+        "persist lesson + procedure knobs; never invent brand colors"
+      ],
+      "risks": [
+        "meedo_review must pass",
+        "never invent brand colors from gray"
+      ],
+      "providers": [
+        "gemini",
+        "claude",
+        "collab_mind"
+      ],
+      "tags": [
+        "collab_mind",
+        "logo_restore",
+        "board11"
+      ],
+      "cases": [
+        "arc"
+      ],
+      "agree": null,
+      "source": "ai_collab",
+      "ts": "2026-09-26T13:59:12Z",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "raw": {}
     }
   ]
 }

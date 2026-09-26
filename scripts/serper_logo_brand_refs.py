@@ -352,6 +352,63 @@ def journal_summary(entries: list[dict]) -> None:
         images_looked_at=True,
         source="serper_logo_brand_refs",
     )
+    # Meedo studies Serper: query patterns + must_keep as offline procedures.
+    try:
+        from tools.ai_collab.observe import observe
+
+        for e in entries:
+            slug = e.get("slug") or ""
+            brand = BRANDS.get(slug) or {}
+            queries = list(brand.get("queries") or [])
+            must_keep = list((brand.get("branding") or {}).get("must_keep") or [])
+            observe(
+                face="serper",
+                domain="logo_restore",
+                tried=f"Serper brand-ref crawl for {slug}",
+                evidence=(
+                    f"hits={len(e.get('serper') or [])} "
+                    f"official_ok={sum(1 for o in e.get('official') or [] if o.get('ok'))}"
+                ),
+                method=(
+                    "Query Serper images with official brand name + logo + transparent/vector; "
+                    "prefer official domain assets; record must_keep checks in catalog."
+                ),
+                outcome="success" if (e.get("serper") or e.get("official")) else "partial",
+                steps=[
+                    f"POST https://google.serper.dev/images q={q!r}" for q in queries[:3]
+                ]
+                + [
+                    "Download top image hits under qa_logos/brand_refs/<slug>/",
+                    "Merge into catalog.json with branding.must_keep",
+                    "Fail-open to official_urls when SERPER_API_KEY dark",
+                ],
+                knobs={
+                    "endpoint": "https://google.serper.dev/images",
+                    "queries": queries,
+                    "domain": brand.get("domain"),
+                    "max_downloads": 4,
+                },
+                do_not_regress=must_keep
+                or [
+                    "never invent brand colors from gray",
+                    "never commit SERPER_API_KEY",
+                ],
+                cases=[slug] if slug else None,
+                tags=["serper", "brand_refs", slug],
+                providers=["serper"],
+                task=8,
+                agent="cursor",
+                journal=False,
+                lesson=True,
+                episode=True,
+                procedure=True,
+                confidence=0.7 if queries else 0.4,
+                offline_ready=bool(queries and must_keep),
+                source="serper_logo_brand_refs",
+                raw={"slug": slug, "serper_saved": [h.get("saved") for h in (e.get("serper") or [])]},
+            )
+    except Exception as exc:  # noqa: BLE001
+        print(f"serper observe skipped: {exc}", file=sys.stderr)
 
 
 def main(argv: list[str] | None = None) -> int:

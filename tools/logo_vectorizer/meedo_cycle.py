@@ -78,6 +78,14 @@ def collect(*, with_ai: bool | None = None) -> dict:
     want_ai = with_ai if with_ai is not None else True
     if want_ai:
         ai_advice = _ai_enrich_proposals(waiting)
+    study: dict = {}
+    try:
+        from tools.ai_collab.study import collect_study_report
+
+        study = collect_study_report()
+    except Exception as exc:  # noqa: BLE001
+        print(f"[meedo_cycle] study report skipped: {exc}", file=sys.stderr)
+        study = {"blind_spots": [str(exc)]}
     return {
         "proposals_awaiting": waiting,
         "journal": journal,
@@ -89,6 +97,7 @@ def collect(*, with_ai: bool | None = None) -> dict:
             "workstreams": report.get("workstreams"),
         },
         "ai_collab": ai_advice,
+        "study": study,
     }
 
 
@@ -167,6 +176,19 @@ def format_cycle(out: dict) -> str:
         lines.append(
             "Gemini↔Claude: no advice this cycle (keys dark, disabled, or fail-open)."
         )
+
+    study = out.get("study") or {}
+    if study:
+        try:
+            from tools.ai_collab.study import format_study_report
+
+            lines.append("")
+            lines.append(format_study_report(study))
+        except Exception:
+            conf = (study.get("confidence") or {}).get("summary")
+            if conf:
+                lines.append("")
+                lines.append(f"Meedo study — {conf}")
 
     lines.append(
         "\nRefine Meedo-Me when anything here is wrong, thin, or silent — "
