@@ -106,11 +106,23 @@ def merge_journal(ours: dict, theirs: dict) -> dict:
     return {**ours, "entries": sorted(entries.values(), key=lambda e: (e.get("ts", ""), e["id"]))}
 
 
+def merge_consultations(ours: dict, theirs: dict) -> dict:
+    """Consultations are unioned by id; a judged copy beats an unjudged one."""
+    items = {c["id"]: c for c in ours.get("consultations", [])}
+    for c in theirs.get("consultations", []):
+        have = items.get(c["id"])
+        if have is None or (c.get("outcome") and not have.get("outcome")):
+            items[c["id"]] = c
+    return {**ours, "consultations": sorted(items.values(), key=lambda c: (c.get("ts", ""), c["id"]))}
+
+
 def merge(ours_path: str, theirs_path: str) -> bool:
     ours, theirs = _load(ours_path), _load(theirs_path)
     if ours is None or theirs is None:
         return False
-    if "entries" in ours or "entries" in theirs:
+    if "consultations" in ours or "consultations" in theirs:
+        result = merge_consultations(ours, theirs)
+    elif "entries" in ours or "entries" in theirs:
         result = merge_journal(ours, theirs)
     elif "episodes" in ours or "episodes" in theirs:
         result = merge_episodes(ours, theirs)

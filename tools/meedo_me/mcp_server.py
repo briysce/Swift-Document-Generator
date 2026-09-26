@@ -91,6 +91,12 @@ READ_TOOLS = {
                        "quiet, and which finished units skipped a house rule.",
         "inputSchema": _obj({"hours": {"type": "number", "minimum": 0}, "agent": _S}),
     },
+    "meedo_minds": {
+        "description": "What Gemini and Claude have been asked, and what their answers proved to "
+                       "be: track record per mind and role, disagreements the outcome settled, and "
+                       "how often Meedo-Me's own shadow answers agreed with the right one.",
+        "inputSchema": _obj({}),
+    },
     "meedo_review": {
         "description": "Is a restored logo still the logo its sketch shows? Returns a verdict "
                        "(never a score): blocked if a brand colour was dropped or the mark "
@@ -200,6 +206,10 @@ def _call(name: str, args: dict, read_only: bool) -> object:
 
         return {"recent": J.recent(hours=float(args.get("hours", 24)), agent=args.get("agent", "")),
                 **J.assess()}
+    if name == "meedo_minds":
+        from tools.logo_vectorizer import meedo_consult as C
+
+        return C.report()
     if name == "meedo_review":
         from tools.logo_vectorizer.meedo_review import review
 

@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "consultations": [
+    {
+      "id": "2026-09-26T13:51:57Z-claude-critique",
+      "ts": "2026-09-26T13:51:57Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "critique",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "smoke-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is the engine's restoration of it.\n\nJudge IMAGE 2 as a designer reviewing a junior's vector redraw. Return JSON only:\n{\n  \"same_logo\": true,\n  \"missing\": [\"elements in the sketch that IMAGE 2 lacks, e.g. 'i-dot on Services'\"],\n  \"extra\": [\"things IMAGE 2 draws that are not part of the design, e.g. 'grey halo around letters'\"],\n  \"geometry\": [\"lines that should be straight, curves that should be fair, corners that should be sharp\"],\n  \"colour\": [\"colours that are wrong, washed or missing\"],\n  \"verdict\": \"ship | redo | takeover\",\n  \"advice\": \"one sentence: the method that would fix the worst fault\",\n  \"confidence\": 0.0\n}\n\"ship\" = a designer would sign it off. \"redo\" = the engine should try again.\n\"takeover\" = the engine cannot get there; the logo should be drawn afresh.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png",
+        "qa_logos/synthetic/minds/inputs/fa955944c4527a73.png"
+      ],
+      "answer": "```json\n{\n  \"same_logo\": true,\n  \"missing\": [],\n  \"extra\": [\n    \"jagged, serrated edge noise along all outlines, traced from JPEG and anti-aliasing artefacts\",\n    \"small nubs and notches on SUPPLY letter corners (e.g. the S terminals, the P bowls, the Y arms)\",\n    \"dark ragged specks at the ends of the top and bottom bars\"\n  ],\n  \"geometry\": [\n    \"the top and bottom bars should be perfect rectangles with dead-straight edges; they currently wobble\",\n    \"the SUPPLY letterforms (a geometric sans) need straight stems, consistent corner radii and true horizontals and verticals instead of bumpy traced edges\",\n    \"the SWIFT italic stems should have straight, parallel slanted sides; they are currently lumpy\",\n    \"the SWIFT serifs and curves (the S spine, the flared serif tips) should be fair, smooth B\u00e9ziers rather than rough polylines\",\n    \"the slant angle should be identical across the W, I, F, F and T stems\"\n  ],\n  \"colour\": [\n    \"the flat orange is close, but it should be sampled cleanly (~#C24D2F) and applied uniformly; no further issue\"\n  ],\n  \"verdict\": \"redo\",\n  \"advice\": \"Re-fit the outlines as primitives: bars as exact rectangles, SUPPLY as straight-segment and constant-radius geometry, and SWIFT as smoothed B\u00e9zier curves with shared slant angles, instead of tracing the noisy pixel edge.\",\n  \"confidence\": 0.85\n}\n```",
+      "parsed": {
+        "same_logo": true,
+        "missing": [],
+        "extra": [
+          "jagged, serrated edge noise along all outlines, traced from JPEG and anti-aliasing artefacts",
+          "small nubs and notches on SUPPLY letter corners (e.g. the S terminals, the P bowls, the Y arms)",
+          "dark ragged specks at the ends of the top and bottom bars"
+        ],
+        "geometry": [
+          "the top and bottom bars should be perfect rectangles with dead-straight edges; they currently wobble",
+          "the SUPPLY letterforms (a geometric sans) need straight stems, consistent corner radii and true horizontals and verticals instead of bumpy traced edges",
+          "the SWIFT italic stems should have straight, parallel slanted sides; they are currently lumpy",
+          "the SWIFT serifs and curves (the S spine, the flared serif tips) should be fair, smooth B\u00e9ziers rather than rough polylines",
+          "the slant angle should be identical across the W, I, F, F and T stems"
+        ],
+        "colour": [
+          "the flat orange is close, but it should be sampled cleanly (~#C24D2F) and applied uniformly; no further issue"
+        ],
+        "verdict": "redo",
+        "advice": "Re-fit the outlines as primitives: bars as exact rectangles, SUPPLY as straight-segment and constant-radius geometry, and SWIFT as smoothed B\u00e9zier curves with shared slant angles, instead of tracing the noisy pixel edge.",
+        "confidence": 0.85
+      },
+      "outcome": {
+        "result": "helped",
+        "detail": "faults confirmed by eye: lumpy S/W edges, bars not crisp rectangles; matches the known gap (engine ships its trace on swift solid import_combo)",
+        "judged_at": "2026-09-26T13:52:43Z",
+        "by": "claude-code"
+      },
+      "latency_s": 11.88,
+      "lesson": "E0028"
+    },
+    {
+      "id": "2026-09-26T13:52:08Z-gemini-critique",
+      "ts": "2026-09-26T13:52:08Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "critique",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "smoke-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is the engine's restoration of it.\n\nJudge IMAGE 2 as a designer reviewing a junior's vector redraw. Return JSON only:\n{\n  \"same_logo\": true,\n  \"missing\": [\"elements in the sketch that IMAGE 2 lacks, e.g. 'i-dot on Services'\"],\n  \"extra\": [\"things IMAGE 2 draws that are not part of the design, e.g. 'grey halo around letters'\"],\n  \"geometry\": [\"lines that should be straight, curves that should be fair, corners that should be sharp\"],\n  \"colour\": [\"colours that are wrong, washed or missing\"],\n  \"verdict\": \"ship | redo | takeover\",\n  \"advice\": \"one sentence: the method that would fix the worst fault\",\n  \"confidence\": 0.0\n}\n\"ship\" = a designer would sign it off. \"redo\" = the engine should try again.\n\"takeover\" = the engine cannot get there; the logo should be drawn afresh.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png",
+        "qa_logos/synthetic/minds/inputs/fa955944c4527a73.png"
+      ],
+      "answer": "{\n  \"same_logo\": true,\n  \"missing\": [],\n  \"extra\": [],\n  \"geometry\": [],\n  \"colour\": [],\n  \"verdict\": \"ship\",\n  \"advice\": \"Excellent work preserving the distressed font style while cleaning up the geometric elements.\",\n  \"confidence\": 0.95\n}",
+      "parsed": {
+        "same_logo": true,
+        "missing": [],
+        "extra": [],
+        "geometry": [],
+        "colour": [],
+        "verdict": "ship",
+        "advice": "Excellent work preserving the distressed font style while cleaning up the geometric elements.",
+        "confidence": 0.95
+      },
+      "outcome": {
+        "result": "wrong",
+        "detail": "said ship at 0.95 and called JPEG raggedness a 'distressed font style'; the clean master and the rebuilt vector have smooth edges",
+        "judged_at": "2026-09-26T13:52:43Z",
+        "by": "claude-code"
+      },
+      "latency_s": 11.33
+    }
+  ]
+}

@@ -7,6 +7,7 @@ start it, and nothing else — no copies of the memory, no second server:
     python -m tools.meedo_me.connect ollama
     python -m tools.meedo_me.connect app      [--data-folder DIR] [--read-only]
     python -m tools.meedo_me.connect openclaw [--config PATH] [--model ollama/qwen3:8b] [--allow-writes]
+    python -m tools.meedo_me.connect whatsapp --to <number>   # hourly progress updates
 
 Claude Code needs nothing: `.mcp.json` at the repository root registers the
 server for any session opened here.
@@ -169,6 +170,57 @@ def connect_openclaw(config: Path | None = None, allow_writes: bool = False, mod
 
 
 # --------------------------------------------------------------------------
+# WhatsApp progress updates
+# --------------------------------------------------------------------------
+
+PROGRESS_BRANCH = "claude/relaxed-babbage-igbk0v"
+
+
+def _e164(number: str) -> str:
+    digits = "".join(ch for ch in number if ch.isdigit())
+    if len(digits) == 10:          # North American number without the country code
+        digits = "1" + digits
+    if len(digits) < 11:
+        raise ValueError(f"{number!r} is not a full phone number")
+    return "+" + digits
+
+
+def connect_whatsapp(to: str, config: Path | None = None) -> tuple[Path, str]:
+    """Admit only this number on OpenClaw's WhatsApp channel and return the
+    automation that sends Meedo-Me's hourly update to it.
+
+    Inbound WhatsApp text is untrusted, so the channel is an allowlist of the
+    user's own number; Meedo-Me's server stays read-only for OpenClaw
+    (connect openclaw). The update itself is a command, not a model turn."""
+    number = _e164(to)
+    path = Path(config) if config else openclaw_config_path()
+    snippet = {"channels": {"whatsapp": {"dmPolicy": "allowlist", "allowFrom": [number], "selfChatMode": True}}}
+    data: dict = {}
+    if path.exists():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            raise NeedsManualMerge(path, snippet) from None
+        if not isinstance(data, dict):
+            raise NeedsManualMerge(path, snippet)
+    wa = _nested(data, "channels", "whatsapp")
+    wa["dmPolicy"] = "allowlist"
+    allow = wa.get("allowFrom") if isinstance(wa.get("allowFrom"), list) else []
+    wa["allowFrom"] = allow + ([number] if number not in allow else [])
+    wa.setdefault("selfChatMode", True)
+    _write_json(path, data)
+    command = (f"git fetch -q origin {PROGRESS_BRANCH} && {Path(sys.executable).name} -m tools.meedo_me.progress "
+               f"--ref origin/{PROGRESS_BRANCH} --hours 1")
+    automation = (
+        'openclaw automations create "0 * * * *" --name "Meedo-Me hourly progress" '
+        '--tz "America/Edmonton" '
+        f"--command {json.dumps(command)} --command-cwd {json.dumps(str(ROOT))} "
+        f'--announce --channel whatsapp --to "{number}"'
+    )
+    return path, automation
+
+
+# --------------------------------------------------------------------------
 # Ollama
 # --------------------------------------------------------------------------
 
@@ -266,6 +318,9 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("--config", type=Path)
     c.add_argument("--model", default="", help=f"e.g. ollama/{SUGGESTED_MODEL}")
     c.add_argument("--allow-writes", action="store_true")
+    w = sub.add_parser("whatsapp", help="hourly progress updates to one WhatsApp number via OpenClaw")
+    w.add_argument("--to", required=True, help="the number that receives the updates, e.g. 780-555-0123")
+    w.add_argument("--config", type=Path)
     args = ap.parse_args(argv)
 
     if args.cmd == "status":
@@ -290,6 +345,18 @@ def main(argv: list[str] | None = None) -> int:
         if args.model.startswith("ollama/"):
             print("OpenClaw uses Ollama once you opt in: export OLLAMA_API_KEY=ollama-local")
         print("Check it: openclaw mcp doctor meedo-me --probe")
+    elif args.cmd == "whatsapp":
+        try:
+            path, automation = connect_whatsapp(args.to, args.config)
+        except (NeedsManualMerge, ValueError) as e:
+            print(e, file=sys.stderr)
+            return 1
+        print(f"WhatsApp admits only that number: {path}")
+        print("1. Link WhatsApp (scan the QR with the phone: WhatsApp > Linked devices):")
+        print("   openclaw channels login --channel whatsapp")
+        print("2. Preview the update:  python -m tools.meedo_me.progress --hours 1")
+        print("3. Schedule it hourly:")
+        print("   " + automation)
     return 0
 
 

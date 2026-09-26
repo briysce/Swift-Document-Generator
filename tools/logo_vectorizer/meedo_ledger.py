@@ -695,12 +695,19 @@ def main(argv: list[str] | None = None) -> int:
         if a.json:
             print(json.dumps(waiting, indent=2))
             return 0
+        work = []
         try:
             from .meedo_journal import standup_lines
 
-            work = standup_lines()
+            work += standup_lines()
         except Exception:
-            work = []
+            pass
+        try:
+            from .meedo_consult import standup_lines as minds_lines
+
+            work += minds_lines()
+        except Exception:
+            pass
         if not waiting:
             print("Meedo-Me standup: nothing awaiting a decision")
             for line in work:
