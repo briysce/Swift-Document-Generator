@@ -7,7 +7,7 @@ All network paths fail open when APIs are dark or quota-exhausted.
 
 from __future__ import annotations
 
-from .advise import Advice, advise
+from .advisor import Advice, advise
 from .client import available, claude_available, gemini_available, gemini_text, claude_text
 from .deliberate import Deliberation, deliberate
 from .env import load_env, ai_configured

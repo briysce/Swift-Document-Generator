@@ -26,7 +26,7 @@ def _ai_enrich_proposals(waiting: list[dict]) -> list[dict]:
     if flag in {"0", "false", "no", "off"}:
         return []
     try:
-        from tools.ai_collab.advise import advise
+        from tools.ai_collab.advisor import advise
     except Exception as exc:  # noqa: BLE001
         print(f"[meedo_cycle] ai_collab unavailable: {exc}", file=sys.stderr)
         return []

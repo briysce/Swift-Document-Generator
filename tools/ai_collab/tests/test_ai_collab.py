@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from tools.ai_collab.advise import Advice, advise, advise_top_failures
+from tools.ai_collab.advisor import Advice, advise, advise_top_failures
 from tools.ai_collab.deliberate import deliberate, merge_plans
 from tools.ai_collab.learn import (
     Lesson,
@@ -234,7 +234,7 @@ def test_advise_top_failures_and_improve_hook(tmp_path, monkeypatch):
         return items
 
     monkeypatch.setattr(
-        "tools.ai_collab.advise.advise_top_failures",
+        "tools.ai_collab.advisor.advise_top_failures",
         lambda **kwargs: items,
     )
     enrich_summary(summary, domain="app_ux", max_items=1)

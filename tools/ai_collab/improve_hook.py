@@ -26,7 +26,7 @@ def enrich_summary(
         summary.setdefault("ai_collab", [])
         return summary
     try:
-        from tools.ai_collab.advise import advise_top_failures
+        from tools.ai_collab.advisor import advise_top_failures
     except Exception as exc:  # noqa: BLE001
         print(f"[improve_ai] unavailable: {exc}", file=sys.stderr)
         summary["ai_collab"] = []

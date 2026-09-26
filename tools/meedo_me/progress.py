@@ -221,7 +221,7 @@ def format_digest(data: dict) -> str:
 def polish_with_ai(digest: str, data: dict) -> str:
     """Optional Gemini+Claude polish for WhatsApp tone. Fail-open to digest."""
     try:
-        from tools.ai_collab.advise import advise
+        from tools.ai_collab.advisor import advise
         from tools.ai_collab.env import load_env
 
         load_env()

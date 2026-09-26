@@ -55,7 +55,12 @@ def test_cycle_ai_enrich_with_doubles(monkeypatch):
     )
     monkeypatch.setattr(
         "tools.logo_vectorizer.meedo_journal.standup",
-        lambda: {"recent": [], "stale_claims": [], "thin_dones": []},
+        lambda: {
+            "entry_count": 0,
+            "recent_by_agent": {},
+            "stale_claims": [],
+            "done_missing_evidence": [],
+        },
     )
     monkeypatch.setattr(
         "tools.logo_vectorizer.meedo_ledger.knowledge_report",
@@ -65,7 +70,7 @@ def test_cycle_ai_enrich_with_doubles(monkeypatch):
         "tools.logo_vectorizer.meedo_episodes.workstreams", lambda: {}
     )
     monkeypatch.setattr(
-        "tools.ai_collab.advise.advise", lambda **kwargs: _Adv()
+        "tools.ai_collab.advisor.advise", lambda **kwargs: _Adv()
     )
     out = collect(with_ai=True)
     assert len(out["ai_collab"]) == 1

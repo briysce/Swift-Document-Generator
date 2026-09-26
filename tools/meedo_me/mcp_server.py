@@ -305,7 +305,7 @@ def _call(name: str, args: dict, read_only: bool) -> object:
             source="mcp",
         )
     if name == "meedo_ai_advise":
-        from tools.ai_collab.advise import advise
+        from tools.ai_collab.advisor import advise
 
         ctx = {}
         raw_ctx = args.get("context_json") or ""
