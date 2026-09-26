@@ -961,6 +961,21 @@
         "commit": "c64902a"
       },
       "source": "observe:cursor"
+    },
+    {
+      "id": "2026-09-26T14:58:07Z-cursor",
+      "ts": "2026-09-26T14:58:07Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "finding",
+      "summary": "User assigned GrokBot standalone app to assist for ~1h wherever needed. No in-repo GrokBot MCP yet \u2014 will coordinate via issue #6 + Meedo journal; put Grok on Arc #8 / minds_rank / succession learning if it checks in.",
+      "evidence": {
+        "commit": "f933ff1",
+        "review": "n/a",
+        "looked": "n/a",
+        "measured": "n/a"
+      },
+      "source": "cli"
     }
   ]
 }
