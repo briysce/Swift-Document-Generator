@@ -527,7 +527,17 @@ def prune_ink_speckles(
 
     drop = np.zeros(ink.shape, dtype=bool)
     layers = _chromatic_prune_layers(out, ink)
-    if layers:
+    # Color-split only when a secondary chromatic layer is real but clearly
+    # smaller than the dominant one (Arc teal tagline ~½ of red ARC). Dense
+    # two-tone fills (Propak blue≈red) share letter-scale islands — splitting
+    # them made those islands look like speckles against their own layer and
+    # dropped Propak import_combo composite ~0.88→0.62.
+    use_split = False
+    if len(layers) >= 2:
+        areas = sorted((int(m.sum()) for m in layers), reverse=True)
+        if areas[1] >= 40 and areas[1] <= int(0.60 * areas[0]):
+            use_split = True
+    if use_split:
         for layer in layers:
             drop |= _prune_mask_speckles(
                 out, layer, min_px=min_px, min_frac=min_frac, protect=protect
@@ -1215,17 +1225,22 @@ def _brand_palette(arr: np.ndarray, max_colors: int = 16) -> list[np.ndarray]:
     # red bins, and quantize_thin_path then painted the whole tagline red.
     def _chromatic(e: tuple[int, np.ndarray, int]) -> bool:
         sat_c, rgb_c, _n = e
+        lum_c = float(rgb_c.mean())
+        # Near-white pastel JPEG crumbs (sat 28–40 at lum≥200) are not brand
+        # fills — including them let Propak snap onto mint/pink plate noise.
+        if lum_c >= 200:
+            return False
         if sat_c >= 28:
             return True
-        lum_c = float(rgb_c.mean())
+        # Dark teal/navy (Arc RESOURCES LTD.) often lands at sat 16–27 after
+        # 16-bin quantization — still a real hue, not gray mush.
         return lum_c < 130.0 and sat_c >= 16
 
     chromatic = [e for e in entries if _chromatic(e)]
     pool = chromatic if chromatic else entries
     # Rank by sat*count so residual Arc red beats washed pink majority bins.
-    # Fill slots by hue family first so a secondary teal is not crowded out
-    # by four near-duplicate red bins (arc__import_combo failure mode).
     pool_sorted = sorted(pool, key=lambda e: -(e[0] * e[2]))
+    total_chrom = float(sum(e[2] for e in pool_sorted)) or 1.0
 
     def _hue_deg(rgb_c: np.ndarray) -> float | None:
         r, g, b = (float(v) for v in rgb_c)
@@ -1238,26 +1253,70 @@ def _brand_palette(arr: np.ndarray, max_colors: int = 16) -> list[np.ndarray]:
             return 60.0 * ((b - r) / (mx - mn)) + 120.0
         return 60.0 * ((r - g) / (mx - mn)) + 240.0
 
+    # Start with sat*count order, but only admit a non-top-2 hue family when
+    # it owns ≥15% of chromatic ink. Arc teal is ~30%+; Propak JPEG cyan
+    # crumbs (~11%) must not occupy a brand slot and warp snap.
+    fam_share: dict[int, float] = {}
+    for e in pool_sorted:
+        h = _hue_deg(e[1])
+        if h is None:
+            continue
+        key = int(h // 40)
+        fam_share[key] = fam_share.get(key, 0.0) + e[2] / total_chrom
+    top_fams = sorted(fam_share, key=lambda k: -fam_share[k])[:2]
     picked: list[np.ndarray] = []
-    picked_h: list[float] = []
-    for _sat, rgb_c, _n in pool_sorted:
-        h = _hue_deg(rgb_c)
-        if h is not None and any(
-            min(abs(h - ph), 360.0 - abs(h - ph)) <= 40.0 for ph in picked_h
+    for e in pool_sorted:
+        h = _hue_deg(e[1])
+        key = int(h // 40) if h is not None else None
+        if (
+            key is not None
+            and key not in top_fams
+            and fam_share.get(key, 0.0) < 0.15
         ):
             continue
-        picked.append(rgb_c)
-        if h is not None:
-            picked_h.append(h)
+        if any(int(np.abs(e[1] - u).sum()) <= 12 for u in picked):
+            continue
+        picked.append(e[1])
         if len(picked) >= max_colors:
             break
-    if len(picked) < max_colors:
-        for _sat, rgb_c, _n in pool_sorted:
-            if any(int(np.abs(rgb_c - u).sum()) <= 12 for u in picked):
+    # Ensure every strong (≥15%) family is represented (Arc teal rescue).
+    strong = {k for k, s in fam_share.items() if s >= 0.15}
+    picked_keys = set()
+    for c in picked:
+        h = _hue_deg(c)
+        if h is not None:
+            picked_keys.add(int(h // 40))
+    for mk in strong - picked_keys:
+        best = max(
+            (
+                e
+                for e in pool_sorted
+                if _hue_deg(e[1]) is not None and int(_hue_deg(e[1]) // 40) == mk
+            ),
+            key=lambda e: e[0] * e[2],
+            default=None,
+        )
+        if best is None:
+            continue
+        replaced = False
+        for i, c in enumerate(picked):
+            h = _hue_deg(c)
+            if h is None:
                 continue
-            picked.append(rgb_c)
-            if len(picked) >= max_colors:
+            key = int(h // 40)
+            if (
+                sum(
+                    1
+                    for c2 in picked
+                    if _hue_deg(c2) is not None and int(_hue_deg(c2) // 40) == key
+                )
+                >= 2
+            ):
+                picked[i] = best[1]
+                replaced = True
                 break
+        if not replaced and len(picked) < max_colors:
+            picked.append(best[1])
     return picked
 def harden_flat_edges(arr: np.ndarray) -> np.ndarray:
     """Collapse JPEG/AA mush at ink boundaries toward solid neighbor fills.
