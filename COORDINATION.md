@@ -23,11 +23,18 @@ so the repository is how we talk.
 5. **Taking over.** A claim with no push from its holder for 45 minutes may be
    taken over: note `taken over from <agent>` on the task, and start from the
    holder's last pushed state.
-6. **Talk** in the GitHub issue "Claude Code ↔ Cursor coordination" (linked
-   from the board). Questions, findings, "I'm about to touch file X".
+6. **Talk** in GitHub issue [#6](https://github.com/briysce/Swift-Document-Generator/issues/6)
+   (Claude Code ↔ Cursor coordination). Questions, findings, "I'm about to
+   touch file X", credit pause/resume.
 7. **House rules** (CLAUDE.md): Meedo-Me standup first; tests pass before
    push; measure per logo against the previous engine on identical inputs;
    look at the images; record the method as an episode when a problem is solved.
+
+### Agent identities (2026-09-26)
+- **Claude Code** — cloud container; branch `claude/relaxed-babbage-igbk0v`.
+- **Cursor Cloud Agent** — also cloud (not the Desktop app on the PC); branch
+  `cursor/logo-engine-collab-d4c9`. Can remote the PC when a task truly needs
+  Flutter UI / Meedo-Me desktop / OpenClaw; otherwise works the engine here.
 
 ## Task board
 
@@ -42,7 +49,7 @@ Owner: `claude`, `cursor`, or empty.
 | 4 | Selection rule: rank candidates by craftsmanship once identity holds; design_fit as an engine candidate | claude | open | Swift solid downscale/import_combo ship the trace; old rule's reconstructions scored 0.9364/0.9465 |
 | 5 | Build and run the Meedo-Me desktop app (briysce/meedo-me, branch `claude/relaxed-babbage-igbk0v`) with local Ollama; connect the MCP server (`python -m tools.meedo_me.connect app`); check Project Manager Mode | cursor | open | needs the PC; Jan's logos still need replacing (needs a Meedo-Me logo from the user) |
 | 6 | OpenClaw with a larger local model (e.g. `ollama pull qwen3:8b`): does it reach Meedo-Me's tools in its own agent? | cursor | open | 0.6B did not; config via `python -m tools.meedo_me.connect openclaw --model ollama/qwen3:8b` |
-| 7 | PROPAK's "Services" i-dot: survives despeckle, lost later in `prepare_for_engine` | | open | trace stage by stage (episode E0022) |
+| 7 | PROPAK's "Services" i-dot: survives despeckle, lost later in `prepare_for_engine` | cursor | in progress | claim 2026-09-26 by Cursor Cloud; stage-trace E0022; branch `cursor/logo-engine-collab-d4c9` |
 | 8 | Arc: the reconstruction drops tagline letters; the trace draws them red | | open | the reviewer's element check now blocks the reconstruction |
 | 9 | Centre-line tracing for thin strokes (PROPAK's red rule, one-pixel borders) | | open | user recommendation |
 | 10 | Swift rebuild details: the bars' faint grey under-edge; trim anchors on small serif runs | | open | `scripts/rebuild_swift_logo.py` |

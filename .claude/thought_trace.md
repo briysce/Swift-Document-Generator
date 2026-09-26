@@ -11,6 +11,15 @@ this file is the readable account of *why*.
 Handoff rule: push at the end of every work unit and update this section the
 moment state changes. The next agent sees only what is committed.
 
+### Collaboration (live)
+- Protocol: `COORDINATION.md` + Meedo merge driver (`scripts/setup_collab.sh`).
+- Talk: GitHub issue [#6](https://github.com/briysce/Swift-Document-Generator/issues/6).
+- Claude branch: `claude/relaxed-babbage-igbk0v` — tasks **#1** (Swift app swap),
+  **#3** (Meedo trust); **#4** (craftsmanship gate) still open for Claude.
+- Cursor Cloud branch: `cursor/logo-engine-collab-d4c9` — claimed **#7**
+  (PROPAK "Services" i-dot lost in `prepare_for_engine`). PC-only **#2/#5/#6**
+  remain open.
+
 ### Priorities (the user's order)
 1. **The Swift logo as a perfectly crafted vector.** The app's
    `mobile/assets/images/swift_supply_logo_orange.svg` is a PNG inside an SVG
@@ -23,7 +32,8 @@ moment state changes. The next agent sees only what is committed.
 
 ### Where the work is
 - Swift-Document-Generator, branch `claude/relaxed-babbage-igbk0v` (Cursor's
-  `cursor/meedo-pm-continue-ab66` is merged in).
+  `cursor/meedo-pm-continue-ab66` is merged in). Cursor Cloud works from
+  `cursor/logo-engine-collab-d4c9` merged from Claude's tip each unit.
 - `briysce/meedo-me` exists (the Jan fork = the Meedo-Me app). Branch
   `claude/relaxed-babbage-igbk0v` there adds Ollama as a built-in local
   provider, the Meedo-Me MCP server in the default MCP config, and the default
