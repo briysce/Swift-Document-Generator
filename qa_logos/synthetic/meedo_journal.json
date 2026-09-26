@@ -893,7 +893,7 @@
       "agent": "cursor",
       "task": 6,
       "kind": "finding",
-      "summary": "WhatsApp hourly was tooling-only (no OpenClaw). Installed OpenClaw 2026.9.6 + WhatsApp plugin on cloud; gateway running; allowlist +17809350628; registered meedo-all-hourly-whatsapp automation; added scripts/meedo_whatsapp_hourly_watch.sh fallback. Blocked on one QR Linked-Devices scan \u2014 until linked, hourly cannot deliver.",
+      "summary": "WhatsApp hourly was tooling-only (no OpenClaw). Installed OpenClaw 2026.9.6 + WhatsApp plugin on cloud; gateway running; allowlist [MEEDO_WHATSAPP_TO]; registered meedo-all-hourly-whatsapp automation; added scripts/meedo_whatsapp_hourly_watch.sh fallback. Blocked on one QR Linked-Devices scan \u2014 until linked, hourly cannot deliver.",
       "evidence": {
         "commit": "f072ab4",
         "tests": "pytest tools/meedo_me/tests/test_progress.py test_connect.py (17 passed)",
@@ -976,6 +976,176 @@
         "measured": "n/a"
       },
       "source": "cli"
+    },
+    {
+      "id": "2026-09-26T14:59:32Z-meedo",
+      "ts": "2026-09-26T14:59:32Z",
+      "agent": "meedo",
+      "task": 3,
+      "kind": "finding",
+      "summary": "collab_mind escalate path=recreate providers=gemini,claude severity=0.90 \u2014 Severe 1-bit dithering and extreme low-resolution (approx 300x100px) causing complete vectorization failure. The image contains a complex industrial valve emble",
+      "evidence": {
+        "collab_mind": {
+          "takeover": true,
+          "preferred_path": "recreate",
+          "recommended_backends": [
+            "inkscape",
+            "opencv-tree"
+          ],
+          "recommended_preprocess": {
+            "upscale": 6,
+            "blur_radius": 0.8,
+            "alpha_threshold": 140,
+            "min_area": 300.0
+          },
+          "brand_name": "Gulf Coast Modification",
+          "font_family_guess": "Times New Roman Bold or Baskerville Bold",
+          "dominant_colors_hex": [
+            "#003F8A",
+            "#A61C1C",
+            "#FFFFFF"
+          ],
+          "diagnosis": "Severe 1-bit dithering and extreme low-resolution (approx 300x100px) causing complete vectorization failure. The image contains a complex industrial valve emblem with integrated 'TGC' letterforms plus serif text 'Gulf Coast Modification'. Direct tracing produces fragmented noise. The edge_ratio gate failure (0.692) confirms excessive smoothing was required to denoise, destroying critical detail.",
+          "actions": [
+            "Re-typeset 'Gulf Coast' and 'Modification' using a matching transitional serif font (Times New Roman or Georgia Bold) rather than tracing noisy glyph fragments",
+            "Separate the industrial valve/flange emblem on the left into two layers: the outer blue 'TGC' valve housing and the inner red/white circular core",
+            "Cleanly reconstruct the circular core and outer valve geometry using geometric primitives and union operations",
+            "Re-typeset 'Gulf Coast' and 'Modification' using Times New Roman Bold or similar transitional serif at appropriate weights - tracing will only capture dithering artifacts",
+            "Reconstruct the left valve/flange emblem as geometric primitives: outer blue pipe flange with bolt holes, integrated T-bar top, vertical stem forming the 'T' and 'I' of 'TGC'",
+            "Build the red circular core with white 'C' and 'G' letterforms using path operations (difference/union) on circles and custom letter paths",
+            "Position registered trademark \u00ae symbol between emblem and wordmark using proper Unicode glyph",
+            "Ensure proper color separation: blue (#003F8A) for valve housing and outer elements, red (#A61C1C) for circular core, white for interior letterforms"
+          ],
+          "gemini_notes": "Left emblem represents a pipe valve/flange assembly integrating the letters T, G, and C, with a registered trademark symbol between the emblem and the wordmark.",
+          "claude_notes": "Strongly agree with Gemini's recreate approach - this is unsalvageable via tracing. However, I recommend higher upscale (6x vs 4x) with gentler blur (0.8 vs 1.2) to preserve reference detail for manual reconstruction. The emblem geometry is too complex for auto-vectorization at this quality level. Higher alpha_threshold (140) will better separate the three-color palette from dithering noise.",
+          "providers_used": [
+            "gemini",
+            "claude"
+          ],
+          "agree": true
+        },
+        "stuck": {
+          "stuck": true,
+          "reasons": [
+            "failed_score_gates",
+            "low_score=0.000",
+            "vectorize_fell_to_lanczos"
+          ],
+          "severity": 0.9,
+          "metrics": {
+            "score_total": 0.0,
+            "alpha_iou": null,
+            "p_hollow": null,
+            "hole_count": null,
+            "passes_gates": false,
+            "candidates_tried": 0,
+            "all_ai_rejected": false,
+            "fell_to_lanczos": true,
+            "review_blocked": false,
+            "plateau_composite": null
+          }
+        },
+        "commit": "41ba00b"
+      },
+      "source": "collab_mind"
+    },
+    {
+      "id": "2026-09-26T15:04:46Z-meedo",
+      "ts": "2026-09-26T15:04:46Z",
+      "agent": "meedo",
+      "task": 3,
+      "kind": "finding",
+      "summary": "collab_mind escalate path=idealize providers=gemini,claude severity=0.90 \u2014 Severe dithering and speckle noise across blue letterforms ('PROPAK') and red geometric elements (underline rule and trapezoid border). The tagline below is fra",
+      "evidence": {
+        "collab_mind": {
+          "takeover": true,
+          "preferred_path": "idealize",
+          "recommended_backends": [
+            "opencv-tree",
+            "vtracer",
+            "potrace"
+          ],
+          "recommended_preprocess": {
+            "upscale": 4,
+            "blur_radius": 0.8,
+            "alpha_threshold": 85,
+            "min_area": 80.0
+          },
+          "brand_name": "PROPAK",
+          "font_family_guess": "Arial Black Oblique or Helvetica Black Italic",
+          "dominant_colors_hex": [
+            "#0E62A6",
+            "#DB3428",
+            "#FFFFFF"
+          ],
+          "diagnosis": "Severe dithering and speckle noise across blue letterforms ('PROPAK') and red geometric elements (underline rule and trapezoid border). The tagline below is fragmented into disconnected pixel islands. Edge_ratio=0.687 indicates excessive smoothing loss during vectorization attempts. Morphological preprocessing required before tracing.",
+          "actions": [
+            "Apply morphological closing (3x3 to 5x5 ellipse kernel) to reconnect speckled dithering inside 'PROPAK' glyphs and line accents before contour extraction",
+            "Separate the blue channel ('PROPAK' text and emblem speckles) from the red channel (underline rule and right trapezoid border)",
+            "Vectorize solid geometries independently to prevent color bleeding at line intersections",
+            "Evaluate tagline below red rule for font replacement or suppression if below legible OCR threshold",
+            "Apply bilateral filter (d=5, sigmaColor=50, sigmaSpace=50) to reduce speckle noise while preserving letter edges",
+            "Apply morphological closing with 4x4 ellipse kernel to reconnect dithered pixels within 'PROPAK' glyphs",
+            "Separate blue channel (text + emblem) from red channel (rules + trapezoid) using color thresholding in LAB space",
+            "Vectorize each color layer independently with potrace (turdsize=3, alphamax=0.8) to prevent color bleed",
+            "Suppress or flag tagline for manual reconstruction if OCR confidence < 60%",
+            "Post-process vectors: simplify paths (tolerance=0.3px) and merge overlapping anchor points"
+          ],
+          "gemini_notes": "Tagline beneath the red rule appears fragmented beyond reliable auto-tracing; verify whether tagline reconstruction or omission is required by customer spec.",
+          "claude_notes": "Agree with Gemini's diagnosis and idealize path. Disagree on blur_radius (1.1 too high, risks further edge loss given edge_ratio already 0.687). Lowered to 0.8 and added bilateral filter for better noise reduction. Reduced min_area from 120 to 80 to preserve small details in emblem icon. Reordered backends: potrace first (best for dithered bitmap cleanup), then opencv-tree for geometric primitives. Added explicit morphology_close_kernel parameter and post-simplification step.",
+          "providers_used": [
+            "gemini",
+            "claude"
+          ],
+          "agree": true
+        },
+        "stuck": {
+          "stuck": true,
+          "reasons": [
+            "failed_score_gates",
+            "low_score=0.000",
+            "vectorize_fell_to_lanczos"
+          ],
+          "severity": 0.9,
+          "metrics": {
+            "score_total": 0.0,
+            "alpha_iou": null,
+            "p_hollow": null,
+            "hole_count": null,
+            "passes_gates": false,
+            "candidates_tried": 0,
+            "all_ai_rejected": false,
+            "fell_to_lanczos": true,
+            "review_blocked": false,
+            "plateau_composite": null
+          }
+        },
+        "commit": "41ba00b"
+      },
+      "source": "collab_mind"
+    },
+    {
+      "id": "2026-09-26T15:06:09Z-cursor",
+      "ts": "2026-09-26T15:06:09Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "finding",
+      "summary": "GrokBot/New Bot review acted on: watch print-only (no double-send); candidates.json writes ideal_lost_strictly_less; minds_rank derives it from review dicts; phone scrubbed from journal; board #4/#12\u2192cursor. Swift vectorize 6-pair mean 0.919 (<0.9269) \u2014 A/B shows color-split NOT the cause on worst import_combo (0.8799 both ways; Lanczos after oversmooth reject).",
+      "evidence": {
+        "commit": "41ba00b",
+        "tests": "pytest prefer_reconstruction + meedo_review + progress (39 passed)",
+        "review": "n/a: guardrail measure this slice",
+        "looked": "swift_orange/solid restore PNGs under /tmp/swift_guard",
+        "measured": "swift vectorize mean 0.919 (n=6); color-split A/B import_combo 0.8799==0.8799"
+      },
+      "source": "cli",
+      "files": [
+        "COORDINATION.md",
+        "scripts/logo_minds_rank.py",
+        "scripts/logo_vectorize.py",
+        "scripts/meedo_whatsapp_hourly_watch.sh",
+        "tools/logo_vectorizer/meedo_review.py"
+      ]
     }
   ]
 }

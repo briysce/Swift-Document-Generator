@@ -689,7 +689,12 @@ def convert(
             for role, cand in kept.items():
                 if cand is not None:
                     save_rgba(kdir / f"{src.stem}__{role}.png", cand.finished)
-            (kdir / f"{src.stem}__candidates.json").write_text(json.dumps({
+            ideal_less = False
+            if ideal is not None and traced is not None:
+                ideal_less = _lost_no_more(ideal, traced) and not _lost_no_more(
+                    traced, ideal
+                )
+            payload = {
                 role: {
                     "name": c.name,
                     "has_vector": c.has_vector,
@@ -698,7 +703,14 @@ def convert(
                     "passed_review": c.passed_review,
                     "review": None if c.review is None else c.review.as_dict(),
                 }
-                for role, c in kept.items() if c is not None}, indent=2), encoding="utf-8")
+                for role, c in kept.items()
+                if c is not None
+            }
+            # Pair-level flag so logo_minds_rank.derived() matches convert().
+            payload["ideal_lost_strictly_less"] = bool(ideal_less)
+            (kdir / f"{src.stem}__candidates.json").write_text(
+                json.dumps(payload, indent=2), encoding="utf-8"
+            )
 
         # Identity first. A candidate Meedo-Me passed beats one it blocked,
         # whatever the metric says: on arc__downscale_jpeg the trace drops the

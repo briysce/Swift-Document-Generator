@@ -128,6 +128,24 @@ class Finding:
             d["n"] = self.n
         return d
 
+    @classmethod
+    def from_dict(cls, d: dict | None) -> "Finding | None":
+        if not isinstance(d, dict):
+            return None
+        colour = d.get("colour")
+        if isinstance(colour, (list, tuple)) and len(colour) >= 3:
+            colour = (int(colour[0]), int(colour[1]), int(colour[2]))
+        else:
+            colour = None
+        n = d.get("n")
+        return cls(
+            check=str(d.get("check") or ""),
+            severity=str(d.get("severity") or "warn"),
+            detail=str(d.get("detail") or ""),
+            colour=colour,
+            n=int(n) if n is not None else None,
+        )
+
 
 @dataclass
 class Review:
@@ -152,6 +170,18 @@ class Review:
             "sketch_palette": [[list(c), round(s, 4)] for c, s in self.sketch_palette],
             "output_palette": [[list(c), round(s, 4)] for c, s in self.output_palette],
         }
+
+    @classmethod
+    def from_dict(cls, d: dict | None) -> "Review | None":
+        """Rebuild a Review from candidates.json / ledger dicts."""
+        if not isinstance(d, dict):
+            return None
+        findings: list[Finding] = []
+        for item in d.get("findings") or []:
+            f = Finding.from_dict(item)
+            if f is not None:
+                findings.append(f)
+        return cls(findings=findings)
 
 
 # --------------------------------------------------------------------------
