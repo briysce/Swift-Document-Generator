@@ -547,6 +547,28 @@
       "do_not_regress": "Shipping SO/Contact lock; never invent brand colors; fail-open when APIs dark; one Meedo brain",
       "case_ids": [],
       "tags": []
+    },
+    {
+      "id": "20260926T154225Z",
+      "ts": "2026-09-26T15:42:25Z",
+      "title": "Arc teal tagline: quantize+snap+identity, gated color-split",
+      "lesson": "arc__import_combo vectorize painted RESOURCES LTD. red because quantize_thin_path's _brand_palette kept only red bins (dark teal sat 16\u201327 excluded) and snap_to_source_palette protected washed teal as silver. Fix: treat dark-tint as chromatic; snap neutrals only when source is truly neutral (sat\u226412); identity-first ships ideal on brand_colour loss even if traced.has_vector. Color-split prune only when secondary chromatic layer \u226460% of dominant \u2014 ungated split regressed Propak ~0.88\u21920.62. Third hue family needs \u226515% share. Do not invent brand chroma from gray. Clean Arc: traced keeps 12/12 tagline islands (ideal ~1) \u2014 ship traced.",
+      "do_not_regress": "arc teal retention on import_combo/downscale (Meedo brand_colour pass); Propak vectorize must not collapse via ungated color-split; Trialta grey silver protect when source is neutral; Shipping SO/Contact locks untouched",
+      "case_ids": [
+        "arc__import_combo",
+        "arc__downscale_jpeg",
+        "arc",
+        "propak__import_combo"
+      ],
+      "tags": [
+        "arc",
+        "tagline",
+        "teal",
+        "quantize",
+        "snap",
+        "identity-first",
+        "board8"
+      ]
     }
   ],
   "run_snapshots": [
@@ -2241,8 +2263,138 @@
       "engine_mean_composite": {
         "vectorize": 0.7567
       }
+    },
+    {
+      "ts": "2026-09-26T15:27:34Z",
+      "run_id": "20260926T152734Z",
+      "min_height": 320,
+      "engines": [
+        "baseline",
+        "vectorize"
+      ],
+      "mean_composite": 0.7518,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "vectorize",
+          "composite": 0.4793,
+          "ink_iou": 0.2988,
+          "palette_fidelity": 0.4512,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.3634
+        },
+        {
+          "pair_id": "trialta__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.4816,
+          "ink_iou": 0.269,
+          "palette_fidelity": 0.1982,
+          "alpha_clean": 0.9551,
+          "aspect_drift": 0.0182
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5211,
+          "ink_iou": 0.193,
+          "palette_fidelity": 0.508,
+          "alpha_clean": 0.9984,
+          "aspect_drift": 0.039
+        },
+        {
+          "pair_id": "trialta__plate_halo",
+          "engine": "vectorize",
+          "composite": 0.5286,
+          "ink_iou": 0.2466,
+          "palette_fidelity": 0.4353,
+          "alpha_clean": 0.9838,
+          "aspect_drift": 0.0193
+        },
+        {
+          "pair_id": "trialta__downscale_jpeg",
+          "engine": "baseline",
+          "composite": 0.5316,
+          "ink_iou": 0.251,
+          "palette_fidelity": 0.306,
+          "alpha_clean": 0.9776,
+          "aspect_drift": 0.0223
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9257,
+      "engine_mean_composite": {
+        "baseline": 0.7526,
+        "vectorize": 0.7511
+      }
+    },
+    {
+      "ts": "2026-09-26T15:41:51Z",
+      "run_id": "20260926T154151Z",
+      "min_height": 400,
+      "engines": [
+        "baseline",
+        "vectorize"
+      ],
+      "mean_composite": 0.7607,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.4782,
+          "ink_iou": 0.2704,
+          "palette_fidelity": 0.1863,
+          "alpha_clean": 0.9532,
+          "aspect_drift": 0.0192
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "vectorize",
+          "composite": 0.4842,
+          "ink_iou": 0.2973,
+          "palette_fidelity": 0.4725,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.362
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.518,
+          "ink_iou": 0.1922,
+          "palette_fidelity": 0.4969,
+          "alpha_clean": 0.9971,
+          "aspect_drift": 0.0385
+        },
+        {
+          "pair_id": "trialta__plate_halo",
+          "engine": "vectorize",
+          "composite": 0.5284,
+          "ink_iou": 0.2473,
+          "palette_fidelity": 0.4336,
+          "alpha_clean": 0.984,
+          "aspect_drift": 0.02
+        },
+        {
+          "pair_id": "trialta__downscale_jpeg",
+          "engine": "baseline",
+          "composite": 0.5318,
+          "ink_iou": 0.2527,
+          "palette_fidelity": 0.3061,
+          "alpha_clean": 0.9759,
+          "aspect_drift": 0.0239
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9265,
+      "engine_mean_composite": {
+        "baseline": 0.7605,
+        "vectorize": 0.7608
+      }
     }
   ],
-  "updated_at": "2026-09-26T13:59:25Z",
+  "updated_at": "2026-09-26T15:53:55Z",
   "entries": []
 }

@@ -75,8 +75,38 @@ def main(argv: list[str] | None = None) -> int:
         sketch = Image.open(SYN / "degraded" / f"{case}.png").convert("RGBA")
         vt, vi = _v2(clean, t), _v2(clean, i)
         truth = "tie" if abs(vt - vi) < TIE else ("traced" if vt > vi else "ideal")
-        row = {"case": case, "traced_v2": round(vt, 4), "ideal_v2": round(vi, 4), "truth": truth, **{
-            f"{k}_{n}": v for n, d in info.items() for k, v in d.items()}}
+        # Pair-level flags sit beside role dicts in candidates.json.
+        pair_flags = {
+            k: v for k, v in info.items() if not isinstance(v, dict)
+        }
+        role_flat = {
+            f"{k}_{n}": v
+            for n, d in info.items()
+            if isinstance(d, dict)
+            for k, v in d.items()
+            if k != "review"
+        }
+        # Recompute ideal_lost_strictly_less from review dicts when missing
+        # (older KEEP_CANDIDATES dumps only wrote per-role review blobs).
+        if "ideal_lost_strictly_less" not in pair_flags:
+            try:
+                from tools.logo_vectorizer.meedo_review import Review, lost_no_more
+
+                ir = Review.from_dict((info.get("ideal") or {}).get("review"))
+                tr = Review.from_dict((info.get("traced") or {}).get("review"))
+                pair_flags["ideal_lost_strictly_less"] = bool(
+                    lost_no_more(ir, tr) and not lost_no_more(tr, ir)
+                )
+            except Exception:
+                pair_flags["ideal_lost_strictly_less"] = False
+        row = {
+            "case": case,
+            "traced_v2": round(vt, 4),
+            "ideal_v2": round(vi, 4),
+            "truth": truth,
+            **role_flat,
+            **pair_flags,
+        }
         for m in minds:
             r = M.compare_both_ways(m, sketch, Image.open(t).convert("RGBA"), Image.open(i).convert("RGBA"),
                                     case=case, session=f"rank-{run}-{case}", image_dir=SYN / "minds" / "inputs")
@@ -92,6 +122,14 @@ def main(argv: list[str] | None = None) -> int:
 
     def derived(r):  # today's rule, identity first (see convert / _prefer_reconstruction)
         if r["passed_review_ideal"] and not r["passed_review_traced"]:
+            return "ideal"
+        # Strict-less loss is recorded when LOGO_KEEP_CANDIDATES writes
+        # review finding counts; without it, fall through to has_vector rule.
+        if (
+            not r["passed_review_ideal"]
+            and not r["passed_review_traced"]
+            and r.get("ideal_lost_strictly_less")
+        ):
             return "ideal"
         if r["passed_review_ideal"] and not r["has_vector_traced"] and r["agreement_ideal"] >= COLLAPSE_FLOOR:
             return "ideal"

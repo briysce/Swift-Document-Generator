@@ -101,9 +101,8 @@ class Run:
             # The minds (collab_mind) first existed on 2026-09-26; no run before
             # that could have had them, so a row without the field had them off.
             "minds": bool(r.get("minds", False)),
-            # Which minds may break a tie between the engine's candidates
-            # (LOGO_MINDS_RANK); introduced after every earlier run, so unset.
-            "minds_rank": r.get("minds_rank", "") or "",
+            # Minds ranking traced vs idealize (LOGO_MINDS_RANK); same default.
+            "minds_rank": bool(r.get("minds_rank", False)),
         }
 
 

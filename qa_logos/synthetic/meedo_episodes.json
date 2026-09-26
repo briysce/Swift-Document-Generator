@@ -1651,6 +1651,234 @@
       "source": "review"
     },
     {
+      "id": "E0132",
+      "ts": "2026-09-26T14:46:54Z",
+      "commit": "a6b122f",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "original/idealize/prepared: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (27, 25, 26) is 11.7% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "original"
+      ],
+      "source": "review",
+      "renumbered_from": "E0071"
+    },
+    {
+      "id": "E0133",
+      "ts": "2026-09-26T14:46:54Z",
+      "commit": "a6b122f",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "original/idealize/source: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (27, 25, 26) is 11.7% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "original"
+      ],
+      "source": "review",
+      "renumbered_from": "E0072"
+    },
+    {
+      "id": "E0134",
+      "ts": "2026-09-26T14:46:54Z",
+      "commit": "a6b122f",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "original/traced: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (27, 25, 26) is 11.7% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "original"
+      ],
+      "source": "review",
+      "renumbered_from": "E0073"
+    },
+    {
+      "id": "E0074",
+      "ts": "2026-09-26T14:54:58Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "original/idealize/source: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (637,60) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "original"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0075",
+      "ts": "2026-09-26T14:54:59Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (85,55) in sketch pixels; 2 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (246,29), (289,28) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0076",
+      "ts": "2026-09-26T14:54:59Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/idealize/source: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25), (85,55) in sketch pixels; 4 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (236,28), (246,29), (289,28), (343,27) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0077",
+      "ts": "2026-09-26T14:54:59Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/traced: blocked by review (brand_colour, small_element)",
+      "first_read": "",
+      "evidence": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped; 1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0078",
+      "ts": "2026-09-26T14:55:00Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/vectorize: blocked by review (brand_colour, small_element)",
+      "first_read": "",
+      "evidence": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped; 1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0079",
+      "ts": "2026-09-26T14:56:15Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__downscale_jpeg/vectorize: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (46, 68, 69) is 31.6% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0080",
+      "ts": "2026-09-26T14:56:17Z",
+      "commit": "c64902a",
+      "workstream": "meedo-me",
+      "outcome": "open",
+      "problem": "Codify Meedo succession doctrine: overqualified advisor \u2192 eventual GM of project AI; learn from logo engines + Gemini + Claude; phase tutors when offline-ready",
+      "first_read": "observed via cursor",
+      "evidence": "user directive 2026-09-26 NHL/NBA AGM succession analogy",
+      "cause": "",
+      "fix": "embed Meedo in every build (observe/journal/consult/procedures); recall-first before re-calling Gemini/Claude; persist specialist methods as lessons+episodes+procedures; phase live APIs only when offline confidence earned",
+      "verified": "",
+      "method": "alwaysApply meedo-succession.mdc; update meedo-me-pm + SKILL + COORDINATION rule 10 + board #3; embed observe/consult/recall-first; promote ownership only when meedo_study / offline confidence earned",
+      "tags": [
+        "advisor-to-gm",
+        "cursor",
+        "doctrine",
+        "meedo-me",
+        "succession"
+      ],
+      "cases": [],
+      "source": "observe:cursor"
+    },
+    {
       "id": "E0071",
       "ts": "2026-09-26T14:57:03Z",
       "commit": "f756949",
@@ -1715,6 +1943,1131 @@
         "trialta__import_combo"
       ],
       "source": "review"
+    },
+    {
+      "id": "E0082",
+      "ts": "2026-09-26T15:06:50Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__plate_halo/idealize/source: blocked by review (collapse, element)",
+      "first_read": "",
+      "evidence": "3 of the 16 elements the sketch shows (letters, bars, marks) are missing, at (252,30), (263,30), (325,36) in sketch pixels; the output carries 8.9% of its sketch's ink \u2014 the mark has collapsed",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "collapse",
+        "element",
+        "review"
+      ],
+      "cases": [
+        "arc__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0083",
+      "ts": "2026-09-26T15:06:50Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__plate_halo/traced: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (50, 71, 72) is 35.5% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0084",
+      "ts": "2026-09-26T15:06:52Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__import_combo/baseline: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels; 13 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (278,68), (226,71), (246,71), (264,71), (126,104) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0085",
+      "ts": "2026-09-26T15:07:23Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__plate_halo/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "4 of the 4 small elements the sketch shows (dots, accents, marks) are missing, at (108,71), (209,74), (40,78), (62,78) in sketch pixels; 11 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (40,83), (62,84), (98,86), (120,86), (176,84), (194,83), (211,83) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "propak__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0086",
+      "ts": "2026-09-26T15:07:24Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__plate_halo/traced: blocked by review (element)",
+      "first_read": "",
+      "evidence": "3 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (243,84), (284,84) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0087",
+      "ts": "2026-09-26T15:08:24Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__import_combo/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (211,90), (258,92) in sketch pixels; 19 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (163,67), (175,67), (202,68), (278,68), (147,71), (226,71), (246,71) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0088",
+      "ts": "2026-09-26T15:08:24Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__import_combo/traced: blocked by review (brand_colour, element, small_element)",
+      "first_read": "",
+      "evidence": "colour (157, 18, 36) is 21.4% of the sketch but 0.0% of the output \u2014 an element has been dropped; 2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels; 14 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (147,71), (226,71), (246,71), (264,71), (126,104) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0089",
+      "ts": "2026-09-26T15:08:27Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__downscale_jpeg/baseline: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels; 1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0090",
+      "ts": "2026-09-26T15:08:55Z",
+      "commit": "6aff161",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini,claude severity=0.90 \u2014 Severe JPEG compression artifacts and dithering have destroyed clean edges. The logo combines a complex valve/monogram symbol with serif text. The stuck metrics",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe JPEG compression artifacts and dithering have destroyed clean edges. The logo combines a complex valve/monogram symbol with serif text. The stuck metrics (edge_ratio=0.692, fell_to_lanczos) confirm tracing cannot recover crisp vectors from this noise floor.",
+      "cause": "",
+      "fix": "Re-typeset 'Gulf Coast' and 'Modification' using a clean transitional serif typeface rather than tracing noisy letterform fragments.; Isolate and redraw the valve symbol mark on the left with geometric primitives (flanged valve body, 'T' top stem, outer 'G', and inner red circular disc/C-shape).; Align the recreated typography to match the original two-line right-aligned lockup next to the valve e",
+      "verified": "",
+      "method": "Severe JPEG compression artifacts and dithering have destroyed clean edges. The logo combines a complex valve/monogram symbol with serif text. The stuck metrics (edge_ratio=0.692, fell_to_lanczos) confirm tracing cannot recover crisp vectors from this noise floor.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0091",
+      "ts": "2026-09-26T15:10:41Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__downscale_jpeg/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels; 1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0092",
+      "ts": "2026-09-26T15:10:41Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__downscale_jpeg/traced: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels; 1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0093",
+      "ts": "2026-09-26T15:10:45Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__plate_halo/baseline: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0094",
+      "ts": "2026-09-26T15:12:19Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__plate_halo/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "3 of the 5 small elements the sketch shows (dots, accents, marks) are missing, at (357,83), (265,99), (324,139) in sketch pixels; 1 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (356,96) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0095",
+      "ts": "2026-09-26T15:12:20Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__plate_halo/traced: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0096",
+      "ts": "2026-09-26T15:12:23Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__import_combo/baseline: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (168,62), (195,62) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0097",
+      "ts": "2026-09-26T15:13:40Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__import_combo/idealize/prepared: blocked by review (element)",
+      "first_read": "",
+      "evidence": "7 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (130,62), (168,62), (195,62) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0098",
+      "ts": "2026-09-26T15:13:40Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__import_combo/traced: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (168,62), (195,62) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0099",
+      "ts": "2026-09-26T15:13:42Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__downscale_jpeg/baseline: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0100",
+      "ts": "2026-09-26T15:14:06Z",
+      "commit": "6aff161",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 Severe dithering artifacts and JPEG compression noise throughout letterforms causing vectorization failure. Blue 'PROPAK' text contains artificial voids from ha",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe dithering artifacts and JPEG compression noise throughout letterforms causing vectorization failure. Blue 'PROPAK' text contains artificial voids from halftone pattern. Red geometric elements (horizontal rule + trapezoid container) are cleaner. Bottom tagline critically degraded and unrecoverable from bitmap.",
+      "cause": "",
+      "fix": "Segment the graphic into distinct color channels: deep blue text layer and red geometric line/trapezoid elements.; Apply morphological closing (kernel 3x3) to the blue channel to fuse the dithered voids in 'PROPAK' without rounding the external glyph terminals.; Trace the red rule line and right-side angled container icon independently as clean parametric vector strokes.; Evaluate bottom fragmente",
+      "verified": "",
+      "method": "Severe dithering artifacts and JPEG compression noise throughout letterforms causing vectorization failure. Blue 'PROPAK' text contains artificial voids from halftone pattern. Red geometric elements (horizontal rule + trapezoid container) are cleaner. Bottom tagline critically degraded and unrecoverable from bitmap.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0101",
+      "ts": "2026-09-26T15:15:23Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__downscale_jpeg/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (243,66) in sketch pixels; 9 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (16,72), (136,72), (36,74), (55,75), (106,77), (156,75), (172,74), (234,75) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "propak__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0102",
+      "ts": "2026-09-26T15:15:23Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__downscale_jpeg/traced: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0103",
+      "ts": "2026-09-26T15:15:26Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__plate_halo/baseline: blocked by review (element)",
+      "first_read": "",
+      "evidence": "3 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (243,84), (284,84) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0104",
+      "ts": "2026-09-26T15:19:29Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/vectorize: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0105",
+      "ts": "2026-09-26T15:24:20Z",
+      "commit": "6aff161",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/idealize/prepared: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (85,55) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0106",
+      "ts": "2026-09-26T15:27:44Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__import_combo/vectorize: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (191,94), (275,94) in sketch pixels; 14 of the 25 elements the sketch shows (letters, bars, marks) are missing, at (123,68), (175,67), (202,68), (278,68), (226,71), (246,71), (264,71), (126,104) ... in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0107",
+      "ts": "2026-09-26T15:28:15Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini,claude severity=0.90 \u2014 Extremely low-resolution bitmap (approx. 400\u00d7150px) with severe 8-bit dithering, JPEG artifacts, and fractured letterforms. The valve icon contains fine geometr",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Extremely low-resolution bitmap (approx. 400\u00d7150px) with severe 8-bit dithering, JPEG artifacts, and fractured letterforms. The valve icon contains fine geometric details (T-handle, circular elements) that are partially destroyed by compression. Text 'Gulf Coast Modification' is heavily aliased with broken strokes. Standard vectorization fails due to noise overwhelming edge detection (edge_ratio=0",
+      "cause": "",
+      "fix": "Separate the valve-and-TG mark on the left from the right-hand text block.; Re-type the text lockup as two left-aligned lines reading 'Gulf Coast' and 'Modification' using a clean bold sans-serif font.; Trace and clean the geometric valve icon containing the 'T' handle, 'G' body, and red circular core with white inner highlight.; Reassemble the reconstructed mark with the clean typography and regi",
+      "verified": "",
+      "method": "Extremely low-resolution bitmap (approx. 400\u00d7150px) with severe 8-bit dithering, JPEG artifacts, and fractured letterforms. The valve icon contains fine geometric details (T-handle, circular elements) that are partially destroyed by compression. Text 'Gulf Coast Modification' is heavily aliased with broken strokes. Standard vectorization fails due to noise overwhelming edge detection (edge_ratio=0.689 indicates excessive jagged edges). This is a clear recreate candidate.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0108",
+      "ts": "2026-09-26T15:28:40Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__downscale_jpeg/vectorize: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (228,112) in sketch pixels; 1 of the 24 elements the sketch shows (letters, bars, marks) are missing, at (316,85) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0109",
+      "ts": "2026-09-26T15:28:46Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__plate_halo/vectorize: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (288,126), (370,126) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0110",
+      "ts": "2026-09-26T15:28:48Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__import_combo/vectorize: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (161,25), (114,60), (30,61), (59,62), (168,62), (195,62) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0111",
+      "ts": "2026-09-26T15:29:15Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 Severe dithering and halftone texture throughout 'PROPAK' glyphs causing internal voids and edge noise. Bottom text line completely fragmented into sub-pixel de",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe dithering and halftone texture throughout 'PROPAK' glyphs causing internal voids and edge noise. Bottom text line completely fragmented into sub-pixel debris. Red geometric elements (bar and trapezoid) are clean but embedded in noisy context. Edge_ratio=0.684 indicates excessive smoothing loss during vectorization attempts.",
+      "cause": "",
+      "fix": "Separate the logo into color planes: blue text ('PROPAK' and bottom subline) and red accent elements (horizontal bar and trapezoid icon).; Apply morphological closing on the primary 'PROPAK' glyphs to fill internal texture holes before tracing solid vector contours.; Reconstruct the straight red dividing rule and parallelogram/trapezoid border geometrically.; Evaluate whether bottom degraded text",
+      "verified": "",
+      "method": "Severe dithering and halftone texture throughout 'PROPAK' glyphs causing internal voids and edge noise. Bottom text line completely fragmented into sub-pixel debris. Red geometric elements (bar and trapezoid) are clean but embedded in noisy context. Edge_ratio=0.684 indicates excessive smoothing loss during vectorization attempts.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0112",
+      "ts": "2026-09-26T15:29:16Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__downscale_jpeg/vectorize: blocked by review (element)",
+      "first_read": "",
+      "evidence": "6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0113",
+      "ts": "2026-09-26T15:29:20Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__plate_halo/vectorize: blocked by review (element)",
+      "first_read": "",
+      "evidence": "4 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (153,81), (62,84), (243,84), (284,84) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0114",
+      "ts": "2026-09-26T15:31:02Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 Severe 1-bit quantization noise in red 'SWIFT' letterforms caused edge_ratio gate failure (0.549). The white speckling is compression artifact, not intentional",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe 1-bit quantization noise in red 'SWIFT' letterforms caused edge_ratio gate failure (0.549). The white speckling is compression artifact, not intentional distressing\u2014confirmed by clean 'SUPPLY' baseline. Vectorizer produced oversmoothed output (iou=0.906) that lost the italic slant and texture detail.",
+      "cause": "",
+      "fix": "Apply morphological closing and median filtering to seal internal white erosion specks inside the red 'SWIFT' letterforms and border bars.; Section the logo into top/bottom rules, degraded 'SWIFT' mark, and clean 'SUPPLY' subtitle for isolated tracing.; Reconstruct the outer border frames with clean vector rectangles to eliminate perimeter noise.; Apply 5\u00d75 median filter followed by 3px morphologi",
+      "verified": "",
+      "method": "Severe 1-bit quantization noise in red 'SWIFT' letterforms caused edge_ratio gate failure (0.549). The white speckling is compression artifact, not intentional distressing\u2014confirmed by clean 'SUPPLY' baseline. Vectorizer produced oversmoothed output (iou=0.906) that lost the italic slant and texture detail.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0115",
+      "ts": "2026-09-26T15:34:51Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=idealize providers=gemini,claude severity=0.90 \u2014 Heavy distress texture with pinhole noise across letterforms and bars. Edge_ratio=0.659 indicates excessive smoothing loss during trace. The distress is uniform",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Heavy distress texture with pinhole noise across letterforms and bars. Edge_ratio=0.659 indicates excessive smoothing loss during trace. The distress is uniform degradation, not intentional brand styling\u2014ideal candidate for morphological repair then clean vectorization.",
+      "cause": "",
+      "fix": "Apply morphological closing to bridge internal distress voids and consolidate solid silhouettes of the glyphs and bars; Trace cleaned solid boundaries with vtracer using high spline precision to preserve sharp serifs and bar edges; Filter out residual floating debris and pinhole contours below the minimum area threshold; Upscale 4\u00d7 to preserve serif detail before morphological operations; Apply Ga",
+      "verified": "",
+      "method": "Heavy distress texture with pinhole noise across letterforms and bars. Edge_ratio=0.659 indicates excessive smoothing loss during trace. The distress is uniform degradation, not intentional brand styling\u2014ideal candidate for morphological repair then clean vectorization.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0116",
+      "ts": "2026-09-26T15:36:15Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 The logo exhibits severe photocopy-style degradation with heavy speckle noise, internal voids, and eroded stroke edges. The distressed texture is intentional br",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "The logo exhibits severe photocopy-style degradation with heavy speckle noise, internal voids, and eroded stroke edges. The distressed texture is intentional branding (distressed/grunge aesthetic), not scan artifacts. Both 'SWIFT' (italic display) and 'SUPPLY' (inline/outlined caps) plus horizontal rules contain deliberate interior breaks. Standard vectorization failed because noise-filling prepro",
+      "cause": "",
+      "fix": "Apply morphological closing (kernel size 3-5) to bridge internal scan noise and fill eroded voids within glyph bodies and horizontal bars.; Binarize the reddish-orange foreground to produce solid geometric silhouettes for 'SWIFT' and horizontal framing rules.; Run contour idealization or potrace with adjusted corner threshold to recover crisp straight edges and diagonal slants.; Isolate three zone",
+      "verified": "",
+      "method": "The logo exhibits severe photocopy-style degradation with heavy speckle noise, internal voids, and eroded stroke edges. The distressed texture is intentional branding (distressed/grunge aesthetic), not scan artifacts. Both 'SWIFT' (italic display) and 'SUPPLY' (inline/outlined caps) plus horizontal rules contain deliberate interior breaks. Standard vectorization failed because noise-filling preprocessing destroyed the intentional distress character, while raw tracing produced fragmented, low-quality paths that failed IOU gates.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0117",
+      "ts": "2026-09-26T15:37:59Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=idealize providers=gemini,claude severity=0.90 \u2014 Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometri",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preproce",
+      "cause": "",
+      "fix": "Apply morphological closing and median filtering to seal internal grunge specks and holes within the glyphs and border bars.; Binarize the graphic into clean solid silhouettes for the top bar, bottom bar, 'SWIFT', and 'SUPPLY'.; Run contour tracing via opencv-tree and Bezier curve fitting to obtain smooth, clean vector boundaries.; Raise alpha_threshold to 160 to better separate orange text from w",
+      "verified": "",
+      "method": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preprocessing never produced viable candidates\u2014this suggests alpha_threshold and min_area need adjustment before morphological operations can help.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0118",
+      "ts": "2026-09-26T15:38:23Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "logo_restore failure case=trialta__import_combo composite=0.4793 reason=",
+      "first_read": "observed via improve_loop",
+      "evidence": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preproce",
+      "cause": "",
+      "fix": "Apply morphological closing and median filtering to seal internal grunge specks and holes within the glyphs and border bars.; Binarize the graphic into clean solid silhouettes for the top bar, bottom bar, 'SWIFT', and 'SUPPLY'.; Run contour tracing via opencv-tree and Bezier curve fitting to obtain smooth, clean vector boundaries.; Raise alpha_threshold to 160 to better separate orange text from w",
+      "verified": "",
+      "method": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preprocessing never produced viable candidates\u2014this suggests alpha_threshold and min_area need adjustment before morphological operations can help.",
+      "tags": [
+        "improve_loop",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "observe:improve_loop"
+    },
+    {
+      "id": "E0119",
+      "ts": "2026-09-26T15:38:23Z",
+      "commit": "f25d7b0",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "logo_restore failure case=trialta__downscale_jpeg composite=0.4816 reason=",
+      "first_read": "observed via improve_loop",
+      "evidence": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preproce",
+      "cause": "",
+      "fix": "Apply morphological closing and median filtering to seal internal grunge specks and holes within the glyphs and border bars.; Binarize the graphic into clean solid silhouettes for the top bar, bottom bar, 'SWIFT', and 'SUPPLY'.; Run contour tracing via opencv-tree and Bezier curve fitting to obtain smooth, clean vector boundaries.; Raise alpha_threshold to 160 to better separate orange text from w",
+      "verified": "",
+      "method": "Gemini's diagnosis is accurate: heavy grunge texture with internal erosion caused edge_ratio gate failure (0.699) and oversmooth rejection. The logo is geometric display text with decorative distress that should be cleaned, not preserved. The fell_to_lanczos outcome confirms vectorization completely failed. However, the stuck metrics show score_total=0.0 and candidates_tried=0, indicating preprocessing never produced viable candidates\u2014this suggests alpha_threshold and min_area need adjustment before morphological operations can help.",
+      "tags": [
+        "improve_loop",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "observe:improve_loop"
+    },
+    {
+      "id": "E0120",
+      "ts": "2026-09-26T15:38:23Z",
+      "commit": "f25d7b0",
+      "workstream": "logo-engine",
+      "outcome": "failure",
+      "problem": "trialta__import_combo::vectorize: has not moved and sits at #",
+      "first_read": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "evidence": "",
+      "cause": "",
+      "fix": "Acting now: diagnose TRIALTA letterform collapse with font matching (thought_trace anomaly #1), then reviewer element-count for dropped i-dots (#2).",
+      "verified": "judged on 20260926T152734Z: -0.0252",
+      "method": "Advice of the kind 'has not moved and sits at #' made it worse on trialta__import_combo::vectorize (-0.0252).",
+      "tags": [
+        "advice",
+        "vectorize"
+      ],
+      "cases": [
+        "trialta__import_combo::vectorize"
+      ],
+      "source": "proposal"
+    },
+    {
+      "id": "E0121",
+      "ts": "2026-09-26T15:42:09Z",
+      "commit": "7ba92d7",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Arc RESOURCES LTD. teal tagline dropped: thin-path quantize collapsed to red; snap treated washed teal as silver; prefer has_vector over identity",
+      "first_read": "",
+      "evidence": "",
+      "cause": "",
+      "fix": "quantize/snap/selection",
+      "verified": "arc import/downscale Meedo pass with teal retained; unit tests color_split/quantize/identity/fringe; clean Arc ships traced composite~0.816",
+      "method": "color-split prune gated to secondary\u226460% dominant; brand_palette keeps dark-tint + \u226515% hue families; snap only protects neutrals when source is neutral; identity-first ships ideal on brand_colour loss even with traced.has_vector",
+      "tags": [
+        "arc",
+        "board8",
+        "tagline",
+        "teal"
+      ],
+      "cases": [
+        "arc",
+        "arc__downscale_jpeg",
+        "arc__import_combo"
+      ],
+      "source": "manual"
+    },
+    {
+      "id": "E0122",
+      "ts": "2026-09-26T15:42:27Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "cause": "",
+      "fix": "Segment the image by color into two distinct foreground masks: dark red (inner emblem core) and navy blue (outer valve emblem, \u00ae mark, and text).; Bilateral filter or median denoise each mask independently to purge ringing artifacts while preserving sharp serif brackets and thin stem junctions.; Vectorize each color channel separately via Potrace/VTracer and composite into a unified SVG aligned to",
+      "verified": "",
+      "method": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0123",
+      "ts": "2026-09-26T15:42:54Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini,claude severity=0.90 \u2014 Severe low-resolution pixelation with compression artifacts and internal dithering holes throughout both the valve emblem and text. The valve graphic shows conc",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe low-resolution pixelation with compression artifacts and internal dithering holes throughout both the valve emblem and text. The valve graphic shows concentric circular elements (outer blue 'G', inner red 'C') with industrial flange details. Text is heavily degraded with jagged edges. Direct vectorization failed edge_ratio gates (0.688) due to oversmoothing required to handle noise. This is",
+      "cause": "",
+      "fix": "Rebuild the industrial valve flange emblem with clean geometric primitives (rectangles for flanges/stems, concentric circles for the inner red 'C' and outer blue 'G').; Typeset 'Gulf Coast' and 'Modification' on two stacked lines using a clean bold sans-serif font rather than attempting direct edge tracing of degraded glyphs.; Reposition the registered trademark symbol (\u00ae) cleanly between the valv",
+      "verified": "",
+      "method": "Severe low-resolution pixelation with compression artifacts and internal dithering holes throughout both the valve emblem and text. The valve graphic shows concentric circular elements (outer blue 'G', inner red 'C') with industrial flange details. Text is heavily degraded with jagged edges. Direct vectorization failed edge_ratio gates (0.688) due to oversmoothing required to handle noise. This is a textbook recreate candidate.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0124",
+      "ts": "2026-09-26T15:43:51Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini,claude severity=0.90 \u2014 Severe bitmap degradation from dithering/fax compression artifacts. The PROPAK wordmark shows heavy pixel dropout creating false topology that triggers oversmoo",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe bitmap degradation from dithering/fax compression artifacts. The PROPAK wordmark shows heavy pixel dropout creating false topology that triggers oversmooth rejection (edge_ratio=0.691). The red container icon and separator are cleaner but insufficient to pass gates. Bottom subtitle is unrecoverable noise. This is a classic recreate candidate.",
+      "cause": "",
+      "fix": "Reconstruct the primary wordmark 'PROPAK' using a bold italic sans-serif typeface, solidifying the heavily eroded fills.; Trace or draw the clean vector geometry for the red separator rule and the angled parallelogram/trapezoid container icon on the right.; Verify the lower fragmented subline text with the client or remove unrecoverable residual pixel dust.; Recreate 'PROPAK' wordmark using Futura",
+      "verified": "",
+      "method": "Severe bitmap degradation from dithering/fax compression artifacts. The PROPAK wordmark shows heavy pixel dropout creating false topology that triggers oversmooth rejection (edge_ratio=0.691). The red container icon and separator are cleaner but insufficient to pass gates. Bottom subtitle is unrecoverable noise. This is a classic recreate candidate.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0125",
+      "ts": "2026-09-26T15:44:13Z",
+      "commit": "7ba92d7",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__downscale_jpeg/vectorize: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (202,64) in sketch pixels; 6 of the 22 elements the sketch shows (letters, bars, marks) are missing, at (136,72), (55,75), (106,77), (156,75), (234,75), (252,75) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "propak__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0126",
+      "ts": "2026-09-26T15:45:52Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=sectional providers=gemini,claude severity=0.90 \u2014 Logo has three distinct components with different fidelity needs: (1) simple geometric frame bars, (2) heavily distressed 'SWIFT' with intentional grunge textur",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Logo has three distinct components with different fidelity needs: (1) simple geometric frame bars, (2) heavily distressed 'SWIFT' with intentional grunge texture in red fills and black extrusion shadows, (3) clean sans-serif 'SUPPLY' wordmark. The vectorizer failed because it attempted uniform tracing across mixed-fidelity elements. The white erosion in 'SWIFT' appears intentional (consistent dist",
+      "cause": "",
+      "fix": "Segment image into three distinct layers: horizontal framing bars, 3D extruded 'SWIFT' text, and bottom 'SUPPLY' wordmark; Binarize the bottom 'SUPPLY' wordmark independently to extract crisp geometric sans-serif glyphs; Trace black extrusion/shadow paths separately from red letter faces, filling internal erosion holes in the red fill to produce clean solid vector glyphs; Reconstruct top and botto",
+      "verified": "",
+      "method": "Logo has three distinct components with different fidelity needs: (1) simple geometric frame bars, (2) heavily distressed 'SWIFT' with intentional grunge texture in red fills and black extrusion shadows, (3) clean sans-serif 'SUPPLY' wordmark. The vectorizer failed because it attempted uniform tracing across mixed-fidelity elements. The white erosion in 'SWIFT' appears intentional (consistent distress pattern), not scan damage.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0127",
+      "ts": "2026-09-26T15:49:42Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=idealize providers=gemini,claude severity=0.90 \u2014 Severe bitmap degradation with grunge texture causing vectorizer rejection (edge_ratio=0.683, iou=0.933 indicates oversmoothing). The distress pattern appears i",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe bitmap degradation with grunge texture causing vectorizer rejection (edge_ratio=0.683, iou=0.933 indicates oversmoothing). The distress pattern appears intentional (stamp/vintage effect), but the current vectorize path with aggressive smoothing is destroying the letterform integrity. The fell_to_lanczos fallback confirms total vectorization failure.",
+      "cause": "",
+      "fix": "Apply morphological closing to eliminate interior distress holes across the letter bodies and framing rules.; Execute idealize geometry reconstruction to recover clean straight edges on the horizontal bars and crisp contours on 'SWIFT' and 'SUPPLY'.; Increase alpha_threshold to 140 to aggressively eliminate grunge noise while preserving core letterforms; Apply morphological closing (kernel 5-7px)",
+      "verified": "",
+      "method": "Severe bitmap degradation with grunge texture causing vectorizer rejection (edge_ratio=0.683, iou=0.933 indicates oversmoothing). The distress pattern appears intentional (stamp/vintage effect), but the current vectorize path with aggressive smoothing is destroying the letterform integrity. The fell_to_lanczos fallback confirms total vectorization failure.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0128",
+      "ts": "2026-09-26T15:51:01Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=retry_ensemble providers=gemini,claude severity=0.90 \u2014 Severe salt-and-pepper noise with internal speckles throughout letterforms and horizontal bars. The rejection 'oversmooth (edge_ratio=0.728)' indicates previous",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe salt-and-pepper noise with internal speckles throughout letterforms and horizontal bars. The rejection 'oversmooth (edge_ratio=0.728)' indicates previous attempts over-blurred the distinctive italic/oblique edges. The texture is intentionally distressed, not purely noise\u2014critical detail for brand identity. Standard vectorization failed due to micro-holes creating false topology.",
+      "cause": "",
+      "fix": "Apply morphological closing (kernel size 3-5) to merge internal speckles and close spurious pinholes within the glyphs and bars while preserving outer edge contours.; Binarize with Otsu thresholding focused on the single dominant rust-red color channel.; Run opencv-tree hierarchy filtering to discard false interior micro-holes while preserving genuine counters (such as in 'P').; Trace cleaned silh",
+      "verified": "",
+      "method": "Severe salt-and-pepper noise with internal speckles throughout letterforms and horizontal bars. The rejection 'oversmooth (edge_ratio=0.728)' indicates previous attempts over-blurred the distinctive italic/oblique edges. The texture is intentionally distressed, not purely noise\u2014critical detail for brand identity. Standard vectorization failed due to micro-holes creating false topology.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0129",
+      "ts": "2026-09-26T15:53:04Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=retry_ensemble providers=gemini,claude severity=0.90 \u2014 Severe texture distress with speckled voids throughout glyphs. Edge_ratio=0.752 indicates excessive smoothing destroyed critical serif details and italic slant",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Severe texture distress with speckled voids throughout glyphs. Edge_ratio=0.752 indicates excessive smoothing destroyed critical serif details and italic slant geometry. The 'SUPPLY' text shows outline/inline structure that collapsed. Morphological closing alone won't recover lost edge fidelity\u2014need controlled denoising that preserves intentional design features.",
+      "cause": "",
+      "fix": "Apply morphological closing to eliminate interior speckles and unify eroded text strokes in 'SWIFT' and 'SUPPLY'; Clean and straighten top and bottom horizontal frame rules independently; Trace solid vectorized outlines and suppress internal noise cavities below threshold; Apply bilateral filter (spatial=5, color=50) to denoise while preserving sharp edges and italic slant angles; Use higher upsca",
+      "verified": "",
+      "method": "Severe texture distress with speckled voids throughout glyphs. Edge_ratio=0.752 indicates excessive smoothing destroyed critical serif details and italic slant geometry. The 'SUPPLY' text shows outline/inline structure that collapsed. Morphological closing alone won't recover lost edge fidelity\u2014need controlled denoising that preserves intentional design features.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0130",
+      "ts": "2026-09-26T15:53:55Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "logo_restore failure case=trialta__downscale_jpeg composite=0.4782 reason=",
+      "first_read": "observed via improve_loop",
+      "evidence": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "cause": "",
+      "fix": "Segment the image by color into two distinct foreground masks: dark red (inner emblem core) and navy blue (outer valve emblem, \u00ae mark, and text).; Bilateral filter or median denoise each mask independently to purge ringing artifacts while preserving sharp serif brackets and thin stem junctions.; Vectorize each color channel separately via Potrace/VTracer and composite into a unified SVG aligned to",
+      "verified": "",
+      "method": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "tags": [
+        "improve_loop",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "observe:improve_loop"
+    },
+    {
+      "id": "E0131",
+      "ts": "2026-09-26T15:53:55Z",
+      "commit": "7ba92d7",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "logo_restore failure case=trialta__import_combo composite=0.4842 reason=",
+      "first_read": "observed via improve_loop",
+      "evidence": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "cause": "",
+      "fix": "Segment the image by color into two distinct foreground masks: dark red (inner emblem core) and navy blue (outer valve emblem, \u00ae mark, and text).; Bilateral filter or median denoise each mask independently to purge ringing artifacts while preserving sharp serif brackets and thin stem junctions.; Vectorize each color channel separately via Potrace/VTracer and composite into a unified SVG aligned to",
+      "verified": "",
+      "method": "Low-resolution source with severe JPEG compression artifacts causing edge detection failure. The composite logo contains fine details (\u00ae symbol, serif terminals, thin white separator stroke) that require color-separated vectorization. The 'oversmooth' rejection (edge_ratio=0.548) confirms loss of critical detail in monolithic tracing attempts.",
+      "tags": [
+        "improve_loop",
+        "logo_restore"
+      ],
+      "cases": [],
+      "source": "observe:improve_loop"
     }
   ]
 }

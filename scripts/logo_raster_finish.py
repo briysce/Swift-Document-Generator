@@ -416,32 +416,59 @@ def _is_small_mark(
     return False
 
 
-def prune_ink_speckles(
+def _chromatic_prune_layers(arr: np.ndarray, ink: np.ndarray) -> list[np.ndarray]:
+    """Split ink into distinct chromatic layers for per-hue speckle prune.
+
+    Arc's teal RESOURCES LTD. letters are ~200 px beside a 1500 px red ARC.
+    A global area floor keyed off the largest island treats those tagline
+    glyphs as crumbs. Splitting by brand hue first lets each layer prune
+    against its own largest mark (Gemini+Claude board #8 advice).
+    Near-neutral ink (black/gray) is left for the whole-ink pass.
+    """
+    rgb = arr[:, :, :3].astype(np.int32)
+    sat = rgb.max(axis=2) - rgb.min(axis=2)
+    chromatic = ink & (sat >= 18)
+    if int(chromatic.sum()) < 40:
+        return []
+    # Coarse 4-bit RGB buckets — enough to separate red ARC from teal tagline
+    # without inventing hues. Buckets under 2% of chromatic ink are noise.
+    q = (rgb[chromatic] // 32).astype(np.int32)
+    keys, inv, counts = np.unique(q, axis=0, return_inverse=True, return_counts=True)
+    floor = max(24, int(0.02 * int(chromatic.sum())))
+    keep_idx = [i for i, c in enumerate(counts) if int(c) >= floor]
+    if len(keep_idx) < 2:
+        return []
+    ys, xs = np.where(chromatic)
+    layers: list[np.ndarray] = []
+    for i in keep_idx:
+        m = np.zeros(ink.shape, dtype=bool)
+        sel = inv == i
+        m[ys[sel], xs[sel]] = True
+        layers.append(m)
+    return layers
+
+
+def _prune_mask_speckles(
     arr: np.ndarray,
-    min_px: int = 18,
-    min_frac: float = 0.012,
-    protect: np.ndarray | None = None,
+    ink: np.ndarray,
+    *,
+    min_px: int,
+    min_frac: float,
+    protect: np.ndarray | None,
 ) -> np.ndarray:
-    """Drop tiny disconnected ink islands left by JPEG plate / import noise."""
-    try:
-        from scipy import ndimage
-    except ImportError:
-        return arr
-    out = arr.copy()
-    ink = out[:, :, 3] >= 48
+    """Boolean drop mask for one ink set (whole logo or one colour layer)."""
+    from scipy import ndimage
+
     n_ink = int(ink.sum())
-    if n_ink < 80:
-        return arr
+    if n_ink < 40:
+        return np.zeros(ink.shape, dtype=bool)
     lab, n = ndimage.label(ink)
     if n <= 1:
-        return arr
+        return np.zeros(ink.shape, dtype=bool)
     sizes = np.bincount(lab.ravel())
     largest = int(sizes[1:].max())
     thr = max(min_px, int(largest * min_frac))
-    drop = sizes[lab] < thr
-    # Keep glyph-sized islands even when pixel count is low vs the main
-    # cluster (Trialta/GCM JPEG can isolate a letter). Only drop crumbs
-    # whose AABB is tiny relative to the full ink box.
+    drop = (sizes[lab] < thr) & ink
     ys, xs = np.where(ink)
     bw = max(1, int(xs.max() - xs.min()) + 1)
     bh = max(1, int(ys.max() - ys.min()) + 1)
@@ -450,13 +477,11 @@ def prune_ink_speckles(
     y0, y1 = int(ys.min()), int(ys.max())
     kept = ink & ~drop
     kept_lab, _ = ndimage.label(kept)
-    kept_dt = ndimage.distance_transform_edt(kept)
+    kept_dt = ndimage.distance_transform_edt(kept) if kept.any() else kept.astype(np.float64)
     for i in range(1, n + 1):
         if sizes[i] >= thr:
             continue
         iy, ix = np.where(lab == i)
-        # Never drop a component that defines the current ink AABB — that
-        # collapsed Trialta/GCM aspect when JPEG isolated an edge glyph.
         if (
             int(ix.min()) <= x0
             or int(ix.max()) >= x1
@@ -470,10 +495,69 @@ def prune_ink_speckles(
         ) >= keep_h:
             drop[lab == i] = False
             continue
-        if _is_small_mark(out, ix, iy, kept, kept_lab, kept_dt):
+        if _is_small_mark(arr, ix, iy, kept, kept_lab, kept_dt):
             drop[lab == i] = False
     if protect is not None:
         drop = drop & ~protect
+    return drop
+
+
+def prune_ink_speckles(
+    arr: np.ndarray,
+    min_px: int = 18,
+    min_frac: float = 0.012,
+    protect: np.ndarray | None = None,
+) -> np.ndarray:
+    """Drop tiny disconnected ink islands left by JPEG plate / import noise.
+
+    When the mark has two or more distinct chromatic layers (Arc red ARC +
+    teal RESOURCES LTD.), prune each layer against its own largest island
+    before a whole-ink pass. Size floors keyed off the global largest island
+    otherwise erase subordinate tagline glyphs.
+    """
+    try:
+        from scipy import ndimage  # noqa: F401 — availability gate
+    except ImportError:
+        return arr
+    out = arr.copy()
+    ink = out[:, :, 3] >= 48
+    n_ink = int(ink.sum())
+    if n_ink < 80:
+        return arr
+
+    drop = np.zeros(ink.shape, dtype=bool)
+    layers = _chromatic_prune_layers(out, ink)
+    # Color-split only when a secondary chromatic layer is real but clearly
+    # smaller than the dominant one (Arc teal tagline ~½ of red ARC). Dense
+    # two-tone fills (Propak blue≈red) share letter-scale islands — splitting
+    # them made those islands look like speckles against their own layer and
+    # dropped Propak import_combo composite ~0.88→0.62.
+    use_split = False
+    if len(layers) >= 2:
+        areas = sorted((int(m.sum()) for m in layers), reverse=True)
+        if areas[1] >= 40 and areas[1] <= int(0.60 * areas[0]):
+            use_split = True
+    if use_split:
+        for layer in layers:
+            drop |= _prune_mask_speckles(
+                out, layer, min_px=min_px, min_frac=min_frac, protect=protect
+            )
+        # Neutrals / leftovers: prune only ink not already claimed by a
+        # chromatic layer, so AA fringe around ARC does not inherit teal's
+        # smaller thr and wipe stroke edges.
+        claimed = np.zeros(ink.shape, dtype=bool)
+        for layer in layers:
+            claimed |= layer
+        residual = ink & ~claimed
+        if int(residual.sum()) >= 40:
+            drop |= _prune_mask_speckles(
+                out, residual, min_px=min_px, min_frac=min_frac, protect=protect
+            )
+    else:
+        drop = _prune_mask_speckles(
+            out, ink, min_px=min_px, min_frac=min_frac, protect=protect
+        )
+
     out[drop & ink, 3] = 0
     return out
 
@@ -1027,6 +1111,36 @@ def quantize_thin_path(arr: np.ndarray, max_colors: int = 4) -> np.ndarray:
                 break
     if not uniq:
         return out
+
+    # Hue-family safety: if the source ink has two distinct chromatic families
+    # (Arc red ARC + teal RESOURCES LTD.) the quantised palette must keep both.
+    # Collapsing to a single family painted the whole tagline red on
+    # arc__import_combo / downscale_jpeg.
+    def _families(cols: list[np.ndarray]) -> int:
+        fam: list[tuple[float, float]] = []
+        for c in cols:
+            r, g, b = (float(v) for v in c)
+            mx, mn = max(r, g, b), min(r, g, b)
+            if mx - mn < 16:
+                continue
+            # Rough hue angle in degrees.
+            if mx == r:
+                h = 60.0 * ((g - b) / (mx - mn)) % 360.0
+            elif mx == g:
+                h = 60.0 * ((b - r) / (mx - mn)) + 120.0
+            else:
+                h = 60.0 * ((r - g) / (mx - mn)) + 240.0
+            if not any(min(abs(h - fh), 360.0 - abs(h - fh)) <= 40.0 for fh, _ in fam):
+                fam.append((h, mx - mn))
+        return len(fam)
+
+    src_cols = [
+        np.array(c, dtype=np.int32)
+        for c in _brand_palette(arr, max_colors=8)
+    ]
+    if _families(src_cols) >= 2 and _families(uniq) < 2:
+        return arr
+
     stack = np.stack(uniq, axis=0)
     pix = rgb[ink]
     diffs = np.abs(pix[:, None, :] - stack[None, :, :]).sum(axis=2)
@@ -1106,13 +1220,104 @@ def _brand_palette(arr: np.ndarray, max_colors: int = 16) -> list[np.ndarray]:
         return []
 
     # Prefer chromatic brand fills when any exist (avoid locking to JPEG gray mush).
-    chromatic = [e for e in entries if e[0] >= 28]
+    # Dark teal/navy (Arc RESOURCES LTD.) often lands at sat 16–27 after 16-bin
+    # quantization — still a real hue, not gray mush. Excluding it left only
+    # red bins, and quantize_thin_path then painted the whole tagline red.
+    def _chromatic(e: tuple[int, np.ndarray, int]) -> bool:
+        sat_c, rgb_c, _n = e
+        lum_c = float(rgb_c.mean())
+        # Near-white pastel JPEG crumbs (sat 28–40 at lum≥200) are not brand
+        # fills — including them let Propak snap onto mint/pink plate noise.
+        if lum_c >= 200:
+            return False
+        if sat_c >= 28:
+            return True
+        # Dark teal/navy (Arc RESOURCES LTD.) often lands at sat 16–27 after
+        # 16-bin quantization — still a real hue, not gray mush.
+        return lum_c < 130.0 and sat_c >= 16
+
+    chromatic = [e for e in entries if _chromatic(e)]
     pool = chromatic if chromatic else entries
     # Rank by sat*count so residual Arc red beats washed pink majority bins.
     pool_sorted = sorted(pool, key=lambda e: -(e[0] * e[2]))
-    return [e[1] for e in pool_sorted[:max_colors]]
+    total_chrom = float(sum(e[2] for e in pool_sorted)) or 1.0
 
+    def _hue_deg(rgb_c: np.ndarray) -> float | None:
+        r, g, b = (float(v) for v in rgb_c)
+        mx, mn = max(r, g, b), min(r, g, b)
+        if mx - mn < 12:
+            return None
+        if mx == r:
+            return 60.0 * ((g - b) / (mx - mn)) % 360.0
+        if mx == g:
+            return 60.0 * ((b - r) / (mx - mn)) + 120.0
+        return 60.0 * ((r - g) / (mx - mn)) + 240.0
 
+    # Start with sat*count order, but only admit a non-top-2 hue family when
+    # it owns ≥15% of chromatic ink. Arc teal is ~30%+; Propak JPEG cyan
+    # crumbs (~11%) must not occupy a brand slot and warp snap.
+    fam_share: dict[int, float] = {}
+    for e in pool_sorted:
+        h = _hue_deg(e[1])
+        if h is None:
+            continue
+        key = int(h // 40)
+        fam_share[key] = fam_share.get(key, 0.0) + e[2] / total_chrom
+    top_fams = sorted(fam_share, key=lambda k: -fam_share[k])[:2]
+    picked: list[np.ndarray] = []
+    for e in pool_sorted:
+        h = _hue_deg(e[1])
+        key = int(h // 40) if h is not None else None
+        if (
+            key is not None
+            and key not in top_fams
+            and fam_share.get(key, 0.0) < 0.15
+        ):
+            continue
+        if any(int(np.abs(e[1] - u).sum()) <= 12 for u in picked):
+            continue
+        picked.append(e[1])
+        if len(picked) >= max_colors:
+            break
+    # Ensure every strong (≥15%) family is represented (Arc teal rescue).
+    strong = {k for k, s in fam_share.items() if s >= 0.15}
+    picked_keys = set()
+    for c in picked:
+        h = _hue_deg(c)
+        if h is not None:
+            picked_keys.add(int(h // 40))
+    for mk in strong - picked_keys:
+        best = max(
+            (
+                e
+                for e in pool_sorted
+                if _hue_deg(e[1]) is not None and int(_hue_deg(e[1]) // 40) == mk
+            ),
+            key=lambda e: e[0] * e[2],
+            default=None,
+        )
+        if best is None:
+            continue
+        replaced = False
+        for i, c in enumerate(picked):
+            h = _hue_deg(c)
+            if h is None:
+                continue
+            key = int(h // 40)
+            if (
+                sum(
+                    1
+                    for c2 in picked
+                    if _hue_deg(c2) is not None and int(_hue_deg(c2) // 40) == key
+                )
+                >= 2
+            ):
+                picked[i] = best[1]
+                replaced = True
+                break
+        if not replaced and len(picked) < max_colors:
+            picked.append(best[1])
+    return picked
 def harden_flat_edges(arr: np.ndarray) -> np.ndarray:
     """Collapse JPEG/AA mush at ink boundaries toward solid neighbor fills.
 
@@ -1238,10 +1443,24 @@ def snap_to_source_palette(
     pix = rgb[ink]
     lum = pix.mean(axis=1)
     sat = pix.max(axis=1) - pix.min(axis=1)
-    # Keep hard black / white and solid grey/silver fills (do not recolor type).
-    keep = ((lum < 28) & (sat < 18)) | ((lum > 245) & (sat < 12)) | (
-        (sat <= 28) & (lum >= 55) & (lum <= 210)
-    )
+    # Keep hard black / white. Mid grey/silver type (Trialta TRI) is protected
+    # only when the *source* also carries substantial neutral ink — otherwise
+    # washed Arc teal (lum~65, sat~4 after SVG rasterize) is mistaken for
+    # silver and never snapped back onto source teal.
+    src_a = source[:, :, 3]
+    src_rgb = source[:, :, :3].astype(np.int32)
+    src_ink = src_a >= 96
+    src_neutral_frac = 0.0
+    if src_ink.any():
+        sp = src_rgb[src_ink]
+        s_lum = sp.mean(axis=1)
+        s_sat = sp.max(axis=1) - sp.min(axis=1)
+        src_neutral_frac = float(
+            ((s_sat <= 12) & (s_lum >= 55) & (s_lum <= 210)).mean()
+        )
+    keep = ((lum < 28) & (sat < 18)) | ((lum > 245) & (sat < 12))
+    if src_neutral_frac >= 0.08:
+        keep = keep | ((sat <= 28) & (lum >= 55) & (lum <= 210))
     work = pix[~keep]
     if len(work) == 0:
         return out

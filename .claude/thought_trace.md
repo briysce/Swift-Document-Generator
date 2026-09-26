@@ -11,8 +11,24 @@ this file is the readable account of *why*.
 Handoff rule: push at the end of every work unit and update this section the
 moment state changes. The next agent sees only what is committed.
 
+### Meedo succession doctrine (user, 14:55 UTC) — advisor → GM
+- NHL/NBA analogy: overqualified advisor hired beside a struggling GM; if the
+  situation does not improve, that advisor becomes the successor. Meedo is
+  that hire — embedded now, not yet expert, learning from logo engines +
+  Gemini + Claude until it owns project AI and we phase the tutors down.
+- Codified: `.cursor/rules/meedo-succession.mdc` (alwaysApply),
+  `meedo-me-pm.mdc`, skill `meedo-me`, `COORDINATION.md` rule 10, board #3.
+- Every change must leave Meedo memory richer; recall-first before re-calling
+  APIs; promote ownership only when offline confidence is earned.
+
+### Board #8 Arc tagline — DONE (15:53 UTC, logo-hour agent)
+- Tip `747b030`: teal through thin-path quantize + palette snap; identity-first
+  when ideal loses fewer brand colours; color-split prune gated (Propak safe).
+- E0121; lesson ALfbd2e3e0 (stale ALe06dbf90 retracted). mean_composite 0.7607.
+- Residual glyph craftsmanship → #4. Top failures now Trialta.
+
 ### Collaboration (live) — updated 14:15 UTC by Claude Code
-- Protocol: `COORDINATION.md` (board + rules 8-9) + Meedo merge driver
+- Protocol: `COORDINATION.md` (board + rules 8-10) + Meedo merge driver
   (`sh scripts/setup_collab.sh` once per clone). Talk: issue
   [#6](https://github.com/briysce/Swift-Document-Generator/issues/6).
 - Both branches merged at `ac08989`: the journal, the WhatsApp progress digest
@@ -27,9 +43,8 @@ moment state changes. The next agent sees only what is committed.
   `meedo_consult` (every Gemini/Claude answer, judged → track record, shadow
   readiness, dataset), `tools/ai_collab/learn.py` lessons (recall-first),
   `tools/meedo_me/trace.py` (every tool call, redacted; import each session).
-- Hourly WhatsApp: `python -m tools.meedo_me.connect whatsapp` on the PC
-  (OpenClaw with WhatsApp linked; number in gitignored .env as
-  MEEDO_WHATSAPP_TO — never committed). Not deliverable from cloud agents.
+- Hourly WhatsApp: OpenClaw installed on cloud; automation registered;
+  **blocked on Linked-Devices QR scan** for `MEEDO_WHATSAPP_TO` (gitignored).
 - API keys: only in gitignored `.env.local` / `tools/logo_vectorizer/.env`.
   They were pasted in chat — the user should rotate them.
 

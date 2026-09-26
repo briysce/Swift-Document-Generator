@@ -132,3 +132,49 @@ def test_prune_ink_speckles_keeps_compact_mark_beside_stem():
     sizes = sorted(int((lab == i).sum()) for i in range(1, n + 1))
     assert any(20 <= s <= 40 for s in sizes), f"tittle missing; sizes={sizes}"
     assert any(s >= 300 for s in sizes), f"stem missing; sizes={sizes}"
+
+
+def test_color_split_prune_keeps_small_teal_beside_large_red():
+    """Board #8: teal tagline letters must not be sized against red ARC area."""
+    h, w = 80, 200
+    arr = np.zeros((h, w, 4), dtype=np.uint8)
+    # Large red ARC stand-in (~3500 px) — global 1.2% floor ≈ 42 px.
+    arr[15:65, 10:80, :] = (226, 45, 62, 255)
+    # Small teal RESOURCES stand-ins (~30 px each), well under a global
+    # floor keyed off the red block, but safe vs teal's own largest island.
+    for x0 in (100, 120, 140, 160):
+        arr[30:40, x0 : x0 + 3, :] = (45, 70, 75, 255)
+
+    # Global prune (single mask) would drop the teal letters; color-split
+    # must keep them.
+    out = prune_ink_speckles(arr, min_px=18, min_frac=0.012)
+    teal = (
+        (out[:, :, 3] >= 48)
+        & (out[:, :, 2].astype(int) > out[:, :, 0].astype(int) + 10)
+    )
+    from scipy import ndimage
+
+    lab, n = ndimage.label(teal)
+    sizes = sorted(int((lab == i).sum()) for i in range(1, n + 1))
+    assert n >= 4, f"expected >=4 teal islands; sizes={sizes}"
+    assert all(s >= 20 for s in sizes), f"teal letters pruned; sizes={sizes}"
+
+
+def test_quantize_thin_path_keeps_teal_beside_red_arc():
+    """arc__import_combo: thin-path quantize must not paint RESOURCES LTD. red."""
+    from logo_raster_finish import quantize_thin_path
+
+    h, w = 60, 180
+    arr = np.zeros((h, w, 4), dtype=np.uint8)
+    # Red ARC block + dark teal tagline (sat ~28 after binning — the failure).
+    arr[10:50, 10:70, :] = (210, 45, 70, 255)
+    for x0 in (90, 110, 130, 150):
+        arr[20:40, x0 : x0 + 8, :] = (40, 60, 62, 255)
+
+    out = quantize_thin_path(arr, max_colors=4)
+    ink = out[:, :, 3] >= 48
+    rgb = out[:, :, :3].astype(int)
+    teal = ink & (rgb[:, :, 2] > rgb[:, :, 0] + 5) & (rgb[:, :, 1] < 120)
+    red = ink & (rgb[:, :, 0] > rgb[:, :, 2] + 40)
+    assert int(teal.sum()) >= 100, f"teal wiped; teal={teal.sum()} red={red.sum()}"
+    assert int(red.sum()) >= 100, f"red wiped; teal={teal.sum()} red={red.sum()}"

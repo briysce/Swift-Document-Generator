@@ -293,35 +293,88 @@ def _lost_no_more(a: Candidate, b: Candidate) -> bool:
         return False
 
 
-def _minds_pick(source: np.ndarray, traced: Candidate, ideal: Candidate, case: str) -> str | None:
-    """'traced' or 'ideal' when the minds named in LOGO_MINDS_RANK (e.g.
-    "claude", or "claude,gemini" = all must agree) pick the same candidate
-    in both orders; None otherwise, or when it is off or anything fails."""
-    names = [m.strip() for m in os.environ.get("LOGO_MINDS_RANK", "").split(",") if m.strip()]
-    if not names:
-        return None
-    if names in (["1"], ["true"], ["yes"]):
-        names = ["claude"]
+def _brand_colour_blocks(cand: Candidate) -> int:
+    """How many brand-colour deletions Meedo-Me blocked on this candidate."""
+    if cand.review is None:
+        return 0
+    return sum(
+        1
+        for f in cand.review.findings
+        if getattr(f, "check", None) == "brand_colour"
+        and getattr(f, "severity", None) == "block"
+    )
+
+
+def _minds_rank_enabled() -> bool:
+    """Read LOGO_MINDS_RANK the same way the improve loop records it."""
     try:
-        from PIL import Image as _Image
+        root = Path(__file__).resolve().parents[1]
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+        from tools.logo_vectorizer.ai_advisors.minds import minds_rank_enabled
 
+        return bool(minds_rank_enabled())
+    except Exception:
+        return False
+
+
+def _minds_rank_pick(
+    sketch: Image.Image,
+    traced: Candidate,
+    ideal: Candidate,
+    *,
+    case: str,
+) -> str | None:
+    """Ask available minds which candidate to ship. Returns 'traced'|'ideal'|None.
+
+    Both presentation orders must agree (see minds.compare_both_ways). A split
+    or unavailable mind does not move the derived winner. Fail-open always.
+    """
+    try:
+        root = Path(__file__).resolve().parents[1]
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
         from tools.logo_vectorizer.ai_advisors import minds as M
-
-        picks = set()
-        for m in names:
-            if not M.available(m):
-                return None
-            r = M.compare_both_ways(m, _Image.fromarray(source, "RGBA"),
-                                    _Image.fromarray(traced.finished, "RGBA"),
-                                    _Image.fromarray(ideal.finished, "RGBA"),
-                                    case=case, session=f"convert-{case}")
-            picks.add({"first": "traced", "second": "ideal"}.get(r["pick"]))
-        pick = picks.pop() if len(picks) == 1 else None
-        print(f"minds rank ({','.join(names)}): {pick or 'no agreement'}", file=sys.stderr)
-        return pick
-    except Exception as exc:  # noqa: BLE001 — a mind is never required
-        print(f"minds rank skipped ({exc})", file=sys.stderr)
+    except Exception as e:  # noqa: BLE001
+        print(f"minds_rank unavailable ({e})", file=sys.stderr)
         return None
+
+    minds = [m for m in ("claude", "gemini") if M.available(m)]
+    if not minds:
+        print("minds_rank: no mind available; keep derived winner", file=sys.stderr)
+        return None
+
+    picks: list[str] = []
+    t_img = Image.fromarray(traced.finished, "RGBA")
+    i_img = Image.fromarray(ideal.finished, "RGBA")
+    for mind in minds:
+        try:
+            r = M.compare_both_ways(
+                mind,
+                sketch,
+                t_img,
+                i_img,
+                case=case,
+                session=f"minds-rank-{case}",
+            )
+        except Exception as e:  # noqa: BLE001
+            print(f"minds_rank {mind} failed ({e})", file=sys.stderr)
+            continue
+        # compare_both_ways labels first=traced, second=ideal
+        pick = {"first": "traced", "second": "ideal"}.get(r.get("pick") or "", r.get("pick"))
+        print(f"minds_rank {mind}: pick={pick}", file=sys.stderr)
+        if pick in ("traced", "ideal"):
+            picks.append(pick)
+    if not picks:
+        return None
+    # All decisive minds must agree; otherwise leave the derived rule alone.
+    if len(set(picks)) == 1:
+        return picks[0]
+    print(
+        f"minds_rank: minds disagreed {picks}; keep derived winner",
+        file=sys.stderr,
+    )
+    return None
 
 
 def _prefer_reconstruction(ideal: Candidate, traced: Candidate) -> bool:
@@ -648,10 +701,28 @@ def convert(
             for role, cand in kept.items():
                 if cand is not None:
                     save_rgba(kdir / f"{src.stem}__{role}.png", cand.finished)
-            (kdir / f"{src.stem}__candidates.json").write_text(json.dumps({
-                role: {"name": c.name, "has_vector": c.has_vector, "agreement": c.agreement,
-                       "ideality": c.ideality, "passed_review": c.passed_review}
-                for role, c in kept.items() if c is not None}, indent=2), encoding="utf-8")
+            ideal_less = False
+            if ideal is not None and traced is not None:
+                ideal_less = _lost_no_more(ideal, traced) and not _lost_no_more(
+                    traced, ideal
+                )
+            payload = {
+                role: {
+                    "name": c.name,
+                    "has_vector": c.has_vector,
+                    "agreement": c.agreement,
+                    "ideality": c.ideality,
+                    "passed_review": c.passed_review,
+                    "review": None if c.review is None else c.review.as_dict(),
+                }
+                for role, c in kept.items()
+                if c is not None
+            }
+            # Pair-level flag so logo_minds_rank.derived() matches convert().
+            payload["ideal_lost_strictly_less"] = bool(ideal_less)
+            (kdir / f"{src.stem}__candidates.json").write_text(
+                json.dumps(payload, indent=2), encoding="utf-8"
+            )
 
         # Identity first. A candidate Meedo-Me passed beats one it blocked,
         # whatever the metric says: on arc__downscale_jpeg the trace drops the
@@ -659,9 +730,34 @@ def convert(
         # that kept it, because the score blends a missing element into one
         # term among five. Only between two candidates that are both still the
         # logo does the derived rule decide.
+        #
+        # When both are blocked but ideal lost *strictly less* (tagline letters
+        # retained, trace dropped them), ship ideal even if the trace has a
+        # vector — `_prefer_reconstruction` alone would keep the wrong red
+        # trace forever once has_vector is true.
+        #
+        # Brand-colour deletions outrank other blocks for selection: on
+        # arc__import_combo the trace painted RESOURCES LTD. red (brand_colour
+        # block) while ideal kept teal but missed a period (small_element).
+        # lost_no_more cannot compare different checks, so brand_colour must
+        # decide explicitly.
         winner = traced
         if ideal is not None:
+            ideal_less = _lost_no_more(ideal, traced) and not _lost_no_more(
+                traced, ideal
+            )
             if ideal.passed_review and not traced.passed_review:
+                winner = ideal
+            elif (
+                not ideal.passed_review
+                and not traced.passed_review
+                and ideal_less
+            ):
+                winner = ideal
+            elif (
+                _brand_colour_blocks(traced) > _brand_colour_blocks(ideal)
+                and ideal.agreement >= COLLAPSE_FLOOR
+            ):
                 winner = ideal
             elif ideal.passed_review and _prefer_reconstruction(ideal, traced):
                 winner = ideal
@@ -675,20 +771,29 @@ def convert(
                 # before either engine runs). The block cannot choose between
                 # them, so the derived rule does, as if neither were blocked.
                 winner = ideal
-        # Where the derived rule cannot rank (both are still the logo, and the
-        # trace has a vector), a mind may: opt-in, judged both ways round, and
-        # followed only when both orders agree. See scripts/logo_minds_rank.py
-        # for how well each mind picks, measured against the clean masters.
+        # Opt-in minds ranking (LOGO_MINDS_RANK): when both still pass review,
+        # Gemini/Claude may override the derived rule — the in-pair signal
+        # board #4 is measuring. Fail-open: split/error/unavailable keeps
+        # `winner` as derived. Identity first stays absolute above.
         if (
             ideal is not None
-            and winner is traced
-            and traced.passed_review
             and ideal.passed_review
-            and traced.has_vector
+            and traced.passed_review
+            and _minds_rank_enabled()
         ):
-            pick = _minds_pick(source, traced, ideal, src.stem)
+            pick = _minds_rank_pick(
+                # The sketch as it came in — what the reviewer judges against
+                # and what scripts/logo_minds_rank.py measured the minds on.
+                Image.fromarray(source, "RGBA"),
+                traced,
+                ideal,
+                case=src.stem,
+            )
             if pick == "ideal":
                 winner = ideal
+            elif pick == "traced":
+                winner = traced
+
         if not winner.passed_review:
             print(
                 f"Meedo-Me: no candidate passed review; shipping {winner.name} "

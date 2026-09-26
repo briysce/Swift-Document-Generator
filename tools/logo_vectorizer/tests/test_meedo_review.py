@@ -242,3 +242,31 @@ def test_a_dropped_letter_is_blocked_and_a_crisper_one_is_not():
     assert not rv.passed and any(f.check == "element" for f in rv.findings)
     thinner = _logo([((x0 + 3, y0 + 2, x1 - 3, y1 - 2), c) for (x0, y0, x1, y1), c in letters], size=(130, 80), page=page)
     assert review(thinner, sketch).passed
+
+
+def test_aa_fringe_neutral_is_not_required_brand_colour():
+    """Arc prepare invents near-black crumb soup (~12% ink); not a brand ink."""
+    page = (255, 255, 255)
+    red = (226, 45, 62)
+    teal = (22, 58, 90)
+    fringe = (27, 25, 26)
+    # Real mark: red ARC block + teal tagline letters.
+    marks = [
+        ((10, 20, 70, 60), red),
+        ((80, 30, 95, 50), teal),
+        ((100, 30, 115, 50), teal),
+        ((120, 30, 135, 50), teal),
+    ]
+    # One-pixel near-black halo hugging the red block (quantized AA ring).
+    crumbs = []
+    for x in range(9, 71):
+        crumbs.append(((x, 19, x + 1, 20), fringe))
+        crumbs.append(((x, 60, x + 1, 61), fringe))
+    for y in range(20, 60):
+        crumbs.append(((9, y, 10, y + 1), fringe))
+        crumbs.append(((70, y, 71, y + 1), fringe))
+    sketch = _logo(marks + crumbs, size=(160, 80), page=page)
+    # Output keeps red+teal, drops fringe — must still pass brand_colour.
+    output = _logo(marks, size=(160, 80), page=page)
+    rv = review(output, sketch)
+    assert not any(f.check == "brand_colour" for f in rv.findings), rv.summary()
