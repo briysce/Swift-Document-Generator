@@ -14,6 +14,20 @@ reproducibility. See `tools/meedo_me/THIRD_PARTY.md`. Do **not**
 
 ## WhatsApp Linked Devices (required once)
 
+**On your PC** (home/office network — not Cursor Cloud):
+
+```powershell
+# Windows
+.\tools\meedo_me\scripts\whatsapp_link_pc.ps1
+```
+
+```bash
+# macOS / Linux
+bash tools/meedo_me/scripts/whatsapp_link_pc.sh
+```
+
+Or manually:
+
 ```bash
 python -m tools.meedo_me.runtime ensure
 python -m tools.meedo_me.runtime gateway channels login --channel whatsapp
@@ -29,6 +43,6 @@ GCP, Azure, Cursor Cloud Agents, etc.). Symptom on the phone:
 > Couldn't Link device, try again later
 
 That is **not** a Meedo config bug and is **not** fixed by refreshing the QR
-on the same cloud host. Run the commands above on a normal PC (home/office
-network), complete the scan there, then reuse the session under
-`OPENCLAW_HOME` (`…/Meedo-Me/openclaw`). Do not commit QR PNGs or gateway tokens.
+on the same cloud host. Run the PC script above on a normal machine, complete
+the scan there, then reuse the session under `OPENCLAW_HOME`
+(`…/Meedo-Me/openclaw`). Do not commit QR PNGs or gateway tokens.
