@@ -24,7 +24,7 @@ moment state changes. The next agent sees only what is committed.
 - Claude branch: `claude/relaxed-babbage-igbk0v` — **#1** Swift app swap;
   **#3** Meedo trust/autonomy (shared refine); **#4** craftsmanship gate.
 - Cursor Cloud branch: `cursor/logo-engine-collab-d4c9` — **#7 done**;
-  **#9 done** (centre-line thin-rule protect/stamp + stroke primitive).
+  **#9 done**; claimed **#8** (Arc tagline letters).
   PC-only **#2/#5/#6** remain open (noVNC ≠ Brice's PC).
 
 ### Board #9 closeout (Cursor)
@@ -111,8 +111,7 @@ latter, so Arc falls back to the trace as on 09-20.
    (Swift solid downscale/import_combo ship the trace; the old gate's
    reconstructions scored 0.9364/0.9465). Bring design_fit into the engine as
    a candidate. *(Claude — board #4)*
-2. Cursor **#9 done** (centre-line thin rules). Next: **#8** Arc tagline or
-   **#10** Swift rebuild refinements. Leave Claude **#1/#3/#4** alone.
+2. Cursor **#8** in progress (Arc tagline). Leave **#10** open; Claude **#1/#3/#4**.
    do not touch Claude-only slices of **#1/#4**.
 3. Meedo-Me growth + continuous product refine *(board #3, both agents)*:
    autonomy is earned from hit rate/reviewer record; also fix journal/MCP/
