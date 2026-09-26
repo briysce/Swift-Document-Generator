@@ -160,12 +160,63 @@ def test_work_logged_over_mcp_is_in_the_journal_and_read_only_cannot_log(tmp_pat
     from tools.logo_vectorizer import meedo_journal as J
 
     monkeypatch.setattr(J, "JOURNAL", tmp_path / "meedo_journal.json")
-    err, text = _call("meedo_log", {"agent": "cursor", "kind": "claim", "summary": "PROPAK dot", "task": "7"}, True)
+    err, text = _call("meedo_journal_log", {"agent": "cursor", "kind": "claim", "summary": "PROPAK dot", "task": 7}, True)
     assert err and "read-only" in text
-    err, text = _call("meedo_log", {"agent": "cursor", "kind": "done", "summary": "PROPAK dot", "task": "7",
-                                    "tests": "pytest passed"})
+    err, text = _call("meedo_journal_log", {"agent": "cursor", "kind": "done", "summary": "PROPAK dot", "task": 7,
+                                            "commit": "abc", "tests": "pytest passed"})
     assert not err, text
-    err, text = _call("meedo_journal", {"hours": "48"}, True)
+    err, text = _call("meedo_journal_standup", {}, True)
     got = json.loads(text)
-    assert not err and got["recent"][0]["agent"] == "cursor"
-    assert got["agents"]["cursor"]["incomplete"][0]["missing"] == ["looked", "review", "measured", "episode"]
+    assert not err and got["recent_by_agent"]["cursor"][0]["summary"] == "PROPAK dot"
+    assert got["done_missing_evidence"][0]["missing"] == ["looked", "review", "measured", "episode"]
+
+
+def test_ai_advise_and_lessons_tools(tmp_path, monkeypatch):
+    from tools.ai_collab import learn as learn_mod
+
+    monkeypatch.setattr(learn_mod, "DEFAULT_PATH", tmp_path / "meedo_ai_lessons.json")
+    monkeypatch.setenv("MEEDO_AI_RECALL_MIN", "99")
+
+    class _Adv:
+        def to_dict(self):
+            return {
+                "domain": "general",
+                "problem": "test stuck",
+                "diagnosis": "injected",
+                "method": "do the thing",
+                "actions": ["a"],
+                "risks": [],
+                "providers_used": ["gemini", "claude"],
+                "source": "gemini,claude",
+                "lesson_id": "ALinj",
+                "offline": False,
+                "agree": True,
+            }
+
+    monkeypatch.setattr(
+        "tools.ai_collab.advisor.advise",
+        lambda **kwargs: _Adv(),
+    )
+    err, text = _call(
+        "meedo_ai_advise",
+        {"problem": "test stuck", "domain": "general"},
+    )
+    assert not err
+    assert json.loads(text)["method"] == "do the thing"
+
+    learn_mod.persist_lesson(
+        domain="general",
+        problem="test stuck case for recall",
+        diagnosis="injected",
+        method="do the thing",
+        mirror_episode=False,
+        path=tmp_path / "meedo_ai_lessons.json",
+    )
+    err, text = _call("meedo_ai_lessons", {"problem": "test stuck case for recall", "domain": "general"})
+    assert not err
+    hits = json.loads(text)
+    assert hits and "do the thing" in hits[0]["method"]
+
+    # Read-only refuses the write tool.
+    err, text = _call("meedo_ai_advise", {"problem": "x"}, True)
+    assert err and "read-only" in text

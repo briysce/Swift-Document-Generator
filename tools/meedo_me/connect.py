@@ -7,7 +7,7 @@ start it, and nothing else — no copies of the memory, no second server:
     python -m tools.meedo_me.connect ollama
     python -m tools.meedo_me.connect app      [--data-folder DIR] [--read-only]
     python -m tools.meedo_me.connect openclaw [--config PATH] [--model ollama/qwen3:8b] [--allow-writes]
-    python -m tools.meedo_me.connect whatsapp --to <number>   # hourly progress updates
+    python -m tools.meedo_me.connect whatsapp [--to <number>] [--agent claude] [--dry-run]   # hourly progress
 
 Claude Code needs nothing: `.mcp.json` at the repository root registers the
 server for any session opened here.
@@ -173,9 +173,6 @@ def connect_openclaw(config: Path | None = None, allow_writes: bool = False, mod
 # WhatsApp progress updates
 # --------------------------------------------------------------------------
 
-PROGRESS_BRANCH = "claude/relaxed-babbage-igbk0v"
-
-
 def _e164(number: str) -> str:
     digits = "".join(ch for ch in number if ch.isdigit())
     if len(digits) == 10:          # North American number without the country code
@@ -209,14 +206,9 @@ def connect_whatsapp(to: str, config: Path | None = None) -> tuple[Path, str]:
     wa["allowFrom"] = allow + ([number] if number not in allow else [])
     wa.setdefault("selfChatMode", True)
     _write_json(path, data)
-    command = (f"git fetch -q origin {PROGRESS_BRANCH} && {Path(sys.executable).name} -m tools.meedo_me.progress "
-               f"--ref origin/{PROGRESS_BRANCH} --hours 1")
-    automation = (
-        'openclaw automations create "0 * * * *" --name "Meedo-Me hourly progress" '
-        '--tz "America/Edmonton" '
-        f"--command {json.dumps(command)} --command-cwd {json.dumps(str(ROOT))} "
-        f'--announce --channel whatsapp --to "{number}"'
-    )
+    from tools.meedo_me.progress import automation_command
+
+    automation = " ".join(json.dumps(c) if (" " in c or "*" in c) else c for c in automation_command(number))
     return path, automation
 
 
@@ -318,9 +310,12 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("--config", type=Path)
     c.add_argument("--model", default="", help=f"e.g. ollama/{SUGGESTED_MODEL}")
     c.add_argument("--allow-writes", action="store_true")
-    w = sub.add_parser("whatsapp", help="hourly progress updates to one WhatsApp number via OpenClaw")
-    w.add_argument("--to", required=True, help="the number that receives the updates, e.g. 780-555-0123")
+    w = sub.add_parser("whatsapp", aliases=["whatsapp-progress"],
+                       help="hourly Meedo-Me progress to one WhatsApp number via OpenClaw")
+    w.add_argument("--to", default="", help="the number that receives the updates (default: MEEDO_WHATSAPP_TO)")
+    w.add_argument("--agent", default="", help="only this agent's work (default: everyone)")
     w.add_argument("--config", type=Path)
+    w.add_argument("--dry-run", action="store_true", help="print the automation instead of registering it")
     args = ap.parse_args(argv)
 
     if args.cmd == "status":
@@ -345,18 +340,28 @@ def main(argv: list[str] | None = None) -> int:
         if args.model.startswith("ollama/"):
             print("OpenClaw uses Ollama once you opt in: export OLLAMA_API_KEY=ollama-local")
         print("Check it: openclaw mcp doctor meedo-me --probe")
-    elif args.cmd == "whatsapp":
+        print("Hourly WhatsApp progress: python -m tools.meedo_me.connect whatsapp")
+    elif args.cmd in ("whatsapp", "whatsapp-progress"):
+        from tools.meedo_me import progress as P
+
+        P._load_env()
+        to = args.to or P.whatsapp_to()
+        if not to:
+            print("Pass --to, or set MEEDO_WHATSAPP_TO=+1XXXXXXXXXX in a gitignored .env. "
+                  "Never commit the number.", file=sys.stderr)
+            return 1
         try:
-            path, automation = connect_whatsapp(args.to, args.config)
+            path, _ = connect_whatsapp(to, args.config)
         except (NeedsManualMerge, ValueError) as e:
             print(e, file=sys.stderr)
             return 1
+        os.environ["MEEDO_WHATSAPP_TO"] = _e164(to)
         print(f"WhatsApp admits only that number: {path}")
-        print("1. Link WhatsApp (scan the QR with the phone: WhatsApp > Linked devices):")
+        print("1. Link WhatsApp once (scan the QR with the phone: WhatsApp > Linked devices):")
         print("   openclaw channels login --channel whatsapp")
         print("2. Preview the update:  python -m tools.meedo_me.progress --hours 1")
-        print("3. Schedule it hourly:")
-        print("   " + automation)
+        print("3. Hourly automation:")
+        print(P.register_hourly(agent=args.agent, dry_run=args.dry_run))
     return 0
 
 

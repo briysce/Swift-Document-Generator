@@ -42,3 +42,74 @@ def test_a_closed_episode_wins_over_its_open_copy(tmp_path):
     merge(ours, theirs)
     got = json.loads((tmp_path / "a").read_text())["episodes"]
     assert len(got) == 1 and got[0]["method"] == "do x"
+
+
+def test_both_agents_journal_entries_survive(tmp_path):
+    ours = _w(tmp_path / "a", {"version": 1, "entries": [
+        {"id": "Ja", "ts": "1", "agent": "claude", "kind": "claim", "summary": "swift"},
+    ]})
+    theirs = _w(tmp_path / "b", {"version": 1, "entries": [
+        {"id": "Jb", "ts": "2", "agent": "cursor", "kind": "finding", "summary": "propak"},
+    ]})
+    assert merge(ours, theirs)
+    ids = {e["id"] for e in json.loads((tmp_path / "a").read_text())["entries"]}
+    assert ids == {"Ja", "Jb"}
+
+
+def test_ai_lessons_union_prefers_offline_progress(tmp_path):
+    a = {
+        "id": "AL1",
+        "domain": "logo_restore",
+        "problem": "arc tagline",
+        "method": "sectional",
+        "times_applied_offline": 0,
+        "times_recalled": 1,
+        "ts": "1",
+    }
+    b = {
+        "id": "AL1",
+        "domain": "logo_restore",
+        "problem": "arc tagline",
+        "method": "sectional color-split before min_area",
+        "times_applied_offline": 3,
+        "times_recalled": 5,
+        "ts": "2",
+    }
+    ours = _w(
+        tmp_path / "a",
+        {
+            "version": 1,
+            "lessons": [a, {"id": "AL2", "problem": "ours only", "method": "m", "ts": "1"}],
+        },
+    )
+    theirs = _w(
+        tmp_path / "b",
+        {
+            "version": 1,
+            "lessons": [b, {"id": "AL3", "problem": "theirs only", "method": "n", "ts": "2"}],
+        },
+    )
+    assert merge(ours, theirs)
+    lessons = {L["id"]: L for L in json.loads((tmp_path / "a").read_text())["lessons"]}
+    assert set(lessons) == {"AL1", "AL2", "AL3"}
+    assert lessons["AL1"]["times_applied_offline"] == 3
+    assert "color-split" in lessons["AL1"]["method"]
+
+
+def test_only_colliding_episodes_move_and_merging_back_duplicates_nothing(tmp_path):
+    """Both agents wrote E0026-E0028 at once; the other side went on to E0044.
+    Renumbering from one side's max cascaded through every later id, and the
+    renumbered copies came back as strangers on the return merge."""
+    ep = lambda i, who: {"id": f"E{i:04d}", "ts": f"t{i}{who}", "problem": f"{who} {i}", "outcome": "open"}
+    ours = [ep(i, "claude") for i in (26, 27, 28)]
+    theirs = [ep(i, "cursor") for i in range(26, 45)]
+    a = _w(tmp_path / "a", {"episodes": ours})
+    b = _w(tmp_path / "b", {"episodes": theirs})
+    assert merge(a, b)
+    got = json.loads((tmp_path / "a").read_text())["episodes"]
+    moved = {e["renumbered_from"]: e["id"] for e in got if e.get("renumbered_from")}
+    assert moved == {"E0026": "E0045", "E0027": "E0046", "E0028": "E0047"}
+    assert {e["id"] for e in got if e["problem"] == "cursor 30"} == {"E0030"}
+    back = _w(tmp_path / "c", {"episodes": theirs})
+    assert merge(back, str(tmp_path / "a"))
+    assert len(json.loads((tmp_path / "c").read_text())["episodes"]) == 22

@@ -11,7 +11,8 @@ from PIL import Image
 from .base import CritiqueResult, SourceHints, encode_png, env_key, extract_json, http_post_json
 
 # Prefer flash multimodal — override with GEMINI_MODEL env if needed.
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash").strip() or "gemini-2.0-flash"
+# gemini-2.0-flash retired on this key; flash-latest tracks the current GA flash.
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest").strip() or "gemini-flash-latest"
 PROJECT_NUMBER = os.environ.get("GEMINI_PROJECT_NUMBER", "").strip()
 if PROJECT_NUMBER:
     # Visible in Fly / local logs for ops correlation only.

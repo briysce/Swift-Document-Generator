@@ -14,11 +14,33 @@ moment state changes. The next agent sees only what is committed.
 ### Collaboration (live)
 - Protocol: `COORDINATION.md` + Meedo merge driver (`scripts/setup_collab.sh`).
 - Talk: GitHub issue [#6](https://github.com/briysce/Swift-Document-Generator/issues/6).
-- Claude branch: `claude/relaxed-babbage-igbk0v` — tasks **#1** (Swift app swap),
-  **#3** (Meedo trust); **#4** (craftsmanship gate) still open for Claude.
-- Cursor Cloud branch: `cursor/logo-engine-collab-d4c9` — claimed **#7**
-  (PROPAK "Services" i-dot lost in `prepare_for_engine`). PC-only **#2/#5/#6**
-  remain open.
+- **Meedo-Me is mandatory for both agents** (ledger + journal + episodes).
+  Start each unit with `python -m tools.logo_vectorizer.meedo_cycle`.
+  Journal: `meedo_journal.py` → `meedo_journal.json` (`merge=meedo`).
+  MCP: `meedo_cycle`, `meedo_journal_*`, etc.
+- **Standing duty (user 2026-09-26):** Claude Code *and* Cursor continuously
+  tweak/fix/refine Meedo-Me whenever it is wrong, thin, or awkward — deepen
+  MCP integration across projects; board **#3** is shared (`claude+cursor`).
+- Claude branch: `claude/relaxed-babbage-igbk0v` — **#1** Swift app swap;
+  **#3** Meedo trust/autonomy (shared refine); **#4** craftsmanship gate.
+- Cursor Cloud branch: `cursor/logo-engine-collab-d4c9` — **#7 done**;
+  **#9 done**; claimed **#8** (Arc tagline letters).
+  PC-only **#2/#5/#6** remain open (noVNC ≠ Brice's PC).
+
+### Board #9 closeout (Cursor)
+- Propak whole-logo density ~0.39 correctly stays off thin-wordmark path.
+- New `elongated_thin_components` finds the red rule; `centerline_protect_mask`
+  and `stamp_centerline` cover it without skeletonizing letter fills.
+- `fit_centerline_stroke` for 1–3 px / sub-40 px rules; 6 px Propak bar remains
+  `rect` (0.999). Regression: `test_centerline_thin_rules.py`.
+
+### Board #7 closeout (Cursor, this unit)
+- Clean PROPAK Services i-dot survives `prepare_for_engine` (47px → elements_of
+  34). GCM golden keeps ≥3 Modification tittles.
+- "Lost later in prepare" is stale for current synthetic recipes: RAW degrade
+  already merges the separate tittle. Residual → **#4** (design_fit / font).
+- Regression: `tools/logo_vectorizer/tests/test_prepare_idot_retention.py`.
+- Episode **E0026**; training lesson appended.
 
 ### Priorities (the user's order)
 1. **The Swift logo as a perfectly crafted vector.** The app's
@@ -63,6 +85,7 @@ import_combo 0.9465 and downscale 0.9364 (task: rank on craftsmanship).
 - i-dots kept through preparation and reconstruction (0673cf2, 577dd87).
 - `design_fit.py`: designed geometry over a sketch — coverage edges, corners,
   lines/fair cubics, restored corners, shared slant and heights (52b5f81).
+- Board #7 prepare-path closed with regression tests (Cursor; residual → #4).
 
 ### Swift rebuild (4c3c38a) — awaiting the user's sign-off before the app uses it
 `scripts/rebuild_swift_logo.py` -> `assets/brand/swift_supply_logo_rebuilt.svg`:
@@ -87,10 +110,12 @@ latter, so Arc falls back to the trace as on 09-20.
 1. Reconstruction gate: rank candidates by craftsmanship once identity holds
    (Swift solid downscale/import_combo ship the trace; the old gate's
    reconstructions scored 0.9364/0.9465). Bring design_fit into the engine as
-   a candidate.
-3. PROPAK's "Services" dot survives despeckle but is lost later in preparation.
-4. Meedo-Me growth: autonomy is earned — see its hit rate and reviewer record
-   before widening what it may do unasked.
+   a candidate. *(Claude — board #4)*
+2. Cursor **#8** in progress (Arc tagline). Leave **#10** open; Claude **#1/#3/#4**.
+   do not touch Claude-only slices of **#1/#4**.
+3. Meedo-Me growth + continuous product refine *(board #3, both agents)*:
+   autonomy is earned from hit rate/reviewer record; also fix journal/MCP/
+   recall/review friction in-session whenever it shows up.
 
 ---
 

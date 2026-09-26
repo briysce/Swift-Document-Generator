@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+import os
 import sys
 
 from PIL import Image
 
 from .base import CritiqueResult, SourceHints, encode_png, env_key, extract_json, http_post_json
 
-MODEL = "claude-sonnet-4-20250514"
+MODEL = (
+    os.environ.get("ANTHROPIC_MODEL")
+    or os.environ.get("CLAUDE_MODEL")
+    or "claude-sonnet-4-5"
+).strip() or "claude-sonnet-4-5"
 
 SOURCE_PROMPT = """Analyze this logo PNG for vector tracing. Focus on letter counters (holes), especially P eyes in SUPPLY.
 

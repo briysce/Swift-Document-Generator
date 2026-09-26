@@ -983,7 +983,14 @@ def _compose(
     glyphs: "dict | None" = None,
 ) -> str | None:
     """One composition pass. `idealize_layered` picks between two of these."""
-    if not have_potrace():
+    # Potrace is preferred for unnamed geometry, but `_smooth_trace` (OpenCV
+    # contours + Schneider-style fit) works without it. Requiring potrace here
+    # made the whole reconstruction path return None on hosts that only have
+    # the smooth fitter — Arc's tagline then vanished because idealize
+    # declined and the caller shipped a weaker path. Fail open: proceed, and
+    # let per-element tracing skip what it cannot draw.
+    potrace_ok = have_potrace()
+    if not potrace_ok and not smooth_fit:
         return None
 
     # Measure the damage, then correct in proportion to it. A pristine master
@@ -1056,10 +1063,17 @@ def _compose(
             except Exception:
                 fit = None
             if fit is not None:
-                groups.append(
-                    f'<g id="{eid}" data-shape="{fit.kind}" '
-                    f'fill="{hexc}" stroke="none">{fit.markup}</g>'
-                )
+                if fit.kind == "stroke":
+                    # Markup already carries fill="none" and stroke-width.
+                    groups.append(
+                        f'<g id="{eid}" data-shape="stroke" '
+                        f'fill="none" stroke="{hexc}">{fit.markup}</g>'
+                    )
+                else:
+                    groups.append(
+                        f'<g id="{eid}" data-shape="{fit.kind}" '
+                        f'fill="{hexc}" stroke="none">{fit.markup}</g>'
+                    )
                 continue
 
         # 3. Neither named. Fit designed-looking geometry to the boundary.

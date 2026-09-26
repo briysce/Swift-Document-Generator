@@ -713,14 +713,17 @@ def recreate_customer_logo(
         src.load()
         img = src.convert("RGBA")
 
-    # Auto-enable AI when a Gemini key is present unless explicitly disabled.
+    # Auto-enable AI when Gemini or Claude keys are present unless disabled.
     ai_hints = None
     if use_ai is None:
         try:
-            from tools.logo_vectorizer.env_loader import load_env, gemini_configured
+            from tools.logo_vectorizer.env_loader import (
+                ai_advisors_configured,
+                load_env,
+            )
 
             load_env()
-            use_ai = gemini_configured()
+            use_ai = ai_advisors_configured()
         except Exception:
             use_ai = False
     if use_ai:
@@ -730,9 +733,9 @@ def recreate_customer_logo(
                 resolve_providers,
             )
 
-            providers = resolve_providers(ai_providers or ["gemini"])
+            providers = resolve_providers(ai_providers or ["gemini", "claude"])
             if providers:
-                _log(f"[recreate] Gemini/AI source analysis ({', '.join(providers)})")
+                _log(f"[recreate] Gemini/Claude source analysis ({', '.join(providers)})")
                 ai_hints = analyze_source_multi(img, providers)
                 if ai_hints is not None:
                     if ai_hints.brand_name:

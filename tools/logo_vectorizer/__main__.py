@@ -248,6 +248,14 @@ def main() -> int:
         print(f"  AI providers: {', '.join(result.ai.providers_used)}")
     if result.ai.hints and result.ai.hints.recommended_backends:
         print(f"  AI backends hint: {result.ai.hints.recommended_backends}")
+    if getattr(result.ai, "collab", None) is not None:
+        g = result.ai.collab
+        print(
+            f"  collab_mind: path={g.preferred_path} "
+            f"takeover={g.takeover} via {','.join(g.providers_used)}"
+        )
+        if g.diagnosis:
+            print(f"  collab diagnosis: {g.diagnosis[:200]}")
 
     if args.qa:
         qa_crop = args.qa_crop or out.with_name(out.stem + "_qa_p_crop.png")

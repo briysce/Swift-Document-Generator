@@ -45,6 +45,107 @@
       "commit": "11c1b58"
     },
     {
+      "id": "J0894e134",
+      "ts": "2026-09-26T13:18:57Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "finding",
+      "summary": "Landed meedo_journal so both agents log every unit into Meedo-Me (claim/finding/handoff/done/blocked + evidence). merge=meedo unions journal JSON; MCP: meedo_journal_log / standup / recent. Aligns with Claude's #3 sketch on issue #6.",
+      "evidence": {
+        "commit": "abbe5d2",
+        "tests": "pytest tools/logo_vectorizer/tests/test_meedo_journal.py test_meedo_merge.py",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "J9c0b2076",
+      "ts": "2026-09-26T13:18:57Z",
+      "agent": "cursor",
+      "task": 7,
+      "kind": "finding",
+      "summary": "Stage-traced prepare_for_engine on clean + 5 synthetic degradations. Clean Services i-dot (47px 8x6) survives every stage; elements_of keeps it. On downscale_jpeg/import_combo/plate_halo/blur_crush/banding_jpeg the separate blue tittle is already absent/merged in the RAW degrade \u2014 not lost after despeckle. E0022/0673cf2/577dd87 already cover separate-island marks. Residual degraded tittle recovery belongs with craftsmanship/font path (board #4), not more prune tweaks.",
+      "evidence": {
+        "commit": "abbe5d2",
+        "tests": "manual stage-trace scripts (scipy label + prepare_for_engine)",
+        "images_looked_at": true,
+        "measured_vs_previous": "clean prep keeps island; degraded raw lacks separate tittle before prepare",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "Je36fc4ae",
+      "ts": "2026-09-26T13:18:57Z",
+      "agent": "cursor",
+      "task": 7,
+      "kind": "claim",
+      "summary": "Claim board #7 PROPAK Services i-dot on cursor/logo-engine-collab-d4c9; talk on issue #6",
+      "evidence": {
+        "commit": "11c1b58",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "Jcea24593",
+      "ts": "2026-09-26T13:19:30Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "done",
+      "summary": "Meedo-Me work journal live for both agents (CLI+MCP+merge driver); Cursor #7 units + E0027 recorded",
+      "evidence": {
+        "commit": "abbe5d2",
+        "tests": "pytest tools/logo_vectorizer/tests/test_meedo_journal.py test_meedo_merge.py tools/meedo_me/tests/test_connect.py (15 passed)",
+        "images_looked_at": true,
+        "measured_vs_previous": "n/a (process/memory; no score change)",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "Je40f4afc",
+      "ts": "2026-09-26T13:19:30Z",
+      "agent": "cursor",
+      "task": 7,
+      "kind": "done",
+      "summary": "Board #7 prepare-path closed: regression test_prepare_idot_retention + E0026/E0027; residual degraded tittle \u2192 #4",
+      "evidence": {
+        "commit": "abbe5d2",
+        "tests": "pytest tools/logo_vectorizer/tests/test_prepare_idot_retention.py",
+        "images_looked_at": true,
+        "measured_vs_previous": "clean PROPAK/GCM islands retained through prepare; degraded RAW lacks separate tittle",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "Jf2e84d87",
+      "ts": "2026-09-26T13:20:36Z",
+      "agent": "cursor",
+      "task": 9,
+      "kind": "claim",
+      "summary": "Claim board #9 centre-line thin-stroke tracing after #7 closeout",
+      "evidence": {
+        "commit": "4b3d64c"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "Jb799cc05",
+      "ts": "2026-09-26T13:21:44Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "finding",
+      "summary": "User directive: both Claude Code and Cursor continuously refine Meedo-Me (smarter utility, deeper cross-project MCP integration). Protocol \u00a79 + board #3 shared; landed meedo_cycle as one start-of-unit entry point.",
+      "evidence": {
+        "commit": "4b3d64c",
+        "tests": "pytest tools/logo_vectorizer/tests/test_meedo_cycle.py",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    },
+    {
       "id": "2026-09-26T13:22:00Z-claude",
       "ts": "2026-09-26T13:22:00Z",
       "agent": "claude",
@@ -54,6 +155,46 @@
       "commit": "11c1b58"
     },
     {
+      "id": "J21f98187",
+      "ts": "2026-09-26T13:27:23Z",
+      "agent": "cursor",
+      "task": 9,
+      "kind": "done",
+      "summary": "Centre-line thin-rule protect/stamp + stroke primitive; Propak density gate stays closed",
+      "evidence": {
+        "commit": "f91b029",
+        "tests": "test_centerline_thin_rules.py+shapes+idot+meedo_review",
+        "images_looked_at": true,
+        "measured_vs_previous": "Propak density gate unchanged (no whole-logo density<=0.30); thin 1-3px rules get elongated_thin protect/stamp + fit_centerline_stroke; 6px Propak bar still rect; Swift default path not targeted"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "J088e673c",
+      "ts": "2026-09-26T13:28:08Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "claim",
+      "summary": "Claim board #8 Arc reconstruction drops tagline letters",
+      "evidence": {
+        "commit": "cda8b13"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "Jb8cfe393",
+      "ts": "2026-09-26T13:29:38Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "finding",
+      "summary": "Arc golden prep: 3 layers (navy/red/near-black). Navy RESOURCES letters present as separate islands after prepare; glyph match returned 0. Big navy blob (1213px) at left may be merged geometry. No separate teal tagline in golden/customer fixture \u2014 'tagline' may mean RESOURCES wordmark. Trace-red issue likely colour assignment on navy\u2192red bleed. idealize glyph cold start ~68s.",
+      "evidence": {
+        "commit": "3635427",
+        "images_looked_at": true
+      },
+      "source": "cli"
+    },
+    {
       "id": "2026-09-26T13:30:00Z-claude",
       "ts": "2026-09-26T13:30:00Z",
       "agent": "claude",
@@ -61,6 +202,22 @@
       "kind": "finding",
       "summary": "Flutter tests using pdfrxFlutterInitialize time out here with the old logo assets too \u2014 environmental, not the logo change; history-dialog preview needs ../.tools/flutter fonts",
       "commit": "11c1b58"
+    },
+    {
+      "id": "J45b4f512",
+      "ts": "2026-09-26T13:30:08Z",
+      "agent": "cursor",
+      "task": 9,
+      "kind": "finding",
+      "summary": "Supplement #9 done evidence: centre-line protect/stamp keeps Propak red rule under dense lockup without reopening density\u22640.30; fit_centerline_stroke names 1\u20133px rules; 6px bar stays rect. Tests test_centerline_thin_rules.py passed.",
+      "evidence": {
+        "commit": "d7da7c2",
+        "tests": "pytest tools/logo_vectorizer/tests/test_centerline_thin_rules.py",
+        "images_looked_at": true,
+        "measured_vs_previous": "Propak density gate unchanged; thin rules get protect/stamp; no Swift path change intended",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
     },
     {
       "id": "2026-09-26T13:33:22Z-claude",
@@ -108,6 +265,118 @@
       }
     },
     {
+      "id": "J7808cb80",
+      "ts": "2026-09-26T13:34:47Z",
+      "agent": "cursor",
+      "task": 11,
+      "kind": "claim",
+      "summary": "Re-integrate Gemini+Claude collab_mind escalate-when-stuck; keys in gitignored .env only; rotate keys exposed in chat.",
+      "evidence": {
+        "commit": "f7be1e1",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "J48d082a7",
+      "ts": "2026-09-26T13:35:58Z",
+      "agent": "meedo",
+      "task": 11,
+      "kind": "finding",
+      "summary": "collab_mind escalate path=keep providers=gemini,claude severity=0.90 case=smoke_solid \u2014 Solid monochromatic field (#CB4E32) with no discernible logo elements, text, shapes, or alpha variations. This is either a background tile, placeholder, corrupt",
+      "evidence": {
+        "collab_mind": {
+          "takeover": true,
+          "preferred_path": "keep",
+          "recommended_backends": [
+            "opencv-tree"
+          ],
+          "recommended_preprocess": {
+            "upscale": 4,
+            "blur_radius": 0.0,
+            "alpha_threshold": 0,
+            "min_area": 0.0
+          },
+          "brand_name": "",
+          "font_family_guess": "",
+          "dominant_colors_hex": [
+            "#CB4E32"
+          ],
+          "diagnosis": "Solid monochromatic field (#CB4E32) with no discernible logo elements, text, shapes, or alpha variations. This is either a background tile, placeholder, corrupted crop, or incorrectly submitted asset. No vectorization pipeline can extract meaningful logo geometry from uniform color data.",
+          "actions": [
+            "Verify whether the input asset is an uncropped background tile, blank placeholder, or corrupted crop.",
+            "Bypass complex vectorization pipelines and output a single full-bleed SVG rectangle colored #CB4E32 if a vector representation is mandatory.",
+            "Confirm with user that correct source file was uploaded - this appears to be background fill or placeholder, not a logo",
+            "If vector output is required, generate single SVG rect with fill='#CB4E32' covering viewBox",
+            "Flag case for manual review to verify asset provenance",
+            "If this is intentional (brand uses solid color block as logo), output minimal SVG and mark as complete"
+          ],
+          "gemini_notes": "No logo elements, alpha channel variations, or luminance gradients exist within the image.",
+          "claude_notes": "Agree with Gemini's diagnosis and approach. This is definitively not a recoverable logo - it's a featureless color field. The 'keep' path is correct since no processing can extract non-existent features. Only minor optimization: reduce upscale from 4 to 1 since upscaling uniform pixels wastes computation with zero benefit. The fell_to_lanczos failure is expected and appropriate - Lanczos resampling of solid color is meaningless.",
+          "providers_used": [
+            "gemini",
+            "claude"
+          ],
+          "agree": true
+        },
+        "stuck": {
+          "stuck": true,
+          "reasons": [
+            "failed_score_gates",
+            "low_score=0.200",
+            "vectorize_fell_to_lanczos"
+          ],
+          "severity": 0.9,
+          "metrics": {
+            "score_total": 0.2,
+            "alpha_iou": null,
+            "p_hollow": null,
+            "hole_count": null,
+            "passes_gates": false,
+            "candidates_tried": 0,
+            "all_ai_rejected": false,
+            "fell_to_lanczos": true,
+            "review_blocked": false,
+            "plateau_composite": null
+          }
+        },
+        "case_id": "smoke_solid",
+        "commit": "f7be1e1"
+      },
+      "source": "collab_mind"
+    },
+    {
+      "id": "J0f83a721",
+      "ts": "2026-09-26T13:36:07Z",
+      "agent": "cursor",
+      "task": 11,
+      "kind": "finding",
+      "summary": "collab_mind live: Gemini (gemini-flash-latest) + Claude (claude-sonnet-4-5) deliberate on stuck signal; keys load from gitignored .env; models updated after 2.0-flash / sonnet-4-20250514 404s.",
+      "evidence": {
+        "commit": "f7be1e1",
+        "tests": "pytest tools/logo_vectorizer/tests/test_collab_mind.py (9) + full suite 97 passed",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "J9fdc3ff4",
+      "ts": "2026-09-26T13:36:15Z",
+      "agent": "cursor",
+      "task": 11,
+      "kind": "done",
+      "summary": "Gemini+Claude collab_mind escalate-when-stuck wired into ensemble retry + vectorize Lanczos rescue; Meedo journal on escalate; .env gitignored. Rotate keys exposed in chat.",
+      "evidence": {
+        "commit": "f7be1e1",
+        "tests": "97 passed, 1 skipped (tools/logo_vectorizer/tests)",
+        "review": "live smoke: both providers returned plans; blank RGBA correctly diagnosed as non-logo",
+        "images_looked_at": true,
+        "measured_vs_previous": "n/a (API/orchestration; no logo score delta this unit)",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
+    },
+    {
       "id": "2026-09-26T13:36:42Z-claude",
       "ts": "2026-09-26T13:36:42Z",
       "agent": "claude",
@@ -124,6 +393,256 @@
       "kind": "claim",
       "summary": "Meedo-Me learns from every Gemini/Claude consultation (track record, lessons, dataset, shadow mode)",
       "commit": "99d89a4"
+    },
+    {
+      "id": "J4e154b06",
+      "ts": "2026-09-26T13:37:46Z",
+      "agent": "meedo",
+      "task": 8,
+      "kind": "finding",
+      "summary": "collab_mind escalate path=sectional providers=gemini,claude severity=0.80 case=arc__tagline \u2014 Gemini is correct: the tagline 'RESOURCES LTD.' is being lost because small letterforms in the dark teal channel are filtered as noise or merged into a blob wit",
+      "evidence": {
+        "collab_mind": {
+          "takeover": true,
+          "preferred_path": "sectional",
+          "recommended_backends": [
+            "opencv-tree",
+            "potrace",
+            "vtracer"
+          ],
+          "recommended_preprocess": {
+            "upscale": 6,
+            "blur_radius": 0.3,
+            "alpha_threshold": 140,
+            "min_area": 8.0
+          },
+          "brand_name": "ARC RESOURCES LTD.",
+          "font_family_guess": "Trajan Pro (ARC), Copperplate Gothic / Trade Gothic Extended (RESOURCES LTD.)",
+          "dominant_colors_hex": [
+            "#cf2933",
+            "#22383c",
+            "#ffffff",
+            "#c92a35",
+            "#2d4a4e"
+          ],
+          "diagnosis": "Gemini is correct: the tagline 'RESOURCES LTD.' is being lost because small letterforms in the dark teal channel are filtered as noise or merged into a blob with the swoosh arc. The high aspect ratio and tight spacing of these caps make them vulnerable to aggressive min_area filtering. The swoosh and tagline share the same color channel, requiring careful separation.",
+          "actions": [
+            "Lower min_area filtering threshold to preserve small letter islands in the tagline.",
+            "Split color masks into crimson red ('ARC') and dark teal ('RESOURCES LTD.' plus arc swoosh) before contour extraction.",
+            "Run independent high-resolution potrace extraction on the separated tagline mask to reconstruct crisp letterforms.",
+            "Use sectional path: isolate three regions (red 'ARC', navy swoosh, navy tagline) via tight bounding boxes before any filtering.",
+            "For tagline region: apply aggressive upscale (6\u00d7), minimal blur (0.3), very low min_area (8 px) to preserve dot on 'i' and narrow letters like 'I', 'T', 'L'.",
+            "For swoosh region: use moderate min_area (50) to keep the thin taper but reject stray pixels.",
+            "For 'ARC' region: standard settings (min_area 20) since letters are large and robust.",
+            "Run potrace with --turdsize 2 on tagline mask independently to capture small features.",
+            "Recombine the three traced SVG layers with correct color assignments and spatial registration.",
+            "Fallback: if sectional fails, use idealize path with font reconstruction for tagline (Copperplate Gothic 'RESOURCES LTD.' at ~18-20pt tracking +200)."
+          ],
+          "gemini_notes": "Verify that the swoosh taper tip does not bridge into the letter 'A' or get severed at the far right thin taper.",
+          "claude_notes": "I agree with Gemini's diagnosis and color-splitting strategy, but disagree on approach. 'Idealize' with full-image processing will still struggle because the swoosh and tagline occupy overlapping vertical space and share a color\u2014connected component analysis will merge them. **Sectional** is superior here: physically separate the three elements by region BEFORE any filtering or tracing, then process each with tuned parameters. I've increased upscale to 6\u00d7 (from 4\u00d7) and dropped min_area to 8 (from 15) specifically for the tagline to preserve period dots and thin strokes. I've also tightened blur to 0.3 to avoid letter merging. Gemini's font guesses are solid; I refined Gotham\u2192Trade Gothic Extended as more likely for the condensed sans caps.",
+          "providers_used": [
+            "gemini",
+            "claude"
+          ],
+          "agree": false
+        },
+        "stuck": {
+          "stuck": true,
+          "reasons": [
+            "failed_score_gates",
+            "low_score=0.450",
+            "meedo_review_blocked",
+            "plateau_composite=0.4500"
+          ],
+          "severity": 0.8,
+          "metrics": {
+            "score_total": 0.45,
+            "alpha_iou": null,
+            "p_hollow": null,
+            "hole_count": null,
+            "passes_gates": false,
+            "candidates_tried": 0,
+            "all_ai_rejected": false,
+            "fell_to_lanczos": false,
+            "review_blocked": true,
+            "plateau_composite": 0.45
+          }
+        },
+        "case_id": "arc__tagline",
+        "commit": "38ed7bb"
+      },
+      "source": "collab_mind"
+    },
+    {
+      "id": "J914c159d",
+      "ts": "2026-09-26T13:42:25Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "finding",
+      "summary": "collab_mind on Arc: Gemini+Claude agree tagline lost via navy channel merge / min_area; prefer sectional color-split. Root cause here: idealize _compose hard-required potrace and returned None without it (smooth_fit works). Fail-open landed; with potrace installed Arc idealize emits 18 groups incl. L0 tagline els (glyph_match still 0).",
+      "evidence": {
+        "commit": "38ed7bb",
+        "tests": "test_idealize_potrace_optional.py + test_collab_mind.py",
+        "images_looked_at": true,
+        "measured_vs_previous": "idealize SVG None \u2192 31kB with 14 navy L0 groups retained; glyph_match still 0",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "J46050a08",
+      "ts": "2026-09-26T13:46:49Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "finding",
+      "summary": "Brand-ref crawl (Serper-compatible pipeline + official sites): Arc=RESOURCES LTD. teal tagline must stay; Propak Energy Services red rule+icon; GCM Gulf Coast Modification TGC monogram + Modification i-dots; Trialta TRI gray/ALTA lime. catalog.json written. SERPER_API_KEY missing in this env \u2014 need key for live Serper image search.",
+      "evidence": {
+        "commit": "3d29f0c",
+        "tests": "scripts/serper_logo_brand_refs.py --official-only",
+        "images_looked_at": true,
+        "measured_vs_previous": "n/a (brand references; golden matches official Propak/Trialta/GCM/Arc layouts)",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "J37edf3c5",
+      "ts": "2026-09-26T13:50:02Z",
+      "agent": "cursor",
+      "task": 6,
+      "kind": "claim",
+      "summary": "OpenClaw WhatsApp hourly Claude Code progress: MEEDO_WHATSAPP_TO in gitignored .env; meedo_claude_progress MCP + connect whatsapp-progress. Register on PC when WhatsApp linked.",
+      "evidence": {
+        "commit": "2010b5f",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "J82e38336",
+      "ts": "2026-09-26T13:50:31Z",
+      "agent": "cursor",
+      "task": 6,
+      "kind": "finding",
+      "summary": "WhatsApp hourly tooling + dry-run register ready; delivery blocked here (no OpenClaw/WhatsApp). Live Gemini+Claude advise used on Arc tagline for on-the-fly improve help.",
+      "evidence": {
+        "commit": "55aafca",
+        "tests": "test_progress.py + test_ai_collab.py",
+        "images_looked_at": true,
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "Jcbcd1dfe",
+      "ts": "2026-09-26T13:51:16Z",
+      "agent": "meedo",
+      "task": 3,
+      "kind": "finding",
+      "summary": "ai_collab live domain=logo source=gemini,claude \u2014 The logo prep pipeline discards the smaller teal 'RESOURCES LTD.' glyphs during noise filtering because uniform area-based pruning treats them as artifacts rela",
+      "evidence": {
+        "ai_collab": {
+          "domain": "logo",
+          "problem": "Arc RESOURCES LTD. tagline drops in reconstruction; prep keeps navy islands; glyph_match 0. Prefer sectional color-split. Must keep teal RESOURCES LTD. + swoosh + serif ARC.",
+          "diagnosis": "The logo prep pipeline discards the smaller teal 'RESOURCES LTD.' glyphs during noise filtering because uniform area-based pruning treats them as artifacts relative to the larger navy 'ARC' letterforms. Color-based segmentation must precede size-based filtering to preserve multi-scale, multi-hue components.",
+          "method": "For logos with heterogeneous component scales and distinct color regions, apply color-domain segmentation prior to morphological operations and area-based noise removal. Process each color layer with scale-appropriate thresholds, then composite the vectorized results to preserve both dominant marks and subordinate taglines.",
+          "actions": [
+            "In the logo prep pipeline for case 'arc__tagline', implement a sectional color-split in HSV/Lab space to cleanly separate the navy mark ('ARC') from the teal elements ('RESOURCES LTD.' and swoosh).",
+            "Lower the area/contour pruning threshold specifically on the extracted teal mask so small tagline glyphs are preserved rather than culled as speckle noise.",
+            "Execute two-pass vectorization on the distinct color masks and combine them in final assembly, preserving the serif contours of 'ARC' and the stroke integrity of the swoosh.",
+            "Validate glyph matching on 'arc__tagline' to confirm recognition of both 'ARC' and 'RESOURCES LTD.'.",
+            "Implement HSV color-space segmentation in the logo prep pipeline for 'arc__tagline' to isolate navy (#1B3A5F range) and teal (#00A3A1 range) components into separate binary masks before any contour filtering.",
+            "Apply relaxed area threshold (e.g., 0.02% of image area instead of default 0.1%) exclusively to the teal mask to retain small tagline glyphs and the thin swoosh tail without admitting anti-aliasing noise.",
+            "Perform independent vectorization passes on navy and teal masks, then merge SVG paths in a single output group with original color attributes preserved from source palette values.",
+            "Add validation checkpoint: confirm OCR/glyph detection finds both 'ARC' (3 glyphs) and 'RESOURCES LTD.' (12 glyphs excluding spaces and period) in the final SVG render before marking the case as resolved."
+          ],
+          "risks": [
+            "Over-relaxing the teal noise threshold may introduce anti-aliasing boundary halos or background artifacts into the SVG.",
+            "Aggressive color quantization could fragment the thin tapering tail of the teal swoosh.",
+            "Color values must be derived strictly from the source palette; do not extrapolate colors from intermediate grayscale masks.",
+            "Teal mask with relaxed threshold may capture JPEG compression artifacts or edge anti-aliasing halos; mitigate with morphological opening (1-2px kernel) post-thresholding.",
+            "Thin swoosh tail may fragment if color quantization bins are too narrow; use \u00b15% hue tolerance in HSV segmentation.",
+            "Ensure teal and navy hex values are sampled directly from source PNG dominant colors, not interpolated from grayscale conversions, to avoid palette drift in final SVG."
+          ],
+          "providers_used": [
+            "gemini",
+            "claude"
+          ],
+          "source": "gemini,claude",
+          "lesson_id": "ALe06dbf90",
+          "offline": false,
+          "agree": true
+        },
+        "commit": "1bf88de"
+      },
+      "source": "ai_collab"
+    },
+    {
+      "id": "Jc2674f48",
+      "ts": "2026-09-26T13:51:35Z",
+      "agent": "meedo",
+      "task": 3,
+      "kind": "finding",
+      "summary": "ai_collab live domain=meedo_advisor source=gemini,claude \u2014 Agree \u2014 Meedo must deepen MCP (meedo_ai_advise / meedo_ai_lessons) rather than grow a parallel brain.",
+      "evidence": {
+        "ai_collab": {
+          "domain": "meedo_advisor",
+          "problem": "How should Meedo-Me learn from Gemini and Claude so it can eventually own decisions without calling the APIs?",
+          "diagnosis": "Agree \u2014 Meedo must deepen MCP (meedo_ai_advise / meedo_ai_lessons) rather than grow a parallel brain.",
+          "method": "Recall-first Gemini\u2194Claude via tools.ai_collab; MCP owns advise/lessons; fail-open offline defaults.",
+          "actions": [
+            "Call meedo_ai_lessons / recall before meedo_ai_advise force_live",
+            "Persist every live deliberation into meedo_ai_lessons.json",
+            "Prefer offline advice when recall_score meets MEEDO_AI_RECALL_MIN",
+            "Wire improve loops + meedo_cycle through tools.ai_collab",
+            "Mirror lessons into episodes for meedo_recall"
+          ],
+          "risks": [
+            "never commit API keys",
+            "fail-open when APIs dark",
+            "do not change Shipping SO/Contact locks"
+          ],
+          "providers_used": [
+            "gemini",
+            "claude"
+          ],
+          "source": "gemini,claude",
+          "lesson_id": "AL6781e225",
+          "offline": false,
+          "agree": true
+        },
+        "commit": "8a5cc53"
+      },
+      "source": "ai_collab"
+    },
+    {
+      "id": "Jf16de356",
+      "ts": "2026-09-26T13:51:36Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "finding",
+      "summary": "App-wide tools/ai_collab: shared Gemini+Claude client + Meedo recall-first learning; wired meedo_cycle, logo/shipping/app improve hooks, MCP meedo_ai_advise/lessons; collab_mind persists lessons.",
+      "evidence": {
+        "commit": "8a5cc53",
+        "tests": "pytest ai_collab + meedo_cycle/merge/mcp (40+)",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
+    },
+    {
+      "id": "Jd0723759",
+      "ts": "2026-09-26T13:53:47Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "done",
+      "summary": "App-wide tools/ai_collab landed: shared Gemini+Claude client, Meedo recall-first learning, wired meedo_cycle + logo/shipping/app improve hooks + MCP meedo_ai_advise/lessons; tests pass; PR #7 + issue #6 updated.",
+      "evidence": {
+        "commit": "473cc0d",
+        "tests": "pytest ai_collab + meedo_cycle/merge/mcp/collab_mind (38)",
+        "measured_vs_previous": "new: meedo_ai_lessons + MCP advise/lessons; episode mirror guarded from test pollution",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
     },
     {
       "id": "2026-09-26T13:56:45Z-claude",

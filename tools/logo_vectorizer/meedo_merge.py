@@ -43,29 +43,46 @@ def _review_key(r: dict) -> tuple:
     return (r.get("ts"), r.get("case"), r.get("candidate"), r.get("run_id"))
 
 
+def _same_episode(a: dict, b: dict) -> bool:
+    """One episode, whatever id it carries now: an id can be renumbered by a
+    merge, but when it was recorded and what problem it was about cannot."""
+    return a.get("ts") == b.get("ts") and a.get("problem") == b.get("problem")
+
+
+def _richer(a: dict, b: dict) -> dict:
+    """The copy that knows more: a method beats none, closed beats open."""
+    if (b.get("method") and not a.get("method")) or (a.get("outcome") == "open" and b.get("outcome") != "open"):
+        return dict(b, id=a["id"], **({"renumbered_from": a["renumbered_from"]} if a.get("renumbered_from") else {}))
+    return a
+
+
 def merge_episodes(ours: dict, theirs: dict) -> dict:
     mine = list(ours.get("episodes", []))
+    incoming = list(theirs.get("episodes", []))
     ids = {e["id"]: e for e in mine}
+    # Renumber above every id either side has used, so only the episodes that
+    # truly collide move. Numbering from our side alone cascaded: their E0026
+    # took E0029, which pushed their own E0029 on, and so on down the file,
+    # so every id the other agent had quoted pointed somewhere else.
+    top = max((int(m.group(1)) for i in list(ids) + [e["id"] for e in incoming] if (m := re.match(r"E(\d+)", i))),
+              default=0)
 
-    def next_id() -> str:
-        n = max((int(m.group(1)) for i in ids if (m := re.match(r"E(\d+)", i))), default=0) + 1
-        return f"E{n:04d}"
-
-    for e in theirs.get("episodes", []):
-        have = ids.get(e["id"])
-        if have is None:
+    for e in incoming:
+        twin = next((m for m in mine if _same_episode(m, e)), None)
+        if twin is not None:
+            # Already here, perhaps under a renumbered id: merge, never copy.
+            k = mine.index(twin)
+            mine[k] = _richer(twin, e)
+            ids[twin["id"]] = mine[k]
+            continue
+        if e["id"] not in ids:
             mine.append(e)
             ids[e["id"]] = e
-        elif have != e and have.get("problem") != e.get("problem"):
-            e = dict(e, id=next_id(), renumbered_from=e["id"])
-            mine.append(e)
-            ids[e["id"]] = e
-        elif have != e:
-            # Same episode, edited on both sides (e.g. closed on one): keep the
-            # side that knows more — a method beats none, closed beats open.
-            if (e.get("method") and not have.get("method")) or (have.get("outcome") == "open" and e.get("outcome") != "open"):
-                mine[mine.index(have)] = e
-                ids[e["id"]] = e
+            continue
+        top += 1
+        e = dict(e, id=f"E{top:04d}", renumbered_from=e["id"])
+        mine.append(e)
+        ids[e["id"]] = e
     mine.sort(key=lambda e: (e.get("ts", ""), e["id"]))
     return {**ours, "episodes": mine}
 
@@ -98,12 +115,25 @@ def merge_ledger(ours: dict, theirs: dict) -> dict:
 
 
 def merge_journal(ours: dict, theirs: dict) -> dict:
-    """Work-journal entries are ids of agent and moment, so they never collide:
-    the union is the whole history of both branches."""
-    entries = {e["id"]: e for e in ours.get("entries", [])}
+    """Union work-journal entries by id; never drop either agent's units."""
+    mine = list(ours.get("entries", []))
+    ids = {e.get("id"): e for e in mine if e.get("id")}
     for e in theirs.get("entries", []):
-        entries.setdefault(e["id"], e)
-    return {**ours, "entries": sorted(entries.values(), key=lambda e: (e.get("ts", ""), e["id"]))}
+        eid = e.get("id")
+        if not eid or eid not in ids:
+            mine.append(e)
+            if eid:
+                ids[eid] = e
+        elif ids[eid] != e:
+            # Same id, richer evidence wins (more evidence keys / longer summary).
+            have = ids[eid]
+            if len(e.get("evidence") or {}) > len(have.get("evidence") or {}) or (
+                len(e.get("summary") or "") > len(have.get("summary") or "")
+            ):
+                mine[mine.index(have)] = e
+                ids[eid] = e
+    mine.sort(key=lambda e: (e.get("ts", ""), e.get("id", "")))
+    return {**ours, "version": ours.get("version", 1), "entries": mine}
 
 
 def merge_consultations(ours: dict, theirs: dict) -> dict:
@@ -122,14 +152,55 @@ def merge(ours_path: str, theirs_path: str) -> bool:
         return False
     if "consultations" in ours or "consultations" in theirs:
         result = merge_consultations(ours, theirs)
-    elif "entries" in ours or "entries" in theirs:
-        result = merge_journal(ours, theirs)
+    elif "lessons" in ours or "lessons" in theirs:
+        # meedo_ai_lessons.json — union by lesson id / problem+method.
+        result = merge_ai_lessons(
+            ours or {"version": 1, "lessons": []},
+            theirs or {"version": 1, "lessons": []},
+        )
     elif "episodes" in ours or "episodes" in theirs:
         result = merge_episodes(ours, theirs)
+    elif "entries" in ours or "entries" in theirs:
+        result = merge_journal(ours or {"version": 1, "entries": []},
+                               theirs or {"version": 1, "entries": []})
     else:
         result = merge_ledger(ours, theirs)
     Path(ours_path).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     return True
+
+
+def merge_ai_lessons(ours: dict, theirs: dict) -> dict:
+    """Union Gemini↔Claude lessons by id; richer counters / method wins."""
+    mine = list(ours.get("lessons", []))
+    ids = {L.get("id"): L for L in mine if L.get("id")}
+    for L in theirs.get("lessons", []):
+        lid = L.get("id")
+        if not lid or lid not in ids:
+            mine.append(L)
+            if lid:
+                ids[lid] = L
+            continue
+        have = ids[lid]
+        if have == L:
+            continue
+        # Prefer the side that was applied offline more (hand-off progress)
+        # or has a longer method.
+        score_have = int(have.get("times_applied_offline") or 0) * 10 + len(have.get("method") or "")
+        score_new = int(L.get("times_applied_offline") or 0) * 10 + len(L.get("method") or "")
+        if score_new > score_have:
+            mine[mine.index(have)] = L
+            ids[lid] = L
+        else:
+            # Merge counters at least.
+            have["times_recalled"] = max(
+                int(have.get("times_recalled") or 0), int(L.get("times_recalled") or 0)
+            )
+            have["times_applied_offline"] = max(
+                int(have.get("times_applied_offline") or 0),
+                int(L.get("times_applied_offline") or 0),
+            )
+    mine.sort(key=lambda e: (e.get("ts", ""), e.get("id", "")))
+    return {**ours, "version": ours.get("version", 1), "lessons": mine}
 
 
 def main(argv: list[str] | None = None) -> int:

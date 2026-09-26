@@ -559,6 +559,108 @@
       "source": "mcp"
     },
     {
+      "id": "E0045",
+      "ts": "2026-09-26T13:17:27Z",
+      "commit": "11c1b58",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Board #7: PROPAK Services i-dot reported lost later in prepare_for_engine",
+      "first_read": "Survives despeckle but is dropped by a later prepare stage (same class as GCM E0022)",
+      "evidence": "Stage-trace on clean qa_logos/synthetic/clean/propak.png: 47px 8x6 blue island survives knockout/halo/prune/chroma/snap/crop; elements_of finds area 34. On synthetic degraded recipes (downscale_jpeg/import_combo/blur_crush) the separate tittle is already gone/merged in the RAW degrade \u2014 not lost later in prepare.",
+      "cause": "The board note was stale relative to current degrade recipes + E0022 mark retention. Prepare-path retention is already correct for clean masters; degraded residual needs reconstruction/font/design_fit, not looser despeckle.",
+      "fix": "No prepare-path code change. Locked behaviour with test_prepare_idot_retention.py (clean PROPAK + GCM golden + synthetic stem/tittle). Marked board #7 done; residual \u2192 #4.",
+      "verified": "pytest tools/logo_vectorizer/tests/test_prepare_idot_retention.py \u2014 3 passed",
+      "method": "When a small mark is 'lost in prepare', stage-trace the clean master AND the degraded RAW before changing thresholds. If the island is already merged in the degrade, further prepare looseness only keeps junk; hand residual recovery to reconstruction/design_fit.",
+      "tags": [
+        "board-7",
+        "dots",
+        "preparation",
+        "propak"
+      ],
+      "cases": [
+        "gcm",
+        "propak"
+      ],
+      "source": "manual",
+      "renumbered_from": "E0026"
+    },
+    {
+      "id": "E0046",
+      "ts": "2026-09-26T13:18:57Z",
+      "commit": "abbe5d2",
+      "workstream": "logo-engine",
+      "outcome": "partial",
+      "problem": "PROPAK Services i-dot reported lost later in prepare_for_engine (board #7)",
+      "first_read": "Despeckle or a late prepare stage deletes the tittle after it survived earlier passes",
+      "evidence": "Clean golden propak: tittle island area 47 survives knockout\u2192halo\u2192despeckle\u2192chroma\u2192crop\u2192snap\u2192punch3; elements_of finds area\u224834 blue mark. Synthetic degraded recipes (seed 42): chromatic profile at Services i shows red rule then stem with no separate tittle gap in RAW; prepare cannot lose what the degrade already merged.",
+      "cause": "Board note was stale relative to E0022 fixes. Separate-island loss was prune/size-floor (fixed). Remaining degraded failure mode is fusion/destruction inside the degrade recipe, which needs reconstruction/font/design_fit \u2014 not another prepare threshold.",
+      "fix": "Do not retune prune_ink_speckles for this case. Add regression that clean PROPAK keeps the Services i-dot through prepare; route degraded tittle recovery to board #4.",
+      "verified": "Looked at clean crop (tittle present) and downscale Services zoom pre/post prepare (stem remains; no separate tittle in raw degraded).",
+      "method": "When a small mark is 'lost in prepare', stage-trace ink at the clean centroid through each pass AND inspect the RAW degrade for a separate chromatic island before blaming despeckle. If the island is already gone in RAW, the fix is reconstruction/design, not prepare. Record the finding in the journal and an episode so the other agent does not re-tune the same gate.",
+      "tags": [
+        "cursor",
+        "diagnosis",
+        "dots",
+        "prepare",
+        "propak"
+      ],
+      "cases": [
+        "propak",
+        "propak__downscale_jpeg",
+        "propak__import_combo"
+      ],
+      "source": "manual",
+      "renumbered_from": "E0027"
+    },
+    {
+      "id": "E0047",
+      "ts": "2026-09-26T13:21:44Z",
+      "commit": "4b3d64c",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me must keep improving as a shared utility across agents and projects",
+      "first_read": "Meedo-Me only gets attention on a dedicated ticket; agents skip multi-step standup",
+      "evidence": "User asked both Claude Code and Cursor to tweak/fix/refine Meedo-Me as issues arise and deepen integration. Agents were calling ledger and journal standups separately (easy to skip one).",
+      "cause": "No standing shared duty + no single cycle command; board #3 read as Claude-only autonomy work",
+      "fix": "COORDINATION \u00a79 + CLAUDE.md + skill: both agents own continuous Meedo refine. Board #3 shared. meedo_cycle (CLI+MCP) prints ledger+journal+snapshot and reminds agents to fix Meedo friction in-session. Prefer one MCP memory across projects.",
+      "verified": "pytest test_meedo_cycle; meedo_cycle CLI prints combined standup",
+      "method": "Treat Meedo-Me product bugs as in-session work for whichever agent hits them. Lower ceremony with one cycle command. Record methods under workstream meedo-me. Deepen integration by attaching faces to the same MCP server, not cloning memory.",
+      "tags": [
+        "claude",
+        "cursor",
+        "integration",
+        "meedo-me",
+        "process"
+      ],
+      "cases": [],
+      "source": "manual",
+      "renumbered_from": "E0028"
+    },
+    {
+      "id": "E0029",
+      "ts": "2026-09-26T13:27:12Z",
+      "commit": "f91b029",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Board #9: thin strokes (PROPAK red rule, 1px borders) need centre-line tracing without treating dense lockups as thin wordmarks",
+      "first_read": "Widen is_thin_stroke_mark density gate so Propak enters the thin path",
+      "evidence": "Propak density ~0.39; lessons already forbade density<=0.30 (Trialta fills broke). Propak red rule is a separate 5\u20136px\u00d7457 island; protect was None because centerline_protect_mask required whole-logo thin.",
+      "cause": "Thin-path gating is whole-logo; thin *components* inside dense lockups were invisible to protect/stamp/shape naming",
+      "fix": "elongated_thin_components + OR into centerline_protect_mask; stamp_centerline stamps rule skeletons on dense logos; fit_centerline_stroke for 1\u20133px/sub-40px rules; idealize emits stroke with stroke=colour. 6px Propak bar still names as rect.",
+      "verified": "pytest test_centerline_thin_rules.py + test_shapes + test_prepare_idot_retention + test_meedo_review (36 passed with skimage)",
+      "method": "When a thin feature lives inside a dense lockup, detect the component (aspect/thickness/density) rather than reopening the whole-logo thin gate. Prefer filled rect when it fits; centre-line stroke only for 1\u20133px rules and fragments below the 40px floor.",
+      "tags": [
+        "board-9",
+        "centerline",
+        "propak",
+        "thin-stroke"
+      ],
+      "cases": [
+        "propak"
+      ],
+      "source": "manual"
+    },
+    {
       "id": "E0026",
       "ts": "2026-09-26T13:27:36Z",
       "commit": "11c1b58",
@@ -607,6 +709,349 @@
       "source": "claude"
     },
     {
+      "id": "E0030",
+      "ts": "2026-09-26T13:49:56Z",
+      "commit": "2010b5f",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0031",
+      "ts": "2026-09-26T13:49:56Z",
+      "commit": "2010b5f",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0032",
+      "ts": "2026-09-26T13:49:56Z",
+      "commit": "2010b5f",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0033",
+      "ts": "2026-09-26T13:50:18Z",
+      "commit": "2010b5f",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0034",
+      "ts": "2026-09-26T13:50:18Z",
+      "commit": "2010b5f",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0035",
+      "ts": "2026-09-26T13:50:22Z",
+      "commit": "55aafca",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0036",
+      "ts": "2026-09-26T13:50:22Z",
+      "commit": "55aafca",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0037",
+      "ts": "2026-09-26T13:50:22Z",
+      "commit": "55aafca",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0038",
+      "ts": "2026-09-26T13:50:36Z",
+      "commit": "55aafca",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0039",
+      "ts": "2026-09-26T13:50:36Z",
+      "commit": "55aafca",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0040",
+      "ts": "2026-09-26T13:50:36Z",
+      "commit": "55aafca",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0041",
+      "ts": "2026-09-26T13:50:44Z",
+      "commit": "55aafca",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0042",
+      "ts": "2026-09-26T13:50:44Z",
+      "commit": "55aafca",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0043",
+      "ts": "2026-09-26T13:52:27Z",
+      "commit": "8a5cc53",
+      "workstream": "meedo-me",
+      "outcome": "open",
+      "problem": "How should Meedo-Me learn from Gemini and Claude so it can eventually own decisions without calling the APIs?",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "Meedo must deepen MCP (meedo_ai_advise / meedo_ai_lessons) rather than grow a parallel brain.",
+      "cause": "",
+      "fix": "Wire improve loops + meedo_cycle through tools.ai_collab; persist lessons; prefer offline recall",
+      "verified": "",
+      "method": "Recall-first Gemini\u2194Claude via tools.ai_collab; MCP owns advise/lessons; fail-open offline defaults.",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "curriculum",
+        "gemini",
+        "meedo-me"
+      ],
+      "cases": [
+        "board11",
+        "board3"
+      ],
+      "source": "ai_collab"
+    },
+    {
       "id": "E0028",
       "ts": "2026-09-26T13:52:43Z",
       "commit": "de8b145",
@@ -628,6 +1073,78 @@
         "swift_orange_solid__import_combo"
       ],
       "source": "claude"
+    },
+    {
+      "id": "E0044",
+      "ts": "2026-09-26T13:53:17Z",
+      "commit": "8a5cc53",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0048",
+      "ts": "2026-09-26T14:08:25Z",
+      "commit": "0fd827a",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0049",
+      "ts": "2026-09-26T14:10:09Z",
+      "commit": "0fd827a",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab"
     }
   ]
 }

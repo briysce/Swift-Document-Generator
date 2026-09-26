@@ -98,6 +98,9 @@ class Run:
             "min_height": r.get("min_height"),
             "engines": sorted(engines) if isinstance(engines, list) else None,
             "idealize": r.get("idealize"),
+            # The minds (collab_mind) first existed on 2026-09-26; no run before
+            # that could have had them, so a row without the field had them off.
+            "minds": bool(r.get("minds", False)),
         }
 
 

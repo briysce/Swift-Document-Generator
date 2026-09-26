@@ -30,6 +30,15 @@ Optional: `winget install Inkscape.Inkscape` for the Inkscape Trace Bitmap backe
 Optional SR weights: place `4x-UltraSharp.pth`, `4x_foolhardy_Remacri.pth`,
 `RealESRGAN_x4plus.pth`, etc. under `.cache/realesrgan/`.
 
+### AI advisors + collab mind
+
+Copy `.env.example` → `.env` (gitignored) and set `GOOGLE_API_KEY` /
+`GEMINI_API_KEY` and `ANTHROPIC_API_KEY`. With keys present, Gemini and Claude
+critique candidates and, when the local engine is stuck (failed gates, all AI
+rejects, Lanczos fallback), `ai_advisors/collab_mind.py` has them deliberate and
+optionally re-aim preprocess/backends or hand off to recreate. Disable with
+`LOGO_COLLAB_MIND=0`. Escalations are journaled to Meedo-Me.
+
 ## CLI
 
 ### Manual-quality sectional (the "as a designer would trace it" path)

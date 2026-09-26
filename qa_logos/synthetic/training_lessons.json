@@ -485,6 +485,59 @@
         "idealize",
         "gating"
       ]
+    },
+    {
+      "id": "20260926T131801Z",
+      "ts": "2026-09-26T13:18:01Z",
+      "title": "PROPAK Services i-dot prepare-path closed (board #7)",
+      "lesson": "Clean PROPAK's Services tittle (47px, 8x6) survives all prepare_for_engine stages; elements_of finds area 34. E0022/0673cf2 already fixed GCM+PROPAK mark retention for separate islands. On current synthetic degrade recipes the separate blue i-dot is already gone/merged in the RAW degrade \u2014 not lost later in prepare. Do not loosen prune_ink_speckles further for degraded PROPAK; residual recovery is reconstruction/font/design_fit (#4). Locked by test_prepare_idot_retention.py.",
+      "do_not_regress": "clean propak + gcm golden i-dot islands through prepare_for_engine; _is_small_mark keep for compact stem-adjacent marks",
+      "case_ids": [
+        "propak",
+        "gcm"
+      ],
+      "tags": [
+        "dots",
+        "preparation",
+        "propak",
+        "board-7",
+        "honest-limit"
+      ]
+    },
+    {
+      "id": "20260926T132712Z",
+      "ts": "2026-09-26T13:27:12Z",
+      "title": "Centre-line thin rules inside dense lockups (board #9)",
+      "lesson": "Do not reopen whole-logo density<=0.30 for Propak/Trialta. Instead elongated_thin_components (aspect>=6, thick<=8, dens>=0.35) feeds centerline_protect_mask and stamp_centerline. fit_centerline_stroke names 1\u20133px / sub-40px solid rules as stroked centre-lines; thicker Propak red bar remains rect. Locked by test_centerline_thin_rules.py.",
+      "do_not_regress": "Propak fills not treated as thin wordmark; Propak red rule protect/stamp; Swift bars still rect",
+      "case_ids": [
+        "propak"
+      ],
+      "tags": [
+        "centerline",
+        "thin-stroke",
+        "propak",
+        "board-9"
+      ]
+    },
+    {
+      "id": "20260926T134225Z",
+      "ts": "2026-09-26T13:42:25Z",
+      "title": "idealize must not require potrace when smooth_fit works",
+      "lesson": "collab_mind on arc__tagline diagnosed sectional/color-split; deeper probe found _compose returned None whenever potrace was missing, even though _smooth_trace draws without it. That made LOGO_IDEALIZE decline on hosts without potrace and looked like 'reconstruction drops tagline'. Fail-open: allow smooth_fit compose without potrace; only hard-require potrace for the plain/potrace-only pass.",
+      "do_not_regress": "Never gate the entire idealize composition on have_potrace() when smooth_fit=True.",
+      "case_ids": [
+        "arc__tagline",
+        "arc"
+      ],
+      "tags": [
+        "idealize",
+        "potrace",
+        "collab_mind",
+        "arc",
+        "fail-open"
+      ],
+      "source": "cursor/board-11+8"
     }
   ],
   "run_snapshots": [
@@ -2181,6 +2234,6 @@
       }
     }
   ],
-  "updated_at": "2026-09-20T18:34:02Z",
+  "updated_at": "2026-09-26T13:42:25Z",
   "entries": []
 }

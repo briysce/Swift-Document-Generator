@@ -8,23 +8,23 @@ it can learn, grow, adapt, adjust, and experiment with us — not as a sidecar
 that is only consulted after the fact.
 
 ```
-python -m tools.logo_vectorizer.meedo_ledger standup
+python -m tools.logo_vectorizer.meedo_cycle          # ledger + journal + snapshot
 python -m tools.logo_vectorizer.meedo_ledger decide --by <you> <id> accept|reject "<reason>"
-python -m tools.logo_vectorizer.meedo_journal log --agent <you> --task <n> --kind claim "<what>"
+python -m tools.logo_vectorizer.meedo_journal log --agent <you> --task <n> --kind claim --summary "<what>"
 # recall before diagnosing: meedo_recall over MCP (or meedo_episodes.recall)
 # …do the work, with meedo_review on logo outputs…
 python -m tools.logo_vectorizer.meedo_ledger observe   # usually automatic from the improve loop
 python -m tools.logo_vectorizer.meedo_ledger propose
-python -m tools.logo_vectorizer.meedo_journal log --agent <you> --task <n> --kind done \
-    --tests "…" --looked "…" --review "…" --measured "…" --episode E00NN "<what>"
+python -m tools.logo_vectorizer.meedo_journal log --agent <you> --task <n> --kind done --summary "<what>" \
+    --tests "…" --looked "…" --review "…" --measured "…" --episode E00NN
 python -m tools.logo_vectorizer.meedo_ledger report
 ```
 
-**Every unit of work goes in Meedo-Me's journal** (`meedo_journal`, or `meedo_log`
-over MCP): a `claim` when you start a task, a `finding` when you learn something
+**Every unit of work goes in Meedo-Me's journal** (`meedo_journal`, or
+`meedo_journal_log` over MCP), Claude Code's and Cursor's alike: a `claim` when you start a task, a `finding` when you learn something
 on the way (a cause, a false alarm, a measurement), and a `done` when you push —
 answering each house rule in its evidence (tests, looked, review, measured,
-episode; `n/a: <why>` when one does not apply). `handoff`, `blocked`, `pause`
+episode, and the commit; `n/a: <why>` when one does not apply). `handoff`, `blocked`, `pause`
 and `resume` when you stop. The standup shows who holds what, which claims have
 gone quiet, and which finished units skipped a rule. When Meedo-Me gets
 something wrong — a false alarm, advice that misled, a gap in what it records —
@@ -36,12 +36,26 @@ you will act on now — accepted advice is judged by later runs, so accepting an
 then ignoring it scores Meedo-Me's advice as a failure it did not earn. Reject
 with a real reason; Meedo-Me learns from the pattern of what is rejected.
 
+Episodes hold the durable *method*; the journal holds who did what, when, and
+with what evidence; `tools/meedo_me/trace.py` holds the step-by-step procedure
+(every tool call, redacted); `meedo_consult` holds every question put to Gemini
+or Claude and what its answer proved to be. Together they are what Meedo-Me
+studies to do this work itself one day, so feed all of them.
+
+**Refine Meedo-Me as you go.** Claude Code and Cursor both own Meedo-Me's
+product quality: when standup/recall/review/journal/MCP/desktop wiring fails or
+feels dumb, fix it in-session (board #3 / workstream `meedo-me`). The goal is a
+smarter utility deeply integrated across our projects via one MCP memory — not a
+sidecar that only gets attention on a dedicated ticket.
+
 The same memory is served over MCP (`.mcp.json` registers it for Claude Code):
-`meedo_standup`, `meedo_recall`, `meedo_playbook`, `meedo_report`, `meedo_review`,
-and the writers `meedo_decide`, `meedo_record_episode`. Recall before diagnosing —
-past episodes say what the first guess got wrong. Record the method when a problem
-is solved. Any agent that reads untrusted input (email, chat, the web) gets the
-server with `--read-only`, never the writers.
+`meedo_cycle`, `meedo_standup`, `meedo_journal_standup`, `meedo_journal_recent`,
+`meedo_recall`, `meedo_playbook`, `meedo_report`, `meedo_review`, `meedo_minds`,
+`meedo_ai_lessons`, `meedo_claude_progress`, and the writers `meedo_decide`,
+`meedo_record_episode`, `meedo_journal_log`, `meedo_ai_advise`. Recall before
+diagnosing — past episodes say what the first guess got wrong. Record the method
+when a problem is solved. Any agent that reads untrusted input (email, chat, the
+web) gets the server with `--read-only`, never the writers.
 
 Its advice once sat unread for a whole session. Twenty-eight proposals, all
 ignored, were scored as failures and its hit rate read 0% — while its most

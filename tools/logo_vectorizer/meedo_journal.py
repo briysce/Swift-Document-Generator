@@ -1,57 +1,54 @@
-"""Meedo-Me's work journal: what every agent did, and whether it was done right.
+"""Meedo-Me work journal — every agent's unit of work, logged, assessed, recalled.
 
-Claude Code and Cursor work this repository at the same time. Meedo-Me's other
-memory holds engine runs, advice and decisions, reviews, and the methods that
-solved problems; none of it holds the work itself: who took which task, what
-they found, what they finished, and whether they kept the house rules doing it.
-This does, so Meedo-Me can manage the work and not only the engine.
+Claude Code and Cursor both work this repo, and the user asked that Meedo-Me
+log, hear, assess and learn from everything either agent does. Episodes hold
+*how a problem was solved*; the ledger holds improve-loop runs and advice.
+This journal holds the *work unit* itself: who claimed what, what they found,
+what they handed off, and whether a `done` answered the house rules.
 
-An entry is one unit of work, by one agent:
+Both agents wrote this module on the same morning (Cursor 13:19, Claude Code
+13:32); this is the merge of the two, and it reads entries written by either:
 
-  claim     starting a board task (COORDINATION.md)
-  finding   something learned on the way: a cause, a false alarm, a measurement
-  done      a unit finished and pushed
-  handoff   stopping mid-task; `summary` is where the next agent starts
-  blocked   cannot go on; `summary` says on what
-  pause / resume   credits ran out / came back
+  kinds     claim · finding · handoff · done · blocked · pause · resume
+  evidence  one answer per house rule (CLAUDE.md), "n/a: <why>" when a rule
+            does not apply:
+              commit    what was pushed
+              tests     what ran and passed
+              looked    which outputs were looked at (also `images_looked_at`)
+              review    Meedo-Me's reviewer on changed logo outputs
+              measured  against the previous engine/state (also `measured_vs_previous`)
+              episode   the episode recording the method, when a problem was solved
 
-A `done` carries its evidence, one field per house rule (CLAUDE.md):
-
-  tests     what ran and passed
-  looked    which outputs were looked at
-  review    Meedo-Me's reviewer verdict on changed logo outputs
-  measured  the change against the previous engine / previous state
-  episode   the episode that records the method, when a problem was solved
-
-"n/a: <why>" answers a rule that does not apply. An empty field is a gap.
-Nothing is refused for a gap: the assessment lists gaps per agent in the
-standup, so the pattern is visible and Meedo-Me can say whose units skip what.
-
-    python -m tools.logo_vectorizer.meedo_journal log --agent claude --task 1 --kind done \\
-        --tests "..." --looked "..." --review passed --measured "..." --episode E0026 "summary"
-    python -m tools.logo_vectorizer.meedo_journal recent [--hours 24] [--agent cursor]
+    python -m tools.logo_vectorizer.meedo_journal log --agent cursor --task 7 --kind done \\
+        --summary "…" --tests "…" --looked "…" --review "…" --measured "…" --episode E00NN
+    python -m tools.logo_vectorizer.meedo_journal standup
+    python -m tools.logo_vectorizer.meedo_journal recent [--agent cursor] [--hours 3]
     python -m tools.logo_vectorizer.meedo_journal assess
+
+Stored in `qa_logos/synthetic/meedo_journal.json`, merged by the `merge=meedo`
+driver (union by id; see `meedo_merge.py`).
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 JOURNAL = ROOT / "qa_logos" / "synthetic" / "meedo_journal.json"
 
-KINDS = ("claim", "finding", "done", "handoff", "blocked", "pause", "resume")
-EVIDENCE = ("tests", "looked", "review", "measured", "episode")
-# A claim whose holder has written nothing for this long may be taken over
-# (COORDINATION.md, rule 5).
-STALE_AFTER = timedelta(minutes=45)
+KINDS = ("claim", "finding", "handoff", "done", "blocked", "pause", "resume")
+AGENTS = ("claude", "cursor", "human", "meedo")
+RULES = ("commit", "tests", "looked", "review", "measured", "episode")
+STALE_SECONDS = 45 * 60  # COORDINATION.md take-over window
+STALE_AFTER = timedelta(seconds=STALE_SECONDS)
 _CLOSES = ("done", "handoff", "blocked")
 
 
-def _now() -> datetime:
+def _now_dt() -> datetime:
     return datetime.now(timezone.utc)
 
 
@@ -59,25 +56,87 @@ def _ts(dt: datetime) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _now() -> str:
+    return _ts(_now_dt())
+
+
 def _parse(ts: str) -> datetime:
-    return datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    try:
+        return datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return datetime.fromtimestamp(0, timezone.utc)
 
 
-def load(path: Path | None = None) -> list[dict]:
+def _parse_ts(ts: str) -> float:
+    return _parse(ts).timestamp()
+
+
+def _as_dt(now) -> datetime:
+    if now is None:
+        return _now_dt()
+    if isinstance(now, (int, float)):
+        return datetime.fromtimestamp(now, timezone.utc)
+    return now
+
+
+def _git_sha() -> str:
+    try:
+        return subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], capture_output=True,
+                              text=True, timeout=10).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def _task(task) -> int | str | None:
+    if task in (None, ""):
+        return None
+    t = str(task).strip().lstrip("#")
+    return int(t) if t.isdigit() else t
+
+
+def _same_task(a, b) -> bool:
+    return str(a) == str(b)
+
+
+# --------------------------------------------------------------------------
+# storage
+# --------------------------------------------------------------------------
+
+
+def load(path: Path | None = None) -> dict:
     p = Path(path or JOURNAL)
     if not p.is_file():
-        return []
+        return {"version": 1, "entries": []}
     try:
-        return json.loads(p.read_text(encoding="utf-8")).get("entries", [])
+        data = json.loads(p.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        return []
+        return {"version": 1, "entries": []}
+    if not isinstance(data, dict):
+        return {"version": 1, "entries": []}
+    data.setdefault("version", 1)
+    data.setdefault("entries", [])
+    return data
 
 
-def _save(entries: list[dict], path: Path | None = None) -> None:
+def save(data: dict, path: Path | None = None) -> None:
     p = Path(path or JOURNAL)
     p.parent.mkdir(parents=True, exist_ok=True)
-    entries = sorted(entries, key=lambda e: (e["ts"], e["id"]))
-    p.write_text(json.dumps({"version": 1, "entries": entries}, indent=2) + "\n", encoding="utf-8")
+    data["entries"] = sorted(data.get("entries", []), key=lambda e: (e.get("ts", ""), e.get("id", "")))
+    p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
+def evidence(e: dict) -> dict:
+    """An entry's answers to the house rules, whichever agent's vocabulary it
+    was written in."""
+    ev = dict(e.get("evidence") or {})
+    out = {k: str(ev.get(k, "")).strip() for k in ("tests", "review", "episode")}
+    out["commit"] = str(e.get("commit") or ev.get("commit") or "").strip()
+    looked = str(ev.get("looked", "")).strip()
+    if not looked and ev.get("images_looked_at") is True:
+        looked = "yes"
+    out["looked"] = looked
+    out["measured"] = str(ev.get("measured") or ev.get("measured_vs_previous") or "").strip()
+    return out
 
 
 def log(
@@ -85,105 +144,130 @@ def log(
     agent: str,
     kind: str,
     summary: str,
-    task: str = "",
+    task: int | str | None = None,
+    evidence: dict | None = None,
     commit: str = "",
+    tests: str = "",
+    review: str = "",
+    looked: str = "",
+    measured: str = "",
+    episode: str = "",
+    images_looked_at: bool | int | None = None,
+    measured_vs_previous: str = "",
+    branch: str = "",
     files: list[str] | None = None,
+    source: str = "manual",
     at: datetime | None = None,
     path: Path | None = None,
-    **evidence: str,
 ) -> dict:
-    """Append one unit of work. `evidence` takes the EVIDENCE fields."""
-    agent = agent.strip().lower()
+    """Append one unit of work."""
+    agent = (agent or "").strip().lower()
     if not agent:
-        raise ValueError("an entry needs the agent that did the work")
+        raise ValueError("agent is required")
     if kind not in KINDS:
         raise ValueError(f"kind must be one of {KINDS}")
-    if not summary.strip():
-        raise ValueError("an entry needs a summary")
-    unknown = set(evidence) - set(EVIDENCE)
-    if unknown:
-        raise ValueError(f"unknown evidence {sorted(unknown)}; use {EVIDENCE}")
-    if not commit:
-        try:
-            from .meedo_ledger import _git_sha
-
-            commit = _git_sha()
-        except Exception:
-            commit = ""
-    when = at or _now()
-    if when > _now() + timedelta(minutes=1):
+    if not (summary or "").strip():
+        raise ValueError("summary is required")
+    when = at or _now_dt()
+    if when > _now_dt() + timedelta(minutes=1):
         # A backfill dated after "now" makes its agent look busy in the future
         # and every claim look fresh; it happened on the first backfill.
         raise ValueError(f"{_ts(when)} is in the future")
-    entries = load(path)
-    # Two agents on two branches append at once: the id must not collide, so
-    # it is the agent and the moment, not a counter; one agent logging twice
-    # in a second gets a suffix.
+
+    ev = dict(evidence or {})
+    if commit in ("", "HEAD"):
+        ev.setdefault("commit", _git_sha())
+    else:
+        ev["commit"] = commit
+    for k, v in (("tests", tests), ("review", review), ("looked", looked), ("measured", measured),
+                 ("episode", episode), ("measured_vs_previous", measured_vs_previous), ("branch", branch)):
+        if str(v).strip():
+            ev[k] = str(v).strip()
+    if images_looked_at is not None:
+        ev["images_looked_at"] = bool(images_looked_at)
+
+    data = load(path)
+    # Two agents on two branches append at once: the id is the moment and the
+    # agent, so the union never collides; one agent twice in a second gets a
+    # suffix.
     base = eid = f"{_ts(when)}-{agent}"
-    taken = {e["id"] for e in entries}
+    taken = {e.get("id") for e in data["entries"]}
     n = 1
     while eid in taken:
         n += 1
         eid = f"{base}-{n}"
-    entry = {
-        "id": eid,
-        "ts": _ts(when),
-        "agent": agent,
-        "task": str(task).strip().lstrip("#"),
-        "kind": kind,
-        "summary": summary.strip(),
-        "commit": commit,
-    }
+    entry = {"id": eid, "ts": _ts(when), "agent": agent, "task": _task(task), "kind": kind,
+             "summary": summary.strip(), "evidence": {k: v for k, v in ev.items() if v not in ("", None)},
+             "source": source}
     if files:
         entry["files"] = sorted(set(files))
-    ev = {k: str(v).strip() for k, v in evidence.items() if str(v).strip()}
-    if ev:
-        entry["evidence"] = ev
-    entries.append(entry)
-    _save(entries, path)
+    data["entries"].append(entry)
+    save(data, path)
     return entry
 
 
-def recent(*, hours: float = 24, agent: str = "", path: Path | None = None, now: datetime | None = None) -> list[dict]:
-    since = (now or _now()) - timedelta(hours=hours)
-    return [e for e in load(path)
-            if _parse(e["ts"]) >= since and (not agent or e["agent"] == agent.lower())]
+def recent(*, agent: str = "", task=None, limit: int | None = 12, hours: float | None = None,
+           path: Path | None = None, now=None) -> list[dict]:
+    """Newest first."""
+    entries = load(path)["entries"]
+    if agent:
+        entries = [e for e in entries if e.get("agent") == agent.lower()]
+    if task is not None:
+        entries = [e for e in entries if _same_task(e.get("task"), _task(task))]
+    if hours is not None:
+        since = _as_dt(now) - timedelta(hours=hours)
+        entries = [e for e in entries if _parse(e.get("ts", "")) >= since]
+    entries = list(reversed(entries))
+    return entries[:limit] if limit else entries
 
 
-def gaps(entry: dict) -> list[str]:
+# --------------------------------------------------------------------------
+# assessment
+# --------------------------------------------------------------------------
+
+
+def gaps(e: dict) -> list[str]:
     """House rules a `done` entry leaves unanswered."""
-    if entry.get("kind") != "done":
+    if e.get("kind") != "done":
         return []
-    ev = entry.get("evidence", {})
-    return [k for k in EVIDENCE if not ev.get(k)]
+    ev = evidence(e)
+    return [k for k in RULES if not ev.get(k)]
 
 
-def open_claims(entries: list[dict], now: datetime | None = None) -> list[dict]:
-    """Claims not yet closed by their holder, with whether each has gone stale."""
-    now = now or _now()
-    last_word = {}
+_done_missing_evidence = gaps  # Cursor's name
+
+
+def open_claims(entries: list[dict], now=None) -> list[dict]:
+    """Claims not yet closed by their holder, and whether each has gone quiet
+    past the take-over window."""
+    now = _as_dt(now)
+    last_word: dict[str, str] = {}
     for e in entries:
         last_word[e["agent"]] = max(last_word.get(e["agent"], e["ts"]), e["ts"])
+    latest: dict[tuple, dict] = {}
+    for c in (e for e in entries if e.get("kind") == "claim"):
+        latest[(c["agent"], str(c.get("task")))] = c
     out = []
-    for c in (e for e in entries if e["kind"] == "claim"):
-        closed = any(e["agent"] == c["agent"] and e["task"] == c["task"] and e["kind"] in _CLOSES
-                     and e["ts"] >= c["ts"] for e in entries)
-        if closed:
+    for c in latest.values():
+        if any(e["agent"] == c["agent"] and _same_task(e.get("task"), c.get("task")) and e["kind"] in _CLOSES
+               and e["ts"] >= c["ts"] for e in entries):
             continue
         quiet = now - _parse(last_word[c["agent"]])
-        out.append({"agent": c["agent"], "task": c["task"], "since": c["ts"], "summary": c["summary"],
-                    "quiet_minutes": int(quiet.total_seconds() // 60), "stale": quiet > STALE_AFTER})
-    return out
+        minutes = int(quiet.total_seconds() // 60)
+        out.append({"agent": c["agent"], "task": c.get("task"), "claim_id": c.get("id"), "since": c["ts"],
+                    "summary": c.get("summary", ""), "quiet_minutes": minutes, "age_minutes": minutes,
+                    "stale": quiet > STALE_AFTER})
+    return sorted(out, key=lambda c: c["since"])
 
 
-def assess(entries: list[dict] | None = None, *, path: Path | None = None, now: datetime | None = None) -> dict:
+def assess(entries: list[dict] | None = None, *, path: Path | None = None, now=None) -> dict:
     """How each agent's work has gone: units finished, which house rules their
     finished units answered, what is still claimed, and what went quiet."""
-    entries = load(path) if entries is None else entries
+    entries = load(path)["entries"] if entries is None else entries
     agents: dict[str, dict] = {}
     for e in entries:
-        a = agents.setdefault(e["agent"], {"done": 0, "complete": 0, "findings": 0, "blocked": 0,
-                                           "gaps": {k: 0 for k in EVIDENCE}, "incomplete": []})
+        a = agents.setdefault(e.get("agent", "?"), {"done": 0, "complete": 0, "findings": 0, "blocked": 0,
+                                                   "gaps": {k: 0 for k in RULES}, "incomplete": []})
         if e["kind"] == "finding":
             a["findings"] += 1
         elif e["kind"] == "blocked":
@@ -196,61 +280,107 @@ def assess(entries: list[dict] | None = None, *, path: Path | None = None, now: 
             else:
                 for k in g:
                     a["gaps"][k] += 1
-                a["incomplete"].append({"id": e["id"], "task": e["task"], "summary": e["summary"], "missing": g})
+                a["incomplete"].append({"id": e["id"], "task": e.get("task"), "summary": e["summary"], "missing": g})
     for a in agents.values():
         a["evidence_rate"] = round(a["complete"] / a["done"], 3) if a["done"] else None
         a["incomplete"] = a["incomplete"][-5:]
     return {"agents": agents, "open_claims": open_claims(entries, now)}
 
 
-def standup_lines(path: Path | None = None, now: datetime | None = None) -> list[str]:
-    """The journal's part of the standup: what is held, what went quiet, and
-    which finished units skipped a house rule."""
-    entries = load(path)
-    if not entries:
-        return []
-    r = assess(entries, now=now)
-    lines = ["Work journal:"]
-    for c in r["open_claims"]:
+def standup(path: Path | None = None, now=None) -> dict:
+    """Assess the journal for the next work cycle: recent units per agent,
+    claims gone quiet, `done` entries missing house-rule evidence."""
+    entries = load(path)["entries"]
+    by_agent: dict[str, list[dict]] = {}
+    for e in entries:
+        by_agent.setdefault(e.get("agent", "?"), []).append(e)
+    claims = open_claims(entries, now)
+    thin = [{"id": e["id"], "agent": e.get("agent"), "task": e.get("task"), "summary": e.get("summary", ""),
+             "missing": gaps(e)} for e in entries if gaps(e)]
+    return {
+        "recent_by_agent": {a: list(reversed(es[-5:])) for a, es in sorted(by_agent.items())},
+        "open_claims": claims,
+        "stale_claims": [c for c in claims if c["stale"]],
+        "done_missing_evidence": thin[-10:],
+        "agents": assess(entries, now=now)["agents"],
+        "entry_count": len(entries),
+    }
+
+
+def format_standup(report: dict) -> str:
+    lines = [f"Meedo-Me journal standup — {report.get('entry_count', 0)} unit(s) logged"]
+    for c in report.get("open_claims") or []:
         flag = "STALE — may be taken over" if c["stale"] else f"quiet {c['quiet_minutes']} min"
-        lines.append(f"  #{c['task'] or '-'} held by {c['agent']} since {c['since']} ({flag}): {c['summary'][:90]}")
-    for name, a in sorted(r["agents"].items()):
+        task = c["task"] if c["task"] is not None else "-"
+        lines.append(f"  #{task} held by {c['agent']} since {c['since']} ({flag}): {c['summary'][:90]}")
+    for name, a in sorted((report.get("agents") or {}).items()):
         if a["done"]:
             lines.append(f"  {name}: {a['done']} unit(s) done, {a['complete']} with every house rule answered")
-        for u in a["incomplete"][-3:]:
-            lines.append(f"    {u['id']} #{u['task'] or '-'} missing {', '.join(u['missing'])}: {u['summary'][:70]}")
-    return lines
+    thin = report.get("done_missing_evidence") or []
+    for d in thin[-5:]:
+        lines.append(f"    {d['id']} #{d.get('task')} {d.get('agent')}: missing {', '.join(d['missing'])}")
+    if not report.get("open_claims") and not thin:
+        lines.append("  no open claims; no thin done entries")
+    return "\n".join(lines)
+
+
+def standup_lines(path: Path | None = None, now=None) -> list[str]:
+    """The journal's part of the ledger standup."""
+    if not load(path)["entries"]:
+        return []
+    return ["Work journal:"] + format_standup(standup(path, now)).splitlines()[1:]
+
+
+# --------------------------------------------------------------------------
+# CLI
+# --------------------------------------------------------------------------
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    sub = ap.add_subparsers(dest="command", required=True)
-    lg = sub.add_parser("log", help="record a unit of work")
-    lg.add_argument("summary")
+    p = argparse.ArgumentParser(description="Meedo-Me work journal")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    lg = sub.add_parser("log", help="append a work-unit entry")
+    lg.add_argument("text", nargs="?", default="", help="the summary (or --summary)")
+    lg.add_argument("--summary", default="")
     lg.add_argument("--agent", required=True)
     lg.add_argument("--kind", required=True, choices=KINDS)
     lg.add_argument("--task", default="")
-    lg.add_argument("--commit", default="")
+    lg.add_argument("--commit", default="HEAD")
+    lg.add_argument("--branch", default="")
     lg.add_argument("--files", nargs="*", default=None)
-    for k in EVIDENCE:
+    for k in ("tests", "review", "looked", "measured", "episode"):
         lg.add_argument(f"--{k}", default="")
-    rc = sub.add_parser("recent", help="the timeline")
-    rc.add_argument("--hours", type=float, default=24)
-    rc.add_argument("--agent", default="")
-    sub.add_parser("assess", help="per-agent assessment")
-    a = ap.parse_args(argv)
+    lg.add_argument("--images-looked-at", action="store_true")
+    lg.add_argument("--measured-vs-previous", default="")
 
-    if a.command == "log":
-        e = log(agent=a.agent, kind=a.kind, summary=a.summary, task=a.task, commit=a.commit,
-                files=a.files, **{k: getattr(a, k) for k in EVIDENCE})
+    sub.add_parser("standup", help="recent units, open and stale claims, thin dones")
+    sub.add_parser("assess", help="per-agent assessment as JSON")
+    rec = sub.add_parser("recent", help="print recent units")
+    rec.add_argument("--agent", default="")
+    rec.add_argument("--task", default=None)
+    rec.add_argument("--limit", type=int, default=12)
+    rec.add_argument("--hours", type=float, default=None)
+    a = p.parse_args(argv)
+
+    if a.cmd == "log":
+        e = log(agent=a.agent, kind=a.kind, summary=a.summary or a.text, task=a.task or None, commit=a.commit,
+                tests=a.tests, review=a.review, looked=a.looked, measured=a.measured, episode=a.episode,
+                images_looked_at=True if a.images_looked_at else None,
+                measured_vs_previous=a.measured_vs_previous, branch=a.branch, files=a.files, source="cli")
         g = gaps(e)
-        print(f"logged {e['id']}" + (f" — unanswered house rules: {', '.join(g)}" if g else ""))
+        print(f"{e['id']} logged: [{e['kind']}] task={e.get('task')} {e['summary'][:100]}"
+              + (f" — unanswered house rules: {', '.join(g)}" if g else ""))
         return 0
-    if a.command == "recent":
-        for e in recent(hours=a.hours, agent=a.agent):
-            print(f"{e['ts']} {e['agent']:<7} {e['kind']:<8} #{e['task'] or '-':<3} {e['summary']}")
+    if a.cmd == "standup":
+        print(format_standup(standup()))
         return 0
-    print(json.dumps(assess(), indent=2))
+    if a.cmd == "assess":
+        print(json.dumps(assess(), indent=2))
+        return 0
+    for e in reversed(recent(agent=a.agent, task=a.task, limit=None if a.hours else a.limit, hours=a.hours)):
+        task = f"#{e['task']} " if e.get("task") is not None else ""
+        print(f"{e['ts']} {e['agent']:7s} [{e['kind']:7s}] {task}{e['summary']}")
     return 0
 
 

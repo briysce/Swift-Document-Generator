@@ -89,6 +89,8 @@ _DOF = {
     "rect": 4,
     "rotated_rect": 5,
     "rounded_rect": 5,
+    # Straight thin rule as a stroked centre-line (position, length, width).
+    "stroke": 4,
     # A general polygon costs two parameters per vertex, so it always ranks
     # behind the constrained shapes and is only chosen when none of them fit.
     "polygon": 99,
@@ -643,6 +645,66 @@ def fit_polygon(mask: np.ndarray, max_vertices: int = 12) -> ShapeFit | None:
     return best
 
 
+def fit_centerline_stroke(mask: np.ndarray) -> ShapeFit | None:
+    """Name a thin elongated rule as a stroked centre-line.
+
+    Potrace outlines a 1–3 px bar as a hollow ribbon (two long edges). The
+    designer's intent is a single stroke of known width along the medial axis
+    — PROPAK's red rule and one-pixel borders. Prefer this when the mask is
+    long, thin, and solid enough that a centre-line + width explains it.
+    """
+    area = int(mask.sum())
+    if area < 12:
+        return None
+    ys, xs = np.where(mask)
+    y0, y1 = int(ys.min()), int(ys.max())
+    x0, x1 = int(xs.min()), int(xs.max())
+    h, w = y1 - y0 + 1, x1 - x0 + 1
+    thick, long = min(h, w), max(h, w)
+    if thick > 4 or long < 16 or long / float(thick) < 6.0:
+        return None
+    if area / float(h * w) < 0.80:
+        return None
+
+    cy = float(ys.mean())
+    cx = float(xs.mean())
+    horizontal = w >= h
+    if horizontal:
+        col_h = [
+            int(mask[y0 : y1 + 1, x].sum())
+            for x in range(x0, x1 + 1)
+            if mask[y0 : y1 + 1, x].any()
+        ]
+        stroke_w = float(np.median(col_h)) if col_h else float(thick)
+        x_a, x_b = float(x0), float(x1) + 1.0
+        y_a = y_b = cy
+    else:
+        row_w = [
+            int(mask[y, x0 : x1 + 1].sum())
+            for y in range(y0, y1 + 1)
+            if mask[y, x0 : x1 + 1].any()
+        ]
+        stroke_w = float(np.median(row_w)) if row_w else float(thick)
+        y_a, y_b = float(y0), float(y1) + 1.0
+        x_a = x_b = cx
+
+    stroke_w = max(1.0, min(stroke_w, float(thick) + 0.5))
+    # Score against the filled AABB ribbon. For a solid rule dens≈1 so IoU≈1;
+    # sparse speckled bands fail the dens gate above.
+    rendered = np.zeros_like(mask, dtype=bool)
+    rendered[y0 : y1 + 1, x0 : x1 + 1] = True
+    cov = _coverage(mask, rendered)
+    if cov < 0.80:
+        return None
+    residual = (1.0 - cov) * float(thick)
+    markup = (
+        f'<path d="M {_fmt(x_a)},{_fmt(y_a)} L {_fmt(x_b)},{_fmt(y_b)}" '
+        f'fill="none" stroke-width="{_fmt(stroke_w)}" '
+        f'stroke-linecap="butt"/>'
+    )
+    return ShapeFit("stroke", markup, cov, residual)
+
+
 # --------------------------------------------------------------------------
 # selection
 # --------------------------------------------------------------------------
@@ -661,7 +723,17 @@ def best_fit(
     """
     from .idealize import _residual_is_tremor
 
+    stroke = None
+    try:
+        stroke = fit_centerline_stroke(mask)
+    except Exception:
+        stroke = None
+
+    # Thin elongated rules can be smaller than the usual 40 px floor and still
+    # be namable as a centre-line stroke (PROPAK red-rule fragments, 1px borders).
     if mask.sum() < 40:
+        if stroke is not None and stroke.coverage >= 0.80:
+            return stroke
         return None
     scale = math.sqrt(float(mask.sum()))
     # The floor already weighs both considerations — rasterization allowance for
@@ -686,6 +758,18 @@ def best_fit(
             f = None
         if f is not None and f.coverage >= min_coverage:
             cands.append(f)
+    # Prefer an exact rect when it fits. Offer stroke when filled primitives
+    # cannot explain a thin rule, or when the rule is 1–3 px (outline fails).
+    ys, xs = np.where(mask)
+    thick = (
+        min(int(ys.max() - ys.min()) + 1, int(xs.max() - xs.min()) + 1)
+        if len(xs)
+        else 99
+    )
+    if not cands and stroke is not None and stroke.coverage >= 0.80:
+        cands.append(stroke)
+    elif stroke is not None and thick <= 3 and stroke.coverage >= min_coverage:
+        cands.append(stroke)
     if not cands:
         return None
 
@@ -696,7 +780,8 @@ def best_fit(
     keep = [
         f
         for f in cands
-        if f.residual <= max(0.030 * scale, 1.5 * pixel)
+        if f.kind == "stroke"
+        or f.residual <= max(0.030 * scale, 1.5 * pixel)
     ]
     if not keep:
         return None
@@ -767,4 +852,5 @@ __all__ = [
     "fit_regular_polygon",
     "fit_rounded_rect",
     "fit_polygon",
+    "fit_centerline_stroke",
 ]

@@ -146,6 +146,18 @@ def _idealize_on() -> bool:
     return os.environ.get("LOGO_IDEALIZE", "").strip() in {"1", "true", "yes"}
 
 
+def _minds_on() -> bool:
+    """Whether Gemini/Claude could step in (collab_mind escalation), read the
+    way the engine reads it. Like idealize, it changes what a run produces."""
+    try:
+        sys.path.insert(0, str(ROOT))
+        from tools.logo_vectorizer.ai_advisors.collab_mind import collab_enabled
+
+        return bool(collab_enabled())
+    except Exception:
+        return False
+
+
 def run_loop(
     engines: list[str],
     min_h: int = 1200,
@@ -202,6 +214,9 @@ def run_loop(
                 # reconstruction gate was once read as the shipping path, and
                 # its Swift scores became a "regression" to bisect.
                 "idealize": _idealize_on(),
+                # Whether Gemini/Claude could escalate (collab_mind): a run
+                # where they could is not comparable to one where they could not.
+                "minds": _minds_on(),
                 "anchor": bool(pair.get("anchor")),
                 "clean": pair["clean"],
                 "degraded": pair["degraded"],
@@ -289,6 +304,7 @@ def run_loop(
         "min_height": int(min_h),
         "engines": list(engines),
         "idealize": _idealize_on(),
+        "minds": _minds_on(),
         "n_pairs": len(pairs),
         "n_rows": len(rows),
         "n_scored": len(scored),
@@ -364,6 +380,16 @@ def run_loop(
             "append score-proven lessons. Neural fine-tune only if suite plateaus."
         ),
     }
+
+    # Gemini↔Claude (or Meedo recall) on stuck top_failures — fail-open.
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from tools.ai_collab.improve_hook import enrich_summary as _ai_enrich
+
+        _ai_enrich(summary, domain="logo_restore", max_items=2)
+    except Exception as e:  # pragma: no cover
+        print(f"ai_collab improve hook skipped ({e})", flush=True)
 
     record_run_snapshot("logo", summary)
     summary_path = SYN / "improve_summary_latest.json"
