@@ -2616,6 +2616,23 @@
         "commit": "7790007"
       },
       "source": "manual"
+    },
+    {
+      "id": "2026-09-26T22:45:04Z-claude",
+      "ts": "2026-09-26T22:45:04Z",
+      "agent": "claude",
+      "task": 16,
+      "kind": "done",
+      "summary": "Corpus v2 (degrader keeps grey ink) + manifest-driven regeneration + degrader version in the corpus fingerprint; v2 baseline run still to do",
+      "evidence": {
+        "commit": "a56200d",
+        "tests": "pytest 198 passed (3 new corpus-version tests)",
+        "review": "n/a: no engine output changed",
+        "looked": "v1 vs v2 Trialta sketches on magenta: v2 has the grey fan mark, TRI and PROJECTS; Swift unchanged",
+        "measured": "v1 regenerated from the manifest is pixel-identical on all 18 images; v2 changes Trialta 17-27% of pixels, others 0-2.6%",
+        "episode": "E0134"
+      },
+      "source": "manual"
     }
   ]
 }
