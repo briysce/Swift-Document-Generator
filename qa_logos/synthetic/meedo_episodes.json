@@ -656,6 +656,79 @@
         "propak"
       ],
       "source": "manual"
+    },
+    {
+      "id": "E0030",
+      "ts": "2026-09-26T13:49:56Z",
+      "commit": "2010b5f",
+      "workstream": "shipping_pdf",
+      "outcome": "open",
+      "problem": "long PO overflows shipping value box",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "SO overflow on long PO",
+      "cause": "",
+      "fix": "shrink-to-fit PO; keep afterPillGap 11.0",
+      "verified": "",
+      "method": "wrap long PO; never clip; preserve SO/Contact lock",
+      "tags": [
+        "ai_collab",
+        "claude",
+        "gemini",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0031",
+      "ts": "2026-09-26T13:49:56Z",
+      "commit": "2010b5f",
+      "workstream": "app_ux",
+      "outcome": "open",
+      "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "first_read": "Gemini+Claude (gemini,claude)",
+      "evidence": "generate empty pdf",
+      "cause": "",
+      "fix": "check PdfDocument bytes; retain previous bytes on fail",
+      "verified": "",
+      "method": "assert non-empty PDF bytes before history write",
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "claude",
+        "gemini",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "source": "ai_collab"
+    },
+    {
+      "id": "E0032",
+      "ts": "2026-09-26T13:49:56Z",
+      "commit": "2010b5f",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab"
     }
   ]
 }

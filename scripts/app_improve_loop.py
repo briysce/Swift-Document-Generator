@@ -190,6 +190,16 @@ def run_loop(skip_harness: bool = False, top_n: int = 10) -> dict:
             "proves a band is wrong."
         ),
     }
+    # Gemini↔Claude / Meedo recall on app harness stuck cases — fail-open.
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from tools.ai_collab.improve_hook import enrich_summary as _ai_enrich
+
+        _ai_enrich(summary, domain="app_ux", max_items=2)
+    except Exception as e:  # pragma: no cover
+        print(f"ai_collab improve hook skipped ({e})", flush=True)
+
     record_run_snapshot("app", summary)
     SUMMARY.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 

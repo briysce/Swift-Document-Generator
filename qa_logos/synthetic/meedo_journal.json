@@ -380,6 +380,19 @@
         "branch": "cursor/logo-engine-collab-d4c9"
       },
       "source": "cli"
+    },
+    {
+      "id": "J37edf3c5",
+      "ts": "2026-09-26T13:50:02Z",
+      "agent": "cursor",
+      "task": 6,
+      "kind": "claim",
+      "summary": "OpenClaw WhatsApp hourly Claude Code progress: MEEDO_WHATSAPP_TO in gitignored .env; meedo_claude_progress MCP + connect whatsapp-progress. Register on PC when WhatsApp linked.",
+      "evidence": {
+        "commit": "2010b5f",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
     }
   ]
 }

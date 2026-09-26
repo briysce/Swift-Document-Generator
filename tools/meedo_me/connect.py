@@ -7,6 +7,7 @@ start it, and nothing else — no copies of the memory, no second server:
     python -m tools.meedo_me.connect ollama
     python -m tools.meedo_me.connect app      [--data-folder DIR] [--read-only]
     python -m tools.meedo_me.connect openclaw [--config PATH] [--model ollama/qwen3:8b] [--allow-writes]
+    python -m tools.meedo_me.connect whatsapp-progress [--agent claude] [--every 1h] [--dry-run]
 
 Claude Code needs nothing: `.mcp.json` at the repository root registers the
 server for any session opened here.
@@ -266,6 +267,13 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("--config", type=Path)
     c.add_argument("--model", default="", help=f"e.g. ollama/{SUGGESTED_MODEL}")
     c.add_argument("--allow-writes", action="store_true")
+    w = sub.add_parser(
+        "whatsapp-progress",
+        help="register OpenClaw hourly Claude Code progress → WhatsApp (needs MEEDO_WHATSAPP_TO)",
+    )
+    w.add_argument("--agent", default="claude")
+    w.add_argument("--every", default="1h")
+    w.add_argument("--dry-run", action="store_true")
     args = ap.parse_args(argv)
 
     if args.cmd == "status":
@@ -290,6 +298,23 @@ def main(argv: list[str] | None = None) -> int:
         if args.model.startswith("ollama/"):
             print("OpenClaw uses Ollama once you opt in: export OLLAMA_API_KEY=ollama-local")
         print("Check it: openclaw mcp doctor meedo-me --probe")
+        print("Hourly WhatsApp progress: python -m tools.meedo_me.connect whatsapp-progress")
+    elif args.cmd == "whatsapp-progress":
+        try:
+            from tools.ai_collab.env import load_env
+            load_env()
+        except Exception:
+            pass
+        from tools.meedo_me.progress import register_hourly, whatsapp_to
+
+        if not whatsapp_to() and not args.dry_run:
+            print(
+                "Set MEEDO_WHATSAPP_TO=+1XXXXXXXXXX in gitignored .env "
+                "(E.164). Never commit the number.",
+                file=sys.stderr,
+            )
+            return 1
+        print(register_hourly(agent=args.agent, every=args.every, dry_run=args.dry_run))
     return 0
 
 

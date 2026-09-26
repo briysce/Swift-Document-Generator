@@ -122,7 +122,13 @@ def merge(ours_path: str, theirs_path: str) -> bool:
     ours, theirs = _load(ours_path), _load(theirs_path)
     if ours is None or theirs is None:
         return False
-    if "episodes" in ours or "episodes" in theirs:
+    if "lessons" in ours or "lessons" in theirs:
+        # meedo_ai_lessons.json — union by lesson id / problem+method.
+        result = merge_ai_lessons(
+            ours or {"version": 1, "lessons": []},
+            theirs or {"version": 1, "lessons": []},
+        )
+    elif "episodes" in ours or "episodes" in theirs:
         result = merge_episodes(ours, theirs)
     elif "entries" in ours or "entries" in theirs:
         result = merge_journal(ours or {"version": 1, "entries": []},
@@ -131,6 +137,40 @@ def merge(ours_path: str, theirs_path: str) -> bool:
         result = merge_ledger(ours, theirs)
     Path(ours_path).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     return True
+
+
+def merge_ai_lessons(ours: dict, theirs: dict) -> dict:
+    """Union Gemini↔Claude lessons by id; richer counters / method wins."""
+    mine = list(ours.get("lessons", []))
+    ids = {L.get("id"): L for L in mine if L.get("id")}
+    for L in theirs.get("lessons", []):
+        lid = L.get("id")
+        if not lid or lid not in ids:
+            mine.append(L)
+            if lid:
+                ids[lid] = L
+            continue
+        have = ids[lid]
+        if have == L:
+            continue
+        # Prefer the side that was applied offline more (hand-off progress)
+        # or has a longer method.
+        score_have = int(have.get("times_applied_offline") or 0) * 10 + len(have.get("method") or "")
+        score_new = int(L.get("times_applied_offline") or 0) * 10 + len(L.get("method") or "")
+        if score_new > score_have:
+            mine[mine.index(have)] = L
+            ids[lid] = L
+        else:
+            # Merge counters at least.
+            have["times_recalled"] = max(
+                int(have.get("times_recalled") or 0), int(L.get("times_recalled") or 0)
+            )
+            have["times_applied_offline"] = max(
+                int(have.get("times_applied_offline") or 0),
+                int(L.get("times_applied_offline") or 0),
+            )
+    mine.sort(key=lambda e: (e.get("ts", ""), e.get("id", "")))
+    return {**ours, "version": ours.get("version", 1), "lessons": mine}
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -53,7 +53,10 @@ INSTRUCTIONS = (
     "wrong. Never report an improvement to a logo without meedo_review passing. "
     "When a problem is solved, record the method with meedo_record_episode. "
     "Claude Code and Cursor both refine Meedo-Me itself when tools are wrong, "
-    "thin, or awkward — fix in-session and record under workstream meedo-me."
+    "thin, or awkward — fix in-session and record under workstream meedo-me. "
+    "Gemini and Claude APIs also advise via meedo_ai_advise; Meedo stores those "
+    "lessons (meedo_ai_lessons) and prefers recalled offline advice when the "
+    "same problem returns — the hand-off path toward Meedo owning decisions."
 )
 
 
@@ -108,6 +111,24 @@ READ_TOOLS = {
         "description": "Recent work-journal units, optionally filtered by agent or task number.",
         "inputSchema": _obj({"agent": _S, "task": {"type": "integer"}, "limit": {"type": "integer"}}),
     },
+    "meedo_ai_lessons": {
+        "description": "Recall lessons Meedo learned from Gemini+Claude collaborations. "
+                       "Prefer this before asking the live APIs again — high-score hits mean "
+                       "Meedo can own the decision offline.",
+        "inputSchema": _obj({"problem": _S, "domain": _S, "cases": _SL,
+                             "top": {"type": "integer", "minimum": 1, "maximum": 10}},
+                            ["problem"]),
+    },
+    "meedo_claude_progress": {
+        "description": "Hourly-style progress digest for Claude Code (or cursor): board rows "
+                       "they own, journal units in the window, and recent commits. Use for "
+                       "OpenClaw → WhatsApp updates. Returns text + structured fields.",
+        "inputSchema": _obj({
+            "agent": _S,
+            "hours": {"type": "number"},
+            "polish": {"type": "boolean"},
+        }),
+    },
 }
 
 WRITE_TOOLS = {
@@ -137,6 +158,16 @@ WRITE_TOOLS = {
             "images_looked_at": {"type": "boolean"},
             "measured_vs_previous": _S, "branch": _S,
         }, ["agent", "kind", "summary"]),
+    },
+    "meedo_ai_advise": {
+        "description": "Ask Gemini then Claude (or Meedo's recalled AI lessons) for guidance on a "
+                       "stuck problem. Persists structured lessons so Meedo can eventually own "
+                       "similar decisions offline. Fail-open when APIs are dark.",
+        "inputSchema": _obj({
+            "problem": _S, "domain": _S, "cases": _SL, "tags": _SL,
+            "force_live": {"type": "boolean"},
+            "context_json": _S,
+        }, ["problem"]),
     },
 }
 
@@ -192,6 +223,17 @@ def _call(name: str, args: dict, read_only: bool) -> object:
         data = collect()
         data["text"] = format_cycle(data)
         return data
+    if name == "meedo_claude_progress":
+        from tools.meedo_me.progress import collect, format_digest, polish_with_ai
+
+        agent = str(args.get("agent") or "claude")
+        hours = float(args.get("hours") or 1.0)
+        data = collect(agent=agent, hours=hours)
+        text = format_digest(data)
+        if args.get("polish"):
+            text = polish_with_ai(text, data)
+        data["text"] = text
+        return data
     if name == "meedo_standup":
         out = []
         for p in L.standup():
@@ -229,6 +271,16 @@ def _call(name: str, args: dict, read_only: bool) -> object:
             task=int(task) if task is not None else None,
             limit=int(args.get("limit", 12)),
         )
+    if name == "meedo_ai_lessons":
+        from tools.ai_collab.learn import recall_lessons
+
+        return recall_lessons(
+            args["problem"],
+            domain=args.get("domain", ""),
+            cases=args.get("cases"),
+            top=int(args.get("top", 3)),
+            mark_recalled=False,
+        )
     if read_only:
         raise PermissionError(f"{name} changes Meedo-Me's memory and this server is read-only")
     if name == "meedo_decide":
@@ -252,6 +304,26 @@ def _call(name: str, args: dict, read_only: bool) -> object:
             branch=args.get("branch", ""),
             source="mcp",
         )
+    if name == "meedo_ai_advise":
+        from tools.ai_collab.advise import advise
+
+        ctx = {}
+        raw_ctx = args.get("context_json") or ""
+        if raw_ctx:
+            try:
+                ctx = json.loads(raw_ctx) if isinstance(raw_ctx, str) else dict(raw_ctx)
+            except (TypeError, ValueError, json.JSONDecodeError):
+                ctx = {"note": str(raw_ctx)[:500]}
+        advice = advise(
+            domain=args.get("domain") or "general",
+            problem=args["problem"],
+            context=ctx,
+            cases=args.get("cases"),
+            tags=args.get("tags") or ["mcp"],
+            force_live=bool(args.get("force_live", False)),
+            journal=True,
+        )
+        return advice.to_dict() if advice else {"status": "unavailable", "fail_open": True}
     raise KeyError(name)
 
 

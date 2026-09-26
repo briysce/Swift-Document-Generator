@@ -365,6 +365,16 @@ def run_loop(
         ),
     }
 
+    # Gemini↔Claude (or Meedo recall) on stuck top_failures — fail-open.
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from tools.ai_collab.improve_hook import enrich_summary as _ai_enrich
+
+        _ai_enrich(summary, domain="logo_restore", max_items=2)
+    except Exception as e:  # pragma: no cover
+        print(f"ai_collab improve hook skipped ({e})", flush=True)
+
     record_run_snapshot("logo", summary)
     summary_path = SYN / "improve_summary_latest.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")

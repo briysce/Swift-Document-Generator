@@ -535,8 +535,9 @@ def journal_escalation(
     if guidance.diagnosis:
         summary += f" — {guidance.diagnosis[:160]}"
 
+    entry = None
     try:
-        return journal_log(
+        entry = journal_log(
             agent="meedo",
             kind="finding",
             summary=summary,
@@ -550,7 +551,32 @@ def journal_escalation(
         )
     except Exception as exc:  # noqa: BLE001
         print(f"[collab_mind] journal log failed: {exc}", file=sys.stderr)
-        return None
+
+    # Train Meedo: persist structured AI lesson so recall can own similar stuck
+    # cases offline later (same learning path as tools.ai_collab).
+    try:
+        from tools.ai_collab.learn import persist_lesson
+
+        method = guidance.diagnosis or "; ".join(guidance.actions[:3])
+        if method:
+            persist_lesson(
+                domain="logo_restore",
+                problem=summary[:400],
+                diagnosis=guidance.diagnosis,
+                method=method[:600],
+                actions=list(guidance.actions),
+                risks=["never invent brand colors from gray"],
+                providers=list(guidance.providers_used),
+                tags=["collab_mind", "logo_restore", *guidance.providers_used],
+                cases=[case_id] if case_id else None,
+                agree=guidance.agree,
+                raw=guidance.to_dict(),
+                mirror_episode=True,
+            )
+    except Exception as exc:  # noqa: BLE001
+        print(f"[collab_mind] ai lesson persist skipped: {exc}", file=sys.stderr)
+
+    return entry
 
 
 def escalate_if_stuck(
