@@ -1,0 +1,121 @@
+{
+  "run": "20260926T141241Z",
+  "minds": [
+    "claude",
+    "gemini"
+  ],
+  "results": [
+    {
+      "case": "swift_orange_solid__import_combo",
+      "engine": {
+        "name": "esrgan",
+        "aspect_drift": 0.0017,
+        "ink_iou": 0.936,
+        "palette_fidelity": 0.9769,
+        "alpha_clean": 1.0,
+        "edge_energy_ratio": 1.0314,
+        "composite": 0.9231,
+        "palette_rel": 0.9769,
+        "alpha_rel": 1.0,
+        "edge_match": 0.9696,
+        "composite_v2": 0.9684,
+        "composite_ceiling": 0.95,
+        "headroom": 0.0269,
+        "review_passed": true,
+        "review": []
+      },
+      "critiques": {
+        "claude": {
+          "verdict": "redo",
+          "advice": "Quantise the image to exactly two colours (one flat orange plus background) before tracing, then fit straight line segments to the bars and letter stems and smooth B\u00e9zier curves to the S and serif shapes, discarding speckle regions below a minimum area.",
+          "error": null,
+          "id": "2026-09-26T14:13:01Z-claude-critique"
+        },
+        "gemini": {
+          "verdict": "takeover",
+          "advice": "Redraw using basic geometric shapes and the pen tool for clean, straight lines and smooth curves.",
+          "error": null,
+          "id": "2026-09-26T14:13:11Z-gemini-critique"
+        }
+      },
+      "candidates": [
+        {
+          "name": "claude_svg",
+          "author": "claude",
+          "consultation": "2026-09-26T14:13:40Z-claude-takeover",
+          "aspect_drift": 0.0059,
+          "ink_iou": 0.6185,
+          "palette_fidelity": 1.0,
+          "alpha_clean": 1.0,
+          "edge_energy_ratio": 0.6865,
+          "composite": 0.7996,
+          "palette_rel": 1.0,
+          "alpha_rel": 1.0,
+          "edge_match": 0.6865,
+          "composite_v2": 0.8339,
+          "composite_ceiling": 0.95,
+          "headroom": 0.1504,
+          "review_passed": false,
+          "review": [
+            "4 of the 21 elements the sketch shows (letters, bars, marks) are missing, at (1174,152), (510,306), (886,306), (990,306) in sketch pixels"
+          ],
+          "png": "qa_logos/synthetic/minds/20260926T141241Z/swift_orange_solid__import_combo__claude_svg.png",
+          "beats_engine": false
+        },
+        {
+          "name": "gemini_svg",
+          "author": "gemini",
+          "consultation": "2026-09-26T14:17:27Z-gemini-takeover",
+          "error": "no usable drawing"
+        },
+        {
+          "name": "gemini_redraw_trace",
+          "author": "gemini-image",
+          "consultation": "2026-09-26T14:17:43Z-gemini-image-redraw",
+          "aspect_drift": 0.1157,
+          "ink_iou": 0.8619,
+          "palette_fidelity": 0.9913,
+          "alpha_clean": 1.0,
+          "edge_energy_ratio": 0.8135,
+          "composite": 0.867,
+          "palette_rel": 0.9913,
+          "alpha_rel": 1.0,
+          "edge_match": 0.8135,
+          "composite_v2": 0.9077,
+          "composite_ceiling": 0.95,
+          "headroom": 0.083,
+          "review_passed": true,
+          "review": [],
+          "png": "qa_logos/synthetic/minds/20260926T141241Z/swift_orange_solid__import_combo__gemini_redraw_trace.png",
+          "beats_engine": false
+        },
+        {
+          "name": "claude_svg_revised",
+          "author": "claude",
+          "consultation": "2026-09-26T14:18:35Z-claude-revise",
+          "aspect_drift": 0.0059,
+          "ink_iou": 0.6185,
+          "palette_fidelity": 1.0,
+          "alpha_clean": 1.0,
+          "edge_energy_ratio": 0.6865,
+          "composite": 0.7996,
+          "palette_rel": 1.0,
+          "alpha_rel": 1.0,
+          "edge_match": 0.6865,
+          "composite_v2": 0.8339,
+          "composite_ceiling": 0.95,
+          "headroom": 0.1504,
+          "review_passed": false,
+          "review": [
+            "4 of the 21 elements the sketch shows (letters, bars, marks) are missing, at (1174,152), (510,306), (886,306), (990,306) in sketch pixels"
+          ],
+          "png": "qa_logos/synthetic/minds/20260926T141241Z/swift_orange_solid__import_combo__claude_svg_revised.png",
+          "beats_engine": false
+        }
+      ],
+      "winner": "esrgan",
+      "seconds": 359.9,
+      "sheet": "qa_logos/synthetic/minds/20260926T141241Z/swift_orange_solid__import_combo__sheet.png"
+    }
+  ]
+}

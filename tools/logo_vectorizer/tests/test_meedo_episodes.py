@@ -86,3 +86,15 @@ def test_workstreams_give_the_picture_across_lines_of_work(tmp_path):
     assert ws["logo-engine"]["total"] == 2 and ws["logo-engine"]["failure"] == 1
     assert ws["meedo-me"]["success"] == 1
     assert len(playbook(ep, workstream="meedo-me")) == 1
+
+
+def test_a_retracted_episode_is_kept_but_never_taught(tmp_path):
+    from tools.logo_vectorizer import meedo_episodes as E
+
+    p = tmp_path / "e.json"
+    ep = E.record(problem="arc tagline palette mush", method="recreate", outcome="success", cases=["arc"], path=p)
+    assert E.recall("arc tagline", cases=["arc"], path=p)
+    E.retract(ep["id"], "test fixture", path=p)
+    assert E.recall("arc tagline", cases=["arc"], path=p) == []
+    assert E.playbook(path=p) == []
+    assert E.load(p)[0]["retracted"] == "test fixture"

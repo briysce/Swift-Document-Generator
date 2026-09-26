@@ -13,6 +13,7 @@ cairosvg is missing.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 import tempfile
@@ -604,6 +605,22 @@ def convert(
         )
 
         _meedo_review(traced, prepared, source, src.stem)
+
+        # Keep both candidates for studying the choice between them (who picks
+        # the better one, and by what signal). Off unless asked for; it only
+        # copies files and never changes what ships.
+        keep = os.environ.get("LOGO_KEEP_CANDIDATES", "").strip()
+        if keep:
+            kdir = Path(keep)
+            kdir.mkdir(parents=True, exist_ok=True)
+            kept = {"traced": traced, "ideal": ideal}
+            for role, cand in kept.items():
+                if cand is not None:
+                    save_rgba(kdir / f"{src.stem}__{role}.png", cand.finished)
+            (kdir / f"{src.stem}__candidates.json").write_text(json.dumps({
+                role: {"name": c.name, "has_vector": c.has_vector, "agreement": c.agreement,
+                       "ideality": c.ideality, "passed_review": c.passed_review}
+                for role, c in kept.items() if c is not None}, indent=2), encoding="utf-8")
 
         # Identity first. A candidate Meedo-Me passed beats one it blocked,
         # whatever the metric says: on arc__downscale_jpeg the trace drops the

@@ -11,21 +11,27 @@ this file is the readable account of *why*.
 Handoff rule: push at the end of every work unit and update this section the
 moment state changes. The next agent sees only what is committed.
 
-### Collaboration (live)
-- Protocol: `COORDINATION.md` + Meedo merge driver (`scripts/setup_collab.sh`).
-- Talk: GitHub issue [#6](https://github.com/briysce/Swift-Document-Generator/issues/6).
-- **Meedo-Me is mandatory for both agents** (ledger + journal + episodes).
-  Start each unit with `python -m tools.logo_vectorizer.meedo_cycle`.
-  Journal: `meedo_journal.py` → `meedo_journal.json` (`merge=meedo`).
-  MCP: `meedo_cycle`, `meedo_journal_*`, etc.
-- **Standing duty (user 2026-09-26):** Claude Code *and* Cursor continuously
-  tweak/fix/refine Meedo-Me whenever it is wrong, thin, or awkward — deepen
-  MCP integration across projects; board **#3** is shared (`claude+cursor`).
-- Claude branch: `claude/relaxed-babbage-igbk0v` — **#1** Swift app swap;
-  **#3** Meedo trust/autonomy (shared refine); **#4** craftsmanship gate.
-- Cursor Cloud branch: `cursor/logo-engine-collab-d4c9` — **#7 done**;
-  **#9 done**; claimed **#8** (Arc tagline letters).
-  PC-only **#2/#5/#6** remain open (noVNC ≠ Brice's PC).
+### Collaboration (live) — updated 14:15 UTC by Claude Code
+- Protocol: `COORDINATION.md` (board + rules 8-9) + Meedo merge driver
+  (`sh scripts/setup_collab.sh` once per clone). Talk: issue
+  [#6](https://github.com/briysce/Swift-Document-Generator/issues/6).
+- Both branches merged at `ac08989`: the journal, the WhatsApp progress digest
+  and the Gemini/Claude learning layer had been built twice on the same
+  morning; there is now one of each (Cursor's names canonical). Claim before
+  building, even Meedo-Me work.
+- Start each unit: `python -m tools.logo_vectorizer.meedo_cycle`. Log each
+  unit: `python -m tools.logo_vectorizer.meedo_journal log --agent <a> --task N
+  --kind … --summary "…"` (a `done` answers commit/tests/looked/review/
+  measured/episode, `n/a: why` allowed).
+- Meedo-Me studies everything: journal (units), episodes (methods),
+  `meedo_consult` (every Gemini/Claude answer, judged → track record, shadow
+  readiness, dataset), `tools/ai_collab/learn.py` lessons (recall-first),
+  `tools/meedo_me/trace.py` (every tool call, redacted; import each session).
+- Hourly WhatsApp: `python -m tools.meedo_me.connect whatsapp` on the PC
+  (OpenClaw with WhatsApp linked; number in gitignored .env as
+  MEEDO_WHATSAPP_TO — never committed). Not deliverable from cloud agents.
+- API keys: only in gitignored `.env.local` / `tools/logo_vectorizer/.env`.
+  They were pasted in chat — the user should rotate them.
 
 ### Board #9 closeout (Cursor)
 - Propak whole-logo density ~0.39 correctly stays off thin-wordmark path.
@@ -87,13 +93,25 @@ import_combo 0.9465 and downscale 0.9364 (task: rank on craftsmanship).
   lines/fair cubics, restored corners, shared slant and heights (52b5f81).
 - Board #7 prepare-path closed with regression tests (Cursor; residual → #4).
 
-### Swift rebuild (4c3c38a) — awaiting the user's sign-off before the app uses it
-`scripts/rebuild_swift_logo.py` -> `assets/brand/swift_supply_logo_rebuilt.svg`:
-830 points, 10 KB; at 743x230 it explains the source better than every
-existing version (|RGB err| 4.60 vs 11.02 traced; orange IoU 0.9931, dark
-0.8987). Outline 2.2 px, shadow extrusion (7.75, 4.5), bar border 1.4 px.
-Refinements left: the bars' faint grey under-edge; anchor trimming on small
-serif runs.
+### Swift logo — in the app (09c9f05)
+`scripts/rebuild_swift_logo.py` -> `assets/brand/swift_supply_logo_rebuilt.svg`
+(830 points; |RGB err| 4.60 vs 11.02 traced; outline 2.2 px, shadow (7.75,
+4.5), bar border 1.4 px). `scripts/export_swift_app_logos.py` derives every
+app variant (orange lockup, solid chrome, white) in the app palette (#CE4E30 +
+black) inside the 2987x910 box; PDFs draw it as vector paths. Old raster
+generators refuse to overwrite without `--overwrite-vector-master`. Left:
+the bars' faint grey under-edge; anchor trimming (board #10); a look in the
+running app on the PC (board #2).
+
+### Minds (Gemini + Claude) — board #11 (Cursor) and #12 (Claude)
+`collab_mind` (Cursor) escalates when the engine is stuck: Gemini plans,
+Claude critiques, the engine retries (on by default when keys exist; improve-
+loop rows record `minds`). `ai_advisors/minds.py` + `scripts/logo_minds.py`
+(Claude): critique, SVG take-over by each mind, Gemini image-model redraw →
+engine trace, cross-review and one revision; scored and reviewed like any
+candidate, and every consultation judged. First result: on swift solid
+import_combo Claude (opus-5-5) named the real faults, Gemini (pro-latest) said
+"ship" — track records show it.
 
 ### Reviewer (cad7206)
 Every letter-sized element is checked for presence (skeleton), dots by
@@ -107,15 +125,13 @@ reconstruction drops tagline letters) — the element check now blocks the
 latter, so Arc falls back to the trace as on 09-20.
 
 ### Next
-1. Reconstruction gate: rank candidates by craftsmanship once identity holds
-   (Swift solid downscale/import_combo ship the trace; the old gate's
-   reconstructions scored 0.9364/0.9465). Bring design_fit into the engine as
-   a candidate. *(Claude — board #4)*
-2. Cursor **#8** in progress (Arc tagline). Leave **#10** open; Claude **#1/#3/#4**.
-   do not touch Claude-only slices of **#1/#4**.
-3. Meedo-Me growth + continuous product refine *(board #3, both agents)*:
-   autonomy is earned from hit rate/reviewer record; also fix journal/MCP/
-   recall/review friction in-session whenever it shows up.
+1. Board #12: run `scripts/logo_minds.py` on the weakest cases, look at the
+   sheets, adopt what beats the engine only through the reviewer. *(Claude)*
+2. Board #4: rank candidates by craftsmanship once identity holds (Swift solid
+   downscale/import_combo ship the trace; the old gate's reconstructions scored
+   0.9364/0.9465); design_fit as an engine candidate. *(Claude)*
+3. Cursor: #8 Arc tagline (in progress), #14 app AI touchpoints, PC-only #2/#5/#6.
+4. Meedo-Me refine (board #3, both): fix it whenever it is wrong, in-session.
 
 ---
 

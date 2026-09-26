@@ -68,6 +68,9 @@ class Lesson:
     times_recalled: int = 0
     times_applied_offline: int = 0
     raw: dict[str, Any] = field(default_factory=dict)
+    # Why this lesson must not be taught (e.g. written by a test fixture).
+    # Kept, not deleted: the union merge would bring a deleted lesson back.
+    retracted: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -87,6 +90,7 @@ class Lesson:
             "times_recalled": self.times_recalled,
             "times_applied_offline": self.times_applied_offline,
             "raw": self.raw,
+            **({"retracted": self.retracted} if self.retracted else {}),
         }
 
     @classmethod
@@ -108,6 +112,7 @@ class Lesson:
             times_recalled=int(data.get("times_recalled") or 0),
             times_applied_offline=int(data.get("times_applied_offline") or 0),
             raw=dict(data.get("raw") or {}),
+            retracted=str(data.get("retracted") or ""),
         )
 
 
@@ -169,6 +174,8 @@ def recall_lessons(
     lessons = load(path)
     ranked: list[tuple[float, Lesson]] = []
     for lesson in lessons:
+        if lesson.retracted:
+            continue
         s = _score(problem, lesson, domain=domain, cases=cases)
         if s >= min_score:
             ranked.append((s, lesson))

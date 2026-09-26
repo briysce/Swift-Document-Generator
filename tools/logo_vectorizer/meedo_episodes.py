@@ -134,6 +134,20 @@ def record(
     return ep
 
 
+def retract(eid: str, reason: str, path: Path | None = None) -> dict:
+    """Withdraw an episode that must not be taught — kept, marked, never
+    recalled. Deleting it would not stick: the union merge brings it back."""
+    if not reason.strip():
+        raise ValueError("a retraction needs a reason")
+    episodes = load(path)
+    ep = next((e for e in episodes if e["id"] == eid), None)
+    if ep is None:
+        raise KeyError(eid)
+    ep["retracted"] = reason.strip()
+    _save(episodes, path)
+    return ep
+
+
 def close(eid: str, *, outcome: str, method: str, cause: str = "", fix: str = "",
           verified: str = "", path: Path | None = None) -> dict:
     """Finish an open episode once the problem is understood."""
@@ -177,7 +191,7 @@ def recall(query: str, *, top: int = 3, workstream: str = "", cases: list[str] |
     want_cases = set(cases or [])
     scored = []
     for ep in load(path):
-        if workstream and ep.get("workstream") != workstream:
+        if ep.get("retracted") or (workstream and ep.get("workstream") != workstream):
             continue
         body = _tokens(" ".join(ep.get(f, "") for f in FIELDS))
         tags = {t.lower() for t in ep.get("tags", [])}
@@ -202,7 +216,7 @@ def playbook(path: Path | None = None, workstream: str = "") -> list[dict]:
     """
     out = []
     for ep in load(path):
-        if not ep.get("method") or (workstream and ep.get("workstream") != workstream):
+        if not ep.get("method") or ep.get("retracted") or (workstream and ep.get("workstream") != workstream):
             continue
         out.append({
             "id": ep["id"],
@@ -223,6 +237,8 @@ def workstreams(path: Path | None = None) -> dict:
     by: dict[str, Counter] = defaultdict(Counter)
     last: dict[str, str] = {}
     for ep in load(path):
+        if ep.get("retracted"):
+            continue
         ws = ep.get("workstream", "unknown")
         by[ws][ep.get("outcome", "open")] += 1
         last[ws] = max(last.get(ws, ""), ep.get("ts", ""))

@@ -779,7 +779,8 @@
       "cases": [
         "arc__tagline"
       ],
-      "source": "ai_collab"
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
     },
     {
       "id": "E0033",
@@ -901,7 +902,8 @@
       "cases": [
         "arc__tagline"
       ],
-      "source": "ai_collab"
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
     },
     {
       "id": "E0038",
@@ -974,7 +976,8 @@
       "cases": [
         "arc__tagline"
       ],
-      "source": "ai_collab"
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
     },
     {
       "id": "E0041",
@@ -1096,7 +1099,8 @@
       "cases": [
         "arc__tagline"
       ],
-      "source": "ai_collab"
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
     },
     {
       "id": "E0048",
@@ -1120,7 +1124,8 @@
       "cases": [
         "arc__tagline"
       ],
-      "source": "ai_collab"
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
     },
     {
       "id": "E0049",
@@ -1144,7 +1149,258 @@
       "cases": [
         "arc__tagline"
       ],
-      "source": "ai_collab"
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
+    },
+    {
+      "id": "E0050",
+      "ts": "2026-09-26T14:14:55Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__blur_crush/traced: blocked by review (collapse)",
+      "first_read": "",
+      "evidence": "the output carries 7.5% of its sketch's ink \u2014 the mark has collapsed",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "collapse",
+        "review"
+      ],
+      "cases": [
+        "arc__blur_crush"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0051",
+      "ts": "2026-09-26T14:15:45Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__downscale_jpeg/idealize/prepared: blocked by review (element)",
+      "first_read": "",
+      "evidence": "2 of the 15 elements the sketch shows (letters, bars, marks) are missing, at (342,23), (62,61) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "arc__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0052",
+      "ts": "2026-09-26T14:15:45Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__downscale_jpeg/idealize/source: blocked by review (collapse, element)",
+      "first_read": "",
+      "evidence": "7 of the 15 elements the sketch shows (letters, bars, marks) are missing, at (207,23), (235,23), (242,24), (256,24), (342,23), (357,24), (62,61) in sketch pixels; the output carries 9.6% of its sketch's ink \u2014 the mark has collapsed",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "collapse",
+        "element",
+        "review"
+      ],
+      "cases": [
+        "arc__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0053",
+      "ts": "2026-09-26T14:15:46Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__downscale_jpeg/traced: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (45, 65, 67) is 25.9% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0054",
+      "ts": "2026-09-26T14:16:36Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/idealize/source: blocked by review (element)",
+      "first_read": "",
+      "evidence": "3 of the 14 elements the sketch shows (letters, bars, marks) are missing, at (290,24), (343,24), (308,27) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0055",
+      "ts": "2026-09-26T14:16:36Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/traced: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (32, 52, 53) is 25.8% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0056",
+      "ts": "2026-09-26T14:19:54Z",
+      "commit": "6dfdcf5",
+      "workstream": "minds",
+      "outcome": "partial",
+      "problem": "Can Gemini/Claude take over a logo the engine is stuck on (swift_orange_solid__import_combo)?",
+      "first_read": "Ask each mind to draw the logo as SVG; the better drawing wins.",
+      "evidence": "Claude (opus-5-5) SVG: 1.4 KB of skewX + rects + simple curves \u2014 a generic italic that dropped the flared serifs and cut-ins; reviewer blocked (4 of 21 elements missing), v2 0.834; asked to revise after Gemini's critique it returned the same SVG byte for byte. Gemini (pro-latest) SVG: no drawing after 222 s. Gemini image-model repaint: the real letterforms, serifs and cut-ins kept, but letterboxed (forced 16:9), bars inset, orange darkened; our engine's trace of it passed review at v2 0.908 vs the engine's own vector 0.968 (and ESRGAN raster 0.968).",
+      "cause": "A language model writing SVG draws what a logo of that kind looks like, not what this one looks like; an image model repaints this one, but on its own canvas and palette.",
+      "fix": "Use the minds as re-creators of a clean raster (image model) and as critics, not as SVG authors for wordmarks; register the repaint onto the sketch's frame and snap its colours to the sketch's palette before the engine traces it.",
+      "verified": "",
+      "method": "For a take-over, prefer image-model repaint \u2192 register to the sketch's ink box \u2192 snap to the sketch's palette \u2192 engine trace \u2192 reviewer + score against the engine's VECTOR output (never against a raster upscale, which wins on raster similarity by being blurry-faithful). Treat LLM-authored SVG as a sketch of intent for simple geometric marks only; the reviewer blocks reinterpreted letterforms.",
+      "tags": [
+        "claude",
+        "gemini",
+        "minds",
+        "redraw",
+        "svg",
+        "takeover"
+      ],
+      "cases": [
+        "swift_orange_solid__import_combo"
+      ],
+      "source": "claude"
+    },
+    {
+      "id": "E0057",
+      "ts": "2026-09-26T14:20:26Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__blur_crush/idealize/source: blocked by review (element)",
+      "first_read": "",
+      "evidence": "1 of the 26 elements the sketch shows (letters, bars, marks) are missing, at (255,65) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "gcm__blur_crush"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0058",
+      "ts": "2026-09-26T14:24:10Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo_restore",
+      "outcome": "open",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "first_read": "Gemini+Claude (gemini)",
+      "evidence": "palette mush",
+      "cause": "",
+      "fix": "recreate",
+      "verified": "",
+      "method": "palette mush",
+      "tags": [
+        "ai_collab",
+        "collab_mind",
+        "gemini",
+        "logo_restore"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "source": "ai_collab",
+      "retracted": "test fixture, not evidence: tools/logo_vectorizer/tests/test_collab_mind.py wrote this fake arc__tagline escalation ('palette mush') into real memory on every run; conftest.py now gives tests private memory"
+    },
+    {
+      "id": "E0059",
+      "ts": "2026-09-26T14:24:24Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "gcm__import_combo/idealize/prepared: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "1 of the 3 small elements the sketch shows (dots, accents, marks) are missing, at (191,94) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "gcm__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0060",
+      "ts": "2026-09-26T14:26:19Z",
+      "commit": "6dfdcf5",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "propak__blur_crush/idealize/source: blocked by review (element)",
+      "first_read": "",
+      "evidence": "1 of the 18 elements the sketch shows (letters, bars, marks) are missing, at (161,58) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review"
+      ],
+      "cases": [
+        "propak__blur_crush"
+      ],
+      "source": "review"
     }
   ]
 }

@@ -113,3 +113,23 @@ def test_only_colliding_episodes_move_and_merging_back_duplicates_nothing(tmp_pa
     back = _w(tmp_path / "c", {"episodes": theirs})
     assert merge(back, str(tmp_path / "a"))
     assert len(json.loads((tmp_path / "c").read_text())["episodes"]) == 22
+
+
+def test_a_retraction_survives_the_merge_whichever_side_made_it(tmp_path):
+    """A test fixture's fake episode was retracted on one branch; the other
+    branch still has it unretracted. Deleting it would not stick — the union
+    brings it back — so the retraction must win both ways round."""
+    e = {"id": "E0044", "ts": "t", "problem": "fake palette mush", "outcome": "open", "method": "m"}
+    r = dict(e, retracted="test fixture")
+    for ours, theirs in ((e, r), (r, e)):
+        a = _w(tmp_path / "a", {"episodes": [ours]})
+        b = _w(tmp_path / "b", {"episodes": [theirs]})
+        assert merge(a, b)
+        got = json.loads((tmp_path / "a").read_text())["episodes"]
+        assert len(got) == 1 and got[0]["retracted"] == "test fixture"
+    la, lb = {"id": "AL1", "problem": "p", "method": "m"}, {"id": "AL1", "problem": "p", "method": "m", "retracted": "x"}
+    for ours, theirs in ((la, lb), (lb, la)):
+        a = _w(tmp_path / "a", {"lessons": [ours]})
+        b = _w(tmp_path / "b", {"lessons": [theirs]})
+        assert merge(a, b)
+        assert json.loads((tmp_path / "a").read_text())["lessons"][0]["retracted"] == "x"

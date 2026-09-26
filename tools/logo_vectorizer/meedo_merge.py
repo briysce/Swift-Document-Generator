@@ -50,7 +50,11 @@ def _same_episode(a: dict, b: dict) -> bool:
 
 
 def _richer(a: dict, b: dict) -> dict:
-    """The copy that knows more: a method beats none, closed beats open."""
+    """The copy that knows more: a retraction beats none (it is a finding
+    about the episode), a method beats none, closed beats open."""
+    if a.get("retracted") or b.get("retracted"):
+        keep = a if a.get("retracted") else b
+        return dict(keep, id=a["id"], **({"renumbered_from": a["renumbered_from"]} if a.get("renumbered_from") else {}))
     if (b.get("method") and not a.get("method")) or (a.get("outcome") == "open" and b.get("outcome") != "open"):
         return dict(b, id=a["id"], **({"renumbered_from": a["renumbered_from"]} if a.get("renumbered_from") else {}))
     return a
@@ -182,6 +186,12 @@ def merge_ai_lessons(ours: dict, theirs: dict) -> dict:
             continue
         have = ids[lid]
         if have == L:
+            continue
+        if L.get("retracted") and not have.get("retracted"):
+            mine[mine.index(have)] = L
+            ids[lid] = L
+            continue
+        if have.get("retracted"):
             continue
         # Prefer the side that was applied offline more (hand-off progress)
         # or has a longer method.

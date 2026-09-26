@@ -355,3 +355,35 @@ def critique_text(ans: Answer) -> str:
     if p.get("advice"):
         bits.append(f"advice: {p['advice']}")
     return " | ".join(bits) or (ans.text or "")[:1500]
+
+
+COMPARE = GOAL + """
+
+IMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.
+{context}
+Which is the better restoration of this logo — the one a designer would sign
+off? Judge identity first (every element present, the right letters, the right
+colours, nothing invented, the page not drawn), then craftsmanship (straight
+lines straight, curves fair, corners sharp, no halos, staircases, blobs or
+blur). Return JSON only:
+{{"better": "A | B | same", "identity": "which keeps the logo more completely, and why",
+  "craft": "which is better drawn, and why", "confidence": 0.0}}"""
+
+
+def compare(mind: str, sketch: Image.Image, a: Image.Image, b: Image.Image, *, notes: str = "", **kw) -> Answer:
+    """Which of two restorations is better. Ask both ways round (a, b) and
+    (b, a) to see position bias rather than be fooled by it."""
+    return ask(mind, "compare", [sketch, a, b], COMPARE.format(context=_context(notes)), **kw)
+
+
+def compare_both_ways(mind: str, sketch: Image.Image, first: Image.Image, second: Image.Image, **kw) -> dict:
+    """{'pick': 'first'|'second'|'split'|'same'|None, 'answers': [...]}: a pick
+    only when both orders agree."""
+    ab = compare(mind, sketch, first, second, **kw)
+    ba = compare(mind, sketch, second, first, **kw)
+    x = str((ab.parsed or {}).get("better", "")).strip().upper()[:1]
+    y = str((ba.parsed or {}).get("better", "")).strip().upper()[:1]
+    one = {"A": "first", "B": "second", "S": "same"}.get(x)
+    two = {"A": "second", "B": "first", "S": "same"}.get(y)
+    pick = one if one == two else (None if not one or not two else "split")
+    return {"pick": pick, "answers": [ab, ba]}
