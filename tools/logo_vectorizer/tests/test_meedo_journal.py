@@ -75,3 +75,16 @@ def test_both_agents_histories_survive_a_merge(tmp_path):
     assert merge(str(a), str(b))
     got = json.loads(a.read_text())["entries"]
     assert sorted((e["agent"], e["summary"]) for e in got) == [("claude", "x"), ("cursor", "y")]
+
+
+def test_one_agent_logging_twice_in_a_second_keeps_both(tmp_path):
+    p = tmp_path / "j.json"
+    a = J.log(agent="claude", kind="done", summary="a", at=T0, path=p, commit="x")
+    b = J.log(agent="claude", kind="done", summary="b", at=T0, path=p, commit="x")
+    assert a["id"] != b["id"] and len(J.load(p)) == 2
+
+
+def test_a_backfill_dated_in_the_future_is_refused(tmp_path):
+    with pytest.raises(ValueError, match="future"):
+        J.log(agent="claude", kind="finding", summary="x", path=tmp_path / "j.json", commit="x",
+              at=datetime.now(timezone.utc) + timedelta(minutes=30))

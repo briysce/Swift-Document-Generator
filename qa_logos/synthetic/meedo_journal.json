@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "2026-09-26T13:00:55Z-claude",
+      "ts": "2026-09-26T13:00:55Z",
+      "agent": "claude",
+      "task": "",
+      "kind": "done",
+      "summary": "Set up Claude Code / Cursor collaboration: COORDINATION.md board, Meedo-Me merge driver (backfilled)",
+      "commit": "d6fa7c3",
+      "evidence": {
+        "tests": "pytest 102 passed incl. 3 merge-driver tests",
+        "looked": "n/a: no visual output",
+        "review": "n/a: no logo output",
+        "measured": "n/a: tooling only",
+        "episode": "n/a: setup, no problem solved"
+      }
+    },
+    {
+      "id": "2026-09-26T13:02:09Z-cursor",
+      "ts": "2026-09-26T13:02:09Z",
+      "agent": "cursor",
+      "task": "7",
+      "kind": "claim",
+      "summary": "PROPAK 'Services' i-dot lost in prepare_for_engine (backfilled by claude from commit 11c1b58 / issue #6)",
+      "commit": "11c1b58"
+    },
+    {
+      "id": "2026-09-26T13:04:00Z-claude",
+      "ts": "2026-09-26T13:04:00Z",
+      "agent": "claude",
+      "task": "1",
+      "kind": "claim",
+      "summary": "Put the rebuilt Swift logo into the app (orange + solid, SVG + PNG)",
+      "commit": "11c1b58"
+    },
+    {
+      "id": "2026-09-26T13:15:00Z-claude",
+      "ts": "2026-09-26T13:15:00Z",
+      "agent": "claude",
+      "task": "3",
+      "kind": "claim",
+      "summary": "Meedo-Me work journal: every unit by every agent, assessed against the house rules (announced on issue #6)",
+      "commit": "11c1b58"
+    },
+    {
+      "id": "2026-09-26T13:22:00Z-claude",
+      "ts": "2026-09-26T13:22:00Z",
+      "agent": "claude",
+      "task": "1",
+      "kind": "finding",
+      "summary": "Meedo-Me reviewer false alarm #3: blocked the Swift master for 'deleting' its charcoal outline (tint-threshold cliff); fixed with hysteresis, 0/54 corpus verdicts changed (E0026)",
+      "commit": "11c1b58"
+    },
+    {
+      "id": "2026-09-26T13:30:00Z-claude",
+      "ts": "2026-09-26T13:30:00Z",
+      "agent": "claude",
+      "task": "11",
+      "kind": "finding",
+      "summary": "Flutter tests using pdfrxFlutterInitialize time out here with the old logo assets too \u2014 environmental, not the logo change; history-dialog preview needs ../.tools/flutter fonts",
+      "commit": "11c1b58"
+    },
+    {
+      "id": "2026-09-26T13:33:22Z-claude",
+      "ts": "2026-09-26T13:33:22Z",
+      "agent": "claude",
+      "task": "3",
+      "kind": "finding",
+      "summary": "Journal's first real use: same-second ids collided and a guessed backfill landed in the future \u2014 fixed (suffixed ids, future timestamps refused) with tests",
+      "commit": "09c9f05"
+    },
+    {
+      "id": "2026-09-26T13:33:22Z-claude-2",
+      "ts": "2026-09-26T13:33:22Z",
+      "agent": "claude",
+      "task": "1",
+      "kind": "done",
+      "summary": "Swift app logos exported from the rebuilt vector master; PDFs draw it as vector paths",
+      "commit": "09c9f05",
+      "files": [
+        "mobile/assets/images/swift_supply_logo_orange.svg",
+        "scripts/export_swift_app_logos.py"
+      ],
+      "evidence": {
+        "tests": "pytest 115 passed; flutter swift_pdf_logo_test + chrome_logo_test 3 passed; export --check",
+        "looked": "ship/recv/BOL PDFs rasterised at 8x; old vs new app PNGs; S detail vs source",
+        "review": "meedo_review passed: master vs swift_supply_source.png (after fixing false alarm #3)",
+        "measured": "rebuild split byte-identical to previous paths; PDF has 0 images placed, 173-segment path",
+        "episode": "E0027"
+      }
+    },
+    {
+      "id": "2026-09-26T13:33:22Z-claude-3",
+      "ts": "2026-09-26T13:33:22Z",
+      "agent": "claude",
+      "task": "3",
+      "kind": "done",
+      "summary": "meedo_journal: CLI + MCP (meedo_journal, meedo_log), union merge, standup section",
+      "commit": "09c9f05",
+      "evidence": {
+        "tests": "10 journal/merge tests + MCP journal test; pytest passed",
+        "looked": "n/a: no visual output",
+        "review": "n/a: no logo output",
+        "measured": "n/a: new capability",
+        "episode": "n/a: capability, not a solved problem"
+      }
+    }
+  ]
+}

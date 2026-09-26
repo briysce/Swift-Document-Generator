@@ -111,10 +111,22 @@ def log(
         except Exception:
             commit = ""
     when = at or _now()
+    if when > _now() + timedelta(minutes=1):
+        # A backfill dated after "now" makes its agent look busy in the future
+        # and every claim look fresh; it happened on the first backfill.
+        raise ValueError(f"{_ts(when)} is in the future")
+    entries = load(path)
+    # Two agents on two branches append at once: the id must not collide, so
+    # it is the agent and the moment, not a counter; one agent logging twice
+    # in a second gets a suffix.
+    base = eid = f"{_ts(when)}-{agent}"
+    taken = {e["id"] for e in entries}
+    n = 1
+    while eid in taken:
+        n += 1
+        eid = f"{base}-{n}"
     entry = {
-        # Two agents on two branches append at once: the id must not collide,
-        # so it is the agent and the moment, not a counter.
-        "id": f"{_ts(when)}-{agent}",
+        "id": eid,
         "ts": _ts(when),
         "agent": agent,
         "task": str(task).strip().lstrip("#"),
@@ -127,9 +139,6 @@ def log(
     ev = {k: str(v).strip() for k, v in evidence.items() if str(v).strip()}
     if ev:
         entry["evidence"] = ev
-    entries = load(path)
-    if any(e["id"] == entry["id"] for e in entries):
-        raise ValueError(f"{entry['id']} already logged")
     entries.append(entry)
     _save(entries, path)
     return entry
