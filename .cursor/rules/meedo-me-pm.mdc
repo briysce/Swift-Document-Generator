@@ -45,6 +45,14 @@ adapt, adjust, and experiment** with the codebase.
 
 ## North star
 
-Meedo-Me’s memory (`meedo_ledger.json`, `meedo_episodes.json`) is the compounding
-asset. Prefer writing into it over chat-only conclusions. Prefer its ranked
-experiments over inventing a new plan from scratch each session.
+Meedo-Me’s memory (`meedo_ledger.json`, `meedo_episodes.json`,
+`meedo_ai_lessons.json`, `meedo_procedures.json`, consultations) is the
+compounding asset. Prefer writing into it over chat-only conclusions. Prefer
+its ranked experiments over inventing a new plan from scratch each session.
+
+## Succession (advisor → GM)
+
+See `.cursor/rules/meedo-succession.mdc`. Meedo is not a secondary logger —
+it is the overqualified advisor learning from Gemini/Claude/logo engines so it
+can eventually own project AI work and phase those tutors down. Embed it in
+every change; promote ownership only when offline confidence is earned.

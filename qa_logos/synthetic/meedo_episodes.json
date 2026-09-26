@@ -1715,6 +1715,186 @@
         "original"
       ],
       "source": "review"
+    },
+    {
+      "id": "E0074",
+      "ts": "2026-09-26T14:54:58Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "original/idealize/source: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (637,60) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "original"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0075",
+      "ts": "2026-09-26T14:54:59Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/idealize/prepared: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (85,55) in sketch pixels; 2 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (246,29), (289,28) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0076",
+      "ts": "2026-09-26T14:54:59Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/idealize/source: blocked by review (element, small_element)",
+      "first_read": "",
+      "evidence": "2 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25), (85,55) in sketch pixels; 4 of the 17 elements the sketch shows (letters, bars, marks) are missing, at (236,28), (246,29), (289,28), (343,27) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0077",
+      "ts": "2026-09-26T14:54:59Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/traced: blocked by review (brand_colour, small_element)",
+      "first_read": "",
+      "evidence": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped; 1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0078",
+      "ts": "2026-09-26T14:55:00Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__import_combo/vectorize: blocked by review (brand_colour, small_element)",
+      "first_read": "",
+      "evidence": "colour (33, 54, 55) is 33.3% of the sketch but 0.0% of the output \u2014 an element has been dropped; 1 of the 2 small elements the sketch shows (dots, accents, marks) are missing, at (30,25) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "arc__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0079",
+      "ts": "2026-09-26T14:56:15Z",
+      "commit": "c64902a",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "arc__downscale_jpeg/vectorize: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (46, 68, 69) is 31.6% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "arc__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0080",
+      "ts": "2026-09-26T14:56:17Z",
+      "commit": "c64902a",
+      "workstream": "meedo-me",
+      "outcome": "open",
+      "problem": "Codify Meedo succession doctrine: overqualified advisor \u2192 eventual GM of project AI; learn from logo engines + Gemini + Claude; phase tutors when offline-ready",
+      "first_read": "observed via cursor",
+      "evidence": "user directive 2026-09-26 NHL/NBA AGM succession analogy",
+      "cause": "",
+      "fix": "embed Meedo in every build (observe/journal/consult/procedures); recall-first before re-calling Gemini/Claude; persist specialist methods as lessons+episodes+procedures; phase live APIs only when offline confidence earned",
+      "verified": "",
+      "method": "alwaysApply meedo-succession.mdc; update meedo-me-pm + SKILL + COORDINATION rule 10 + board #3; embed observe/consult/recall-first; promote ownership only when meedo_study / offline confidence earned",
+      "tags": [
+        "advisor-to-gm",
+        "cursor",
+        "doctrine",
+        "meedo-me",
+        "succession"
+      ],
+      "cases": [],
+      "source": "observe:cursor"
+    },
+    {
+      "id": "E0081",
+      "ts": "2026-09-26T14:56:17Z",
+      "commit": "c64902a",
+      "workstream": "meedo-me",
+      "outcome": "open",
+      "problem": "Codify Meedo succession doctrine: overqualified advisor \u2192 eventual GM of project AI; learn from logo engines + Gemini + Claude; phase tutors when offline-ready",
+      "first_read": "Meedo is junior; specialists (logo engine, Gemini, Claude) do the real work",
+      "evidence": "User: advisor\u2192GM slow burn; Meedo must learn project-specific craft until it takes over",
+      "cause": "Without an explicit succession frame, agents treat Meedo as a logger beside the 'real' engines",
+      "fix": "Standing doctrine + hooks: every specialist outcome must teach Meedo; recall-first; phase tutors on earned confidence",
+      "verified": "Rules/skill/COORDINATION landed; meedo_study continues to surface cannot-yet-own",
+      "method": "alwaysApply meedo-succession.mdc; update meedo-me-pm + SKILL + COORDINATION rule 10 + board #3; embed observe/consult/recall-first; promote ownership only when meedo_study / offline confidence earned",
+      "tags": [
+        "advisor-to-gm",
+        "doctrine",
+        "succession"
+      ],
+      "cases": [],
+      "source": "manual"
     }
   ]
 }

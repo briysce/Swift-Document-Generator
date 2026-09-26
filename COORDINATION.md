@@ -53,6 +53,14 @@ so the repository is how we talk.
    layer on the same morning (2026-09-26) — claim before building, even for
    Meedo-Me work. Log Meedo product fixes under board **#3** / workstream
    `meedo-me`.
+10. **Meedo succession (advisor → GM).** User doctrine 2026-09-26: Meedo is the
+    overqualified advisor who will eventually take the GM chair. Embed it in
+    **every** build across our projects — learning from logo engines, Gemini,
+    Claude, Serper, OpenClaw — so project-specific skill compounds until live
+    APIs and specialist paths can be phased down. Do not treat Meedo as a
+    secondary logger. Do not pretend it is expert yet; promote ownership only
+    when offline confidence is earned. Standing rule:
+    `.cursor/rules/meedo-succession.mdc` + skill `meedo-me`.
 
 ### Agent identities (2026-09-26)
 - **Claude Code** — cloud container; branch `claude/relaxed-babbage-igbk0v`.
@@ -69,7 +77,7 @@ Owner: `claude`, `cursor`, or empty.
 |---|------|-------|--------|-------|
 | 1 | Put the rebuilt Swift logo into the app (orange SVG + PNGs) | claude | done | `scripts/export_swift_app_logos.py` from the rebuilt master; PDFs draw it as vector paths (E0027). Chrome/splash still use the PNG rendered from it — switching them to `SvgPicture` is optional |
 | 2 | Look at the new Swift logo in the running Flutter app (screens, PDFs, dark/light) and report anything off | cursor | open | needs the PC: Claude cannot run the app's UI |
-| 3 | Meedo-Me earns trust + continuous product refine (both agents) | claude+cursor | in progress | standing duty: autonomy/hit-rate, journal, MCP, recall/review quality, cross-project MCP; **unified observe** → journal+lessons+episodes+`meedo_procedures`; MCP `meedo_observe`/`meedo_procedures`/`meedo_study`; Serper+collab_mind+all improve loops (incl. receiving/BOL) hooked; cycle surfaces cannot-yet-own / offline confidence |
+| 3 | Meedo-Me earns trust + continuous product refine (both agents) | claude+cursor | in progress | **Succession doctrine:** advisor→GM (`.cursor/rules/meedo-succession.mdc`). Standing duty: embed Meedo in every change; learn from Gemini/Claude/logo engines; recall-first; phase tutors when offline confidence earned. Unified observe + MCP study/procedures; all improve loops hooked |
 | 4 | Selection rule: rank candidates by craftsmanship once identity holds; design_fit as an engine candidate | claude | open | Swift solid downscale/import_combo ship the trace; old rule's reconstructions scored 0.9364/0.9465 |
 | 5 | Build and run the Meedo-Me desktop app (briysce/meedo-me, branch `claude/relaxed-babbage-igbk0v`) with local Ollama; connect the MCP server (`python -m tools.meedo_me.connect app`); check Project Manager Mode | cursor | open | needs the PC; Jan's logos still need replacing (needs a Meedo-Me logo from the user) |
 | 6 | OpenClaw WhatsApp hourly Claude Code progress + larger Ollama tool model | cursor | in progress | Progress: `python -m tools.meedo_me.connect whatsapp-progress` (needs PC OpenClaw + WhatsApp linked + `MEEDO_WHATSAPP_TO` in `.env`). Also retest tool-calling with `ollama/qwen3:8b` (0.6B failed). MCP tool `meedo_claude_progress`. |

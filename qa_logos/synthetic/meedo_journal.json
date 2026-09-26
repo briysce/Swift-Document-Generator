@@ -907,6 +907,60 @@
         "scripts/meedo_whatsapp_hourly_watch.sh",
         "tools/meedo_me/connect.py"
       ]
+    },
+    {
+      "id": "2026-09-26T14:55:59Z-cursor",
+      "ts": "2026-09-26T14:55:59Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "done",
+      "summary": "Codified Meedo succession doctrine (advisor\u2192GM): alwaysApply rule, skill, COORDINATION #10, board #3. Meedo embeds in every build, learns from specialists, phases them when offline-ready.",
+      "evidence": {
+        "commit": "c64902a",
+        "tests": "n/a: doctrine/docs; no code path change",
+        "review": "n/a: policy",
+        "looked": "n/a: policy",
+        "measured": "n/a: policy",
+        "episode": "succession advisor\u2192GM (meedo-me)"
+      },
+      "source": "cli",
+      "files": [
+        ".claude/thought_trace.md",
+        ".cursor/rules/meedo-me-pm.mdc",
+        ".cursor/rules/meedo-succession.mdc",
+        "COORDINATION.md",
+        "tools/meedo_me/skills/meedo-me/SKILL.md"
+      ]
+    },
+    {
+      "id": "2026-09-26T14:56:17Z-cursor",
+      "ts": "2026-09-26T14:56:17Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "finding",
+      "summary": "[cursor] meedo-me: Codify Meedo succession doctrine: overqualified advisor \u2192 eventual GM of project AI; learn from logo engines + Gemini + Claude; phase tutors when offline-ready \u2192 alwaysApply meedo-succession.mdc; update meedo-me-pm + SKILL + COORDINATION rule 10 + board #3; embed observe/consult/re",
+      "evidence": {
+        "observe": {
+          "face": "cursor",
+          "domain": "meedo-me",
+          "tried": "Codify Meedo succession doctrine: overqualified advisor \u2192 eventual GM of project AI; learn from logo engines + Gemini + Claude; phase tutors when offline-ready",
+          "evidence": "user directive 2026-09-26 NHL/NBA AGM succession analogy",
+          "method": "alwaysApply meedo-succession.mdc; update meedo-me-pm + SKILL + COORDINATION rule 10 + board #3; embed observe/consult/recall-first; promote ownership only when meedo_study / offline confidence earned",
+          "outcome": "open",
+          "do_not_regress": [
+            "do not treat Meedo as optional telemetry",
+            "do not pretend Meedo is expert before offline confidence",
+            "do not skip embedding because specialists are stronger today"
+          ],
+          "providers": [
+            "gemini",
+            "claude",
+            "logo_vectorizer"
+          ]
+        },
+        "commit": "c64902a"
+      },
+      "source": "observe:cursor"
     }
   ]
 }
