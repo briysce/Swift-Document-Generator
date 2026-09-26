@@ -72,7 +72,8 @@
         ],
         "agree": true,
         "handoff_to_meedo": true
-      }
+      },
+      "retracted": "superseded 2026-09-26: fixed by f25d7b0/7ba92d7/E0121 \u2014 thin-path quantize + snap + identity-first; Arc import/downscale Meedo-pass with teal"
     },
     {
       "id": "AL6781e225",
@@ -1707,6 +1708,55 @@
           "recalled",
           "recalled"
         ]
+      }
+    },
+    {
+      "id": "ALfbd2e3e0",
+      "domain": "logo",
+      "problem": "Arc RESOURCES LTD. teal tagline: keep through thin-path quantize/snap; identity-first when ideal loses fewer brand colours than traced.has_vector",
+      "diagnosis": "quantize_thin_path dropped dark teal (sat 16\u201327); snap_to_source_palette treated washed teal as silver; _prefer_reconstruction never shipped ideal when traced.has_vector",
+      "method": "color-split prune only when secondary \u226460% of dominant; brand_palette keeps dark-tint + \u226515% hue families; snap protects neutrals only when source is neutral; identity-first ships ideal on brand_colour loss even with has_vector",
+      "actions": [
+        "gate color-split prune (secondary \u226460% dominant) to protect Propak",
+        "retain dark-tint brand hues and secondary families \u226515% in quantize",
+        "do not snap washed teal to silver when source chroma exists",
+        "ship ideal when identity holds and ideal lost strictly less brand colour"
+      ],
+      "risks": [
+        "never invent Arc red/teal from gray",
+        "ungated color-split hurt Propak ~0.88\u21920.62"
+      ],
+      "providers": [
+        "cursor",
+        "gemini",
+        "claude"
+      ],
+      "tags": [
+        "arc",
+        "board8",
+        "tagline",
+        "teal",
+        "succession"
+      ],
+      "cases": [
+        "arc",
+        "arc__import_combo",
+        "arc__downscale_jpeg"
+      ],
+      "agree": true,
+      "source": "ai_collab",
+      "ts": "2026-09-26T15:56:11Z",
+      "times_recalled": 0,
+      "times_applied_offline": 1,
+      "raw": {
+        "episode": "E0121",
+        "commits": [
+          "f25d7b0",
+          "7ba92d7",
+          "747b030"
+        ],
+        "mean_composite_after": 0.7607,
+        "supersedes": "ALe06dbf90"
       }
     }
   ]

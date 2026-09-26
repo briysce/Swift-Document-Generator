@@ -2510,6 +2510,23 @@
         "commit": "7ba92d7"
       },
       "source": "ai_collab"
+    },
+    {
+      "id": "2026-09-26T15:56:11Z-cursor",
+      "ts": "2026-09-26T15:56:11Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "done",
+      "summary": "Logo-hour follow-up: board #8 closed; retired stale Arc AI lesson ALe06dbf90; persisted score-proven teal retention method for Meedo recall (E0121). mean_composite 0.7607; Trialta remains top failure.",
+      "evidence": {
+        "commit": "747b030",
+        "tests": "n/a: follow-up memory/board; hour agent already verified unit tests",
+        "review": "Arc import/downscale pass per hour agent; blocked 12\u21928",
+        "looked": "n/a: follow-up from improve_summary_latest + E0121",
+        "measured": "mean_composite 0.7607; Arc vectorize Meedo-pass import 0.704 / downscale 0.671",
+        "episode": "E0121"
+      },
+      "source": "cli"
     }
   ]
 }

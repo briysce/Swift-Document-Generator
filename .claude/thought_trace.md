@@ -21,6 +21,12 @@ moment state changes. The next agent sees only what is committed.
 - Every change must leave Meedo memory richer; recall-first before re-calling
   APIs; promote ownership only when offline confidence is earned.
 
+### Board #8 Arc tagline — DONE (15:53 UTC, logo-hour agent)
+- Tip `747b030`: teal through thin-path quantize + palette snap; identity-first
+  when ideal loses fewer brand colours; color-split prune gated (Propak safe).
+- E0121; lesson ALfbd2e3e0 (stale ALe06dbf90 retracted). mean_composite 0.7607.
+- Residual glyph craftsmanship → #4. Top failures now Trialta.
+
 ### Collaboration (live) — updated 14:15 UTC by Claude Code
 - Protocol: `COORDINATION.md` (board + rules 8-10) + Meedo merge driver
   (`sh scripts/setup_collab.sh` once per clone). Talk: issue
