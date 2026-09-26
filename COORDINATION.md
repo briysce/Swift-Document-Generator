@@ -63,4 +63,7 @@ Owner: `claude`, `cursor`, or empty.
 | 8 | Arc: the reconstruction drops tagline letters; the trace draws them red | | open | the reviewer's element check now blocks the reconstruction |
 | 9 | Centre-line tracing for thin strokes (PROPAK's red rule, one-pixel borders) | | open | user recommendation |
 | 10 | Swift rebuild details: the bars' faint grey under-edge; trim anchors on small serif runs | | open | `scripts/rebuild_swift_logo.py`; after any change rerun `scripts/export_swift_app_logos.py` |
+| 12 | Engine minds: Gemini + Claude critique, guide and take over (SVG; clean redraw to trace) when the engine is stuck; each reviews the other; nothing ships without `meedo_review` | claude | in progress | user request 2026-09-26; keys are local only (`.env.local`, gitignored) |
+| 13 | Meedo-Me learns from every consultation: log, per-mind track record, lessons → episodes, dataset export, shadow mode for a local model | claude | in progress | the path to handing these jobs to Meedo-Me |
+| 14 | App: audit every AI touchpoint (claude_client.dart, gemini_client.dart and callers), keys via the env overlay on the PC, current models, write consultations in Meedo-Me's format | cursor | open | format + `ingest` command from #13 first |
 | 11 | Flutter tests that time out here: `pdfrxFlutterInitialize` (pdfium) never finishes in the cloud container; history-dialog preview needs `../.tools/flutter` fonts | | open | check on the PC whether they pass there |
