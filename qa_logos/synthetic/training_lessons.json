@@ -485,6 +485,24 @@
         "idealize",
         "gating"
       ]
+    },
+    {
+      "id": "20260926T131801Z",
+      "ts": "2026-09-26T13:18:01Z",
+      "title": "PROPAK Services i-dot prepare-path closed (board #7)",
+      "lesson": "Clean PROPAK's Services tittle (47px, 8x6) survives all prepare_for_engine stages; elements_of finds area 34. E0022/0673cf2 already fixed GCM+PROPAK mark retention for separate islands. On current synthetic degrade recipes the separate blue i-dot is already gone/merged in the RAW degrade \u2014 not lost later in prepare. Do not loosen prune_ink_speckles further for degraded PROPAK; residual recovery is reconstruction/font/design_fit (#4). Locked by test_prepare_idot_retention.py.",
+      "do_not_regress": "clean propak + gcm golden i-dot islands through prepare_for_engine; _is_small_mark keep for compact stem-adjacent marks",
+      "case_ids": [
+        "propak",
+        "gcm"
+      ],
+      "tags": [
+        "dots",
+        "preparation",
+        "propak",
+        "board-7",
+        "honest-limit"
+      ]
     }
   ],
   "run_snapshots": [
@@ -2181,6 +2199,6 @@
       }
     }
   ],
-  "updated_at": "2026-09-20T18:34:02Z",
+  "updated_at": "2026-09-26T13:18:01Z",
   "entries": []
 }

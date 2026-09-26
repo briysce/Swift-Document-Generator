@@ -14,11 +14,21 @@ moment state changes. The next agent sees only what is committed.
 ### Collaboration (live)
 - Protocol: `COORDINATION.md` + Meedo merge driver (`scripts/setup_collab.sh`).
 - Talk: GitHub issue [#6](https://github.com/briysce/Swift-Document-Generator/issues/6).
-- Claude branch: `claude/relaxed-babbage-igbk0v` — tasks **#1** (Swift app swap),
-  **#3** (Meedo trust); **#4** (craftsmanship gate) still open for Claude.
-- Cursor Cloud branch: `cursor/logo-engine-collab-d4c9` — claimed **#7**
-  (PROPAK "Services" i-dot lost in `prepare_for_engine`). PC-only **#2/#5/#6**
-  remain open.
+- Claude branch: `claude/relaxed-babbage-igbk0v` — tasks **#1** (Swift app swap,
+  nearly done per issue comment), **#3** (Meedo trust / journal); **#4**
+  (craftsmanship gate) still open for Claude. Do not build a parallel journal —
+  Claude owns `meedo_journal.py`.
+- Cursor Cloud branch: `cursor/logo-engine-collab-d4c9` — **#7 done** (PROPAK
+  prepare-path i-dot retention locked). Next claim TBD among **#8/#9/#10**.
+  PC-only **#2/#5/#6** remain open (noVNC ≠ Brice's PC).
+
+### Board #7 closeout (Cursor, this unit)
+- Clean PROPAK Services i-dot survives `prepare_for_engine` (47px → elements_of
+  34). GCM golden keeps ≥3 Modification tittles.
+- "Lost later in prepare" is stale for current synthetic recipes: RAW degrade
+  already merges the separate tittle. Residual → **#4** (design_fit / font).
+- Regression: `tools/logo_vectorizer/tests/test_prepare_idot_retention.py`.
+- Episode **E0026**; training lesson appended.
 
 ### Priorities (the user's order)
 1. **The Swift logo as a perfectly crafted vector.** The app's
@@ -63,6 +73,7 @@ import_combo 0.9465 and downscale 0.9364 (task: rank on craftsmanship).
 - i-dots kept through preparation and reconstruction (0673cf2, 577dd87).
 - `design_fit.py`: designed geometry over a sketch — coverage edges, corners,
   lines/fair cubics, restored corners, shared slant and heights (52b5f81).
+- Board #7 prepare-path closed with regression tests (Cursor; residual → #4).
 
 ### Swift rebuild (4c3c38a) — awaiting the user's sign-off before the app uses it
 `scripts/rebuild_swift_logo.py` -> `assets/brand/swift_supply_logo_rebuilt.svg`:
@@ -87,10 +98,11 @@ latter, so Arc falls back to the trace as on 09-20.
 1. Reconstruction gate: rank candidates by craftsmanship once identity holds
    (Swift solid downscale/import_combo ship the trace; the old gate's
    reconstructions scored 0.9364/0.9465). Bring design_fit into the engine as
-   a candidate.
-3. PROPAK's "Services" dot survives despeckle but is lost later in preparation.
-4. Meedo-Me growth: autonomy is earned — see its hit rate and reviewer record
-   before widening what it may do unasked.
+   a candidate. *(Claude — board #4)*
+2. Cursor next: claim **#8** (Arc tagline), **#9** (centre-line thin strokes),
+   or **#10** (Swift rebuild refinements) — non-conflicting with Claude.
+3. Meedo-Me growth: autonomy is earned — see its hit rate and reviewer record
+   before widening what it may do unasked. *(Claude — board #3)*
 
 ---
 

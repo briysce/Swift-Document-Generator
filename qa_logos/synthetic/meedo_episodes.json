@@ -557,6 +557,31 @@
       ],
       "cases": [],
       "source": "mcp"
+    },
+    {
+      "id": "E0026",
+      "ts": "2026-09-26T13:17:27Z",
+      "commit": "11c1b58",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Board #7: PROPAK Services i-dot reported lost later in prepare_for_engine",
+      "first_read": "Survives despeckle but is dropped by a later prepare stage (same class as GCM E0022)",
+      "evidence": "Stage-trace on clean qa_logos/synthetic/clean/propak.png: 47px 8x6 blue island survives knockout/halo/prune/chroma/snap/crop; elements_of finds area 34. On synthetic degraded recipes (downscale_jpeg/import_combo/blur_crush) the separate tittle is already gone/merged in the RAW degrade \u2014 not lost later in prepare.",
+      "cause": "The board note was stale relative to current degrade recipes + E0022 mark retention. Prepare-path retention is already correct for clean masters; degraded residual needs reconstruction/font/design_fit, not looser despeckle.",
+      "fix": "No prepare-path code change. Locked behaviour with test_prepare_idot_retention.py (clean PROPAK + GCM golden + synthetic stem/tittle). Marked board #7 done; residual \u2192 #4.",
+      "verified": "pytest tools/logo_vectorizer/tests/test_prepare_idot_retention.py \u2014 3 passed",
+      "method": "When a small mark is 'lost in prepare', stage-trace the clean master AND the degraded RAW before changing thresholds. If the island is already merged in the degrade, further prepare looseness only keeps junk; hand residual recovery to reconstruction/design_fit.",
+      "tags": [
+        "board-7",
+        "dots",
+        "preparation",
+        "propak"
+      ],
+      "cases": [
+        "gcm",
+        "propak"
+      ],
+      "source": "manual"
     }
   ]
 }
