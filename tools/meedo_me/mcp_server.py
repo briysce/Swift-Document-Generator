@@ -49,7 +49,9 @@ INSTRUCTIONS = (
     "meedo_recall — the same kind of problem has often been seen before, and the "
     "episode says what the first guess got wrong. Never report an improvement to "
     "a logo without meedo_review passing. When a problem is solved, record the "
-    "method with meedo_record_episode so the next one is faster."
+    "method with meedo_record_episode so the next one is faster. Log every unit of "
+    "work with meedo_log (claim when starting, done with its evidence when "
+    "finished) — meedo_journal shows what every agent is doing."
 )
 
 
@@ -83,6 +85,12 @@ READ_TOOLS = {
                        "reviewer has blocked, cases that never moved, and every workstream.",
         "inputSchema": _obj({}),
     },
+    "meedo_journal": {
+        "description": "The work journal: every agent's recent units of work (claims, findings, "
+                       "done, handoffs, blocks), tasks still held and whether their holder has gone "
+                       "quiet, and which finished units skipped a house rule.",
+        "inputSchema": _obj({"hours": {"type": "number", "minimum": 0}, "agent": _S}),
+    },
     "meedo_review": {
         "description": "Is a restored logo still the logo its sketch shows? Returns a verdict "
                        "(never a score): blocked if a brand colour was dropped or the mark "
@@ -97,6 +105,18 @@ WRITE_TOOLS = {
                        "you will act on now — accepted advice is judged by later runs.",
         "inputSchema": _obj({"id": _S, "decision": {"type": "string", "enum": ["accept", "reject"]},
                              "reason": _S, "by": _S}, ["id", "decision", "reason"]),
+    },
+    "meedo_log": {
+        "description": "Record a unit of work in Meedo-Me's journal. kind: claim, finding, done, "
+                       "handoff, blocked, pause, resume. A done answers each house rule in its "
+                       "evidence (tests, looked, review, measured, episode); 'n/a: why' when one "
+                       "does not apply.",
+        "inputSchema": _obj({
+            "agent": _S, "kind": {"type": "string", "enum": ["claim", "finding", "done", "handoff",
+                                                             "blocked", "pause", "resume"]},
+            "summary": _S, "task": _S, "files": _SL,
+            "tests": _S, "looked": _S, "review": _S, "measured": _S, "episode": _S,
+        }, ["agent", "kind", "summary"]),
     },
     "meedo_record_episode": {
         "description": "Record how a problem was solved so Meedo-Me carries the method forward. "
@@ -175,6 +195,11 @@ def _call(name: str, args: dict, read_only: bool) -> object:
         r = L.knowledge_report()
         r["workstreams"] = E.workstreams()
         return r
+    if name == "meedo_journal":
+        from tools.logo_vectorizer import meedo_journal as J
+
+        return {"recent": J.recent(hours=float(args.get("hours", 24)), agent=args.get("agent", "")),
+                **J.assess()}
     if name == "meedo_review":
         from tools.logo_vectorizer.meedo_review import review
 
@@ -187,6 +212,12 @@ def _call(name: str, args: dict, read_only: bool) -> object:
     if name == "meedo_decide":
         p = L.decide(args["id"], args["decision"], args["reason"], by=args.get("by", "mcp"))
         return {"id": p["id"], "status": p["status"], "reason": p["decision_reason"]}
+    if name == "meedo_log":
+        from tools.logo_vectorizer import meedo_journal as J
+
+        keys = ("task", "files", "tests", "looked", "review", "measured", "episode")
+        return J.log(agent=args["agent"], kind=args["kind"], summary=args["summary"],
+                     **{k: args[k] for k in keys if k in args})
     if name == "meedo_record_episode":
         keys = ("problem", "method", "outcome", "workstream", "first_read", "evidence",
                 "cause", "fix", "verified", "tags", "cases")

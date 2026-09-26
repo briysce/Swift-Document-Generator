@@ -154,3 +154,18 @@ def test_stdout_carries_only_protocol_even_when_a_tool_prints(monkeypatch, capsy
     assert [r.get("id") for r in replies] == [1, 2, None]
     assert replies[2]["error"]["code"] == -32700
     assert "engine chatter" in err
+
+
+def test_work_logged_over_mcp_is_in_the_journal_and_read_only_cannot_log(tmp_path, monkeypatch):
+    from tools.logo_vectorizer import meedo_journal as J
+
+    monkeypatch.setattr(J, "JOURNAL", tmp_path / "meedo_journal.json")
+    err, text = _call("meedo_log", {"agent": "cursor", "kind": "claim", "summary": "PROPAK dot", "task": "7"}, True)
+    assert err and "read-only" in text
+    err, text = _call("meedo_log", {"agent": "cursor", "kind": "done", "summary": "PROPAK dot", "task": "7",
+                                    "tests": "pytest passed"})
+    assert not err, text
+    err, text = _call("meedo_journal", {"hours": "48"}, True)
+    got = json.loads(text)
+    assert not err and got["recent"][0]["agent"] == "cursor"
+    assert got["agents"]["cursor"]["incomplete"][0]["missing"] == ["looked", "review", "measured", "episode"]

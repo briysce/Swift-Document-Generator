@@ -695,8 +695,16 @@ def main(argv: list[str] | None = None) -> int:
         if a.json:
             print(json.dumps(waiting, indent=2))
             return 0
+        try:
+            from .meedo_journal import standup_lines
+
+            work = standup_lines()
+        except Exception:
+            work = []
         if not waiting:
             print("Meedo-Me standup: nothing awaiting a decision")
+            for line in work:
+                print(line)
             return 0
         print(f"Meedo-Me standup — {len(waiting)} proposal(s) awaiting a decision")
         try:
@@ -714,6 +722,8 @@ def main(argv: list[str] | None = None) -> int:
                     if ep.get("method"):
                         print(f"           remembered {ep['id']} ({ep['outcome']}): {ep['method'][:180]}")
         print("\ndecide with: python -m tools.logo_vectorizer.meedo_ledger decide <id> accept|reject \"<reason>\"")
+        for line in work:
+            print(line)
         return 0
 
     if a.command == "decide":

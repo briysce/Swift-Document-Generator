@@ -193,18 +193,22 @@ def build(source: Path = SOURCE, *, quick: bool = False) -> tuple[str, dict]:
     supply = [D.fit_loop(c, tol=0.25) for c in D.contours(supply_cov, 0.5, min_len=12)]
     D.snap_lines(supply)
 
-    dark_loops = loops_of(bar_dark) + loops_of(letter_dark)
+    bar_dark_loops, letter_dark_loops = loops_of(bar_dark), loops_of(letter_dark)
+    dark_loops = bar_dark_loops + letter_dark_loops
     paths = {
-        "dark": "".join(D.loop_path(lp) for lp in dark_loops),
+        "bar-borders": "".join(D.loop_path(lp) for lp in bar_dark_loops),
+        "shadow-and-outline": "".join(D.loop_path(lp) for lp in letter_dark_loops),
         "supply": "".join(D.loop_path(lp) for lp in supply),
-        "orange": "".join(D.loop_path(lp) for lp in bar_loops + letter_loops),
+        "swift-and-bars": "".join(D.loop_path(lp) for lp in bar_loops + letter_loops),
     }
+    # Separate ids so variants can be derived from this one master: the
+    # one-colour lockup keeps the bars' borders (they are the bars' extent)
+    # and drops the letters' outline and shadow.
+    ink = {"bar-borders": DARK, "shadow-and-outline": DARK, "supply": DARK, "swift-and-bars": ORANGE}
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w * 4}" height="{h * 4}">\n'
            f'  <title>Swift Supply</title>\n'
-           f'  <path id="shadow-and-outline" fill="{_hex(DARK)}" fill-rule="evenodd" d="{paths["dark"]}"/>\n'
-           f'  <path id="supply" fill="{_hex(DARK)}" fill-rule="evenodd" d="{paths["supply"]}"/>\n'
-           f'  <path id="swift-and-bars" fill="{_hex(ORANGE)}" fill-rule="evenodd" d="{paths["orange"]}"/>\n'
-           f'</svg>\n')
+           + "".join(f'  <path id="{k}" fill="{_hex(ink[k])}" fill-rule="evenodd" d="{d}"/>\n' for k, d in paths.items())
+           + '</svg>\n')
     report = {
         "letters": {"outline": round(lw, 3), "shadow": (round(ldx, 3), round(ldy, 3)), "error": round(le, 5)},
         "bars": {"border": round(bw, 3), "shadow": (round(bdx, 3), round(bdy, 3)), "error": round(be, 5)},

@@ -34,6 +34,11 @@ def regen(name: str, fill: str) -> bool:
 
 
 def main() -> int:
+    if "--overwrite-vector-master" not in sys.argv:
+        print("The Swift brand logos are exported from the vector master by "
+              "scripts/export_swift_app_logos.py. This script rebuilds them from a raster "
+              "and would replace that vector; pass --overwrite-vector-master to do it anyway.", file=sys.stderr)
+        return 2
     ok = regen("white", "#FFFFFF") and regen("orange", "#CE4E30")
     return 0 if ok else 1
 

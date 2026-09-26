@@ -10,12 +10,26 @@ that is only consulted after the fact.
 ```
 python -m tools.logo_vectorizer.meedo_ledger standup
 python -m tools.logo_vectorizer.meedo_ledger decide --by <you> <id> accept|reject "<reason>"
-python -m tools.logo_vectorizer.meedo_episodes recall "<problem>"
+python -m tools.logo_vectorizer.meedo_journal log --agent <you> --task <n> --kind claim "<what>"
+# recall before diagnosing: meedo_recall over MCP (or meedo_episodes.recall)
 # …do the work, with meedo_review on logo outputs…
 python -m tools.logo_vectorizer.meedo_ledger observe   # usually automatic from the improve loop
 python -m tools.logo_vectorizer.meedo_ledger propose
+python -m tools.logo_vectorizer.meedo_journal log --agent <you> --task <n> --kind done \
+    --tests "…" --looked "…" --review "…" --measured "…" --episode E00NN "<what>"
 python -m tools.logo_vectorizer.meedo_ledger report
 ```
+
+**Every unit of work goes in Meedo-Me's journal** (`meedo_journal`, or `meedo_log`
+over MCP): a `claim` when you start a task, a `finding` when you learn something
+on the way (a cause, a false alarm, a measurement), and a `done` when you push —
+answering each house rule in its evidence (tests, looked, review, measured,
+episode; `n/a: <why>` when one does not apply). `handoff`, `blocked`, `pause`
+and `resume` when you stop. The standup shows who holds what, which claims have
+gone quiet, and which finished units skipped a rule. When Meedo-Me gets
+something wrong — a false alarm, advice that misled, a gap in what it records —
+fix it then, with a test, and record the episode: it improves by being
+corrected in the work, by whichever agent finds the fault.
 
 Decide every proposal in the standup before starting new work. Accept only what
 you will act on now — accepted advice is judged by later runs, so accepting and

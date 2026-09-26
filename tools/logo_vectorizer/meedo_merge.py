@@ -9,7 +9,8 @@ on every concurrent append. This merges them by meaning instead:
   * a proposal decided on one side and still open on the other keeps the
     decision; decided on both, the later decision stands;
   * two different episodes that took the same id (both sides wrote "E0026")
-    both survive — the incoming one is renumbered.
+    both survive — the incoming one is renumbered;
+  * the work journal is the union of both sides' entries.
 
 Installed as a git merge driver by scripts/setup_collab.sh:
 
@@ -96,11 +97,22 @@ def merge_ledger(ours: dict, theirs: dict) -> dict:
     return out
 
 
+def merge_journal(ours: dict, theirs: dict) -> dict:
+    """Work-journal entries are ids of agent and moment, so they never collide:
+    the union is the whole history of both branches."""
+    entries = {e["id"]: e for e in ours.get("entries", [])}
+    for e in theirs.get("entries", []):
+        entries.setdefault(e["id"], e)
+    return {**ours, "entries": sorted(entries.values(), key=lambda e: (e.get("ts", ""), e["id"]))}
+
+
 def merge(ours_path: str, theirs_path: str) -> bool:
     ours, theirs = _load(ours_path), _load(theirs_path)
     if ours is None or theirs is None:
         return False
-    if "episodes" in ours or "episodes" in theirs:
+    if "entries" in ours or "entries" in theirs:
+        result = merge_journal(ours, theirs)
+    elif "episodes" in ours or "episodes" in theirs:
         result = merge_episodes(ours, theirs)
     else:
         result = merge_ledger(ours, theirs)

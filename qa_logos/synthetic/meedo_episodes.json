@@ -557,6 +557,54 @@
       ],
       "cases": [],
       "source": "mcp"
+    },
+    {
+      "id": "E0026",
+      "ts": "2026-09-26T13:27:36Z",
+      "commit": "11c1b58",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Meedo-Me's reviewer blocked the rebuilt Swift master (and every app export) for 'deleting' its charcoal outline",
+      "first_read": "Looked like the export lost the dark ink, or the app's pure black differs from the scan's charcoal.",
+      "evidence": "Sketch palette (33,31,39) 13.3%; master palette (32,32,39) 29.8% at sketch size \u2014 the ink was there. Chroma 0.031 vs 0.027 either side of DARK_TINT 0.03, so _matches required 'tinted' of a colour it read as black.",
+      "cause": "A hard threshold in colour classification: one grey level moved a colour across it and flipped the match. First fix (layer colours from pixel means instead of 8-level bin centres) changed 13 of 54 corpus verdicts, including un-blocking GCM's genuinely lost i-dots \u2014 reverted. A plain RGB-distance rule could not separate the case either: crushed navy reads (0,0,8), 8 from black.",
+      "fix": "Hysteresis in _matches: a dark tinted sketch colour is matched by a dark output colour of about the same lightness (within 12) carrying at least half the tint in the same hue family.",
+      "verified": "27 reviewer tests incl. the real Swift source vs master; replayed all 54 corpus outputs against the HEAD reviewer: 0 verdicts changed.",
+      "method": "When a reviewer blocks something that looks right, print both palettes before touching code, find the threshold the colours straddle, and fix the cliff (hysteresis) rather than widening tolerance. Replay the whole corpus old-vs-new: a reviewer fix that changes any other verdict is a different change.",
+      "tags": [
+        "false-alarm",
+        "reviewer",
+        "swift",
+        "threshold"
+      ],
+      "cases": [
+        "swift"
+      ],
+      "source": "claude"
+    },
+    {
+      "id": "E0027",
+      "ts": "2026-09-26T13:27:36Z",
+      "commit": "11c1b58",
+      "workstream": "swift-logo",
+      "outcome": "success",
+      "problem": "The app's 'vector' Swift logo was a PNG in an SVG wrapper; put the rebuilt vector into the app",
+      "first_read": "Replace the SVG file with the rebuilt one.",
+      "evidence": "The PDF painter scales by viewBox width and ignores its origin; PNG fallback, ink metrics and chrome sizing all assume the 2987x910 box; the app's brand orange is #CE4E30, not the scan's (221,77,42).",
+      "cause": "Every app variant had been a raster enlargement (0.5% non-uniform stretch) with synthetic outline/shadow.",
+      "fix": "scripts/export_swift_app_logos.py derives every variant from the one master: uniform scale into the box, app palette, PNG rendered from the same SVG; old raster generators refuse to overwrite without a flag.",
+      "verified": "Ship/receiving/BOL PDFs draw a 173-segment vector path with no image placed; looked at 8x; swift_pdf_logo_test passes; export --check in pytest.",
+      "method": "Put a master vector into an app by exporting, never by copying: find what the consumers assume (box, origin, palette), bake those into the export, render rasters from the same vector, add a staleness check, and fence off the old generators so a rerun cannot bring the raster back.",
+      "tags": [
+        "app",
+        "export",
+        "swift",
+        "vector"
+      ],
+      "cases": [
+        "swift"
+      ],
+      "source": "claude"
     }
   ]
 }

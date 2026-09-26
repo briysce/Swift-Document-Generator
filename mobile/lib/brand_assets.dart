@@ -10,13 +10,16 @@ class SwiftBrandAssets {
   /// True vector master [logoOrange] was rasterized from (same 2987×910
   /// viewBox/coordinate space) — PDF embeds this directly as vector paths so
   /// the Swift lockup never pixelates at any zoom, print size, or DPI.
+  /// Both are exported by `scripts/export_swift_app_logos.py` from the
+  /// rebuilt master `assets/brand/swift_supply_logo_rebuilt.svg`.
   static const logoOrangeSvg = 'assets/images/swift_supply_logo_orange.svg';
 
   /// Older transparent-plate export (seams between fill and outline). Unused
   /// by generated PDFs — kept so existing chrome/tests can still load it.
   static const logoDocument = 'assets/images/swift_supply_logo_document.png';
 
-  /// App chrome / side-menu logo: flat solid-orange lockup (no shadow).
+  /// App chrome / side-menu logo: flat solid-orange lockup (no shadow),
+  /// rendered at 2987×910 from the same vector master as [logoOrange].
   static const logoOrangeSolid =
       'assets/images/swift_supply_logo_orange_solid.png';
 

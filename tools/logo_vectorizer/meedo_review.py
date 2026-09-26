@@ -65,6 +65,18 @@ HUE_FAMILY = 30.0          # degrees
 DARK_LUM = 60.0
 DARK_TINT = 0.03
 LIGHTNESS_MATCH = 70.0     # 0-255, for neutrals
+# Hysteresis on DARK_TINT: a dark sketch colour judged tinted is matched by a
+# dark output colour carrying at least this much chroma in the same hue family.
+# False alarm #3: the Swift master's charcoal read (32,32,39) after resampling
+# and the sketch's (33,31,39) — chroma 0.027 and 0.031, either side of 0.03 —
+# so the one outline ink was "tinted" in one and "black" in the other, and the
+# whole outline was reported deleted. A threshold is a line one grey level can
+# cross; the match must not flip on it. True black (chroma ~0) stays apart
+# from crushed navy, which the quantiser reads as (0,0,8). Only for colours
+# of about the same lightness: Arc's teal (43,60,62) crushed to (10,16,17)
+# keeps a trace of its hue but is not the same ink.
+DARK_TINT_KEPT = DARK_TINT / 2
+DARK_TINT_LUM = 12.0
 
 # An output carrying less ink than this share of its sketch's has collapsed.
 # Every genuine restoration on the corpus keeps well over half; the failures
@@ -222,10 +234,11 @@ def _has_hue(c) -> bool:
 
 
 def _matches(want, have) -> bool:
-    hw, _sw, lw = _hue(want)
+    hw, sw, lw = _hue(want)
     hh, sh, lh = _hue(have)
     if _has_hue(want):
-        if sh < DARK_TINT:
+        dark_tint = sw < HUE_MEANINGFUL and lw < DARK_LUM and abs(lw - lh) <= DARK_TINT_LUM
+        if sh < (DARK_TINT_KEPT if dark_tint else DARK_TINT):
             return False
         d = abs(hw - hh) % 360.0
         return min(d, 360.0 - d) <= HUE_FAMILY

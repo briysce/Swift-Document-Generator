@@ -171,14 +171,10 @@ class _Scale {
 /// the PNG's own alpha channel is fully transparent outside the ink, so
 /// nothing paints behind it except the splash background.
 ///
-/// No genuine vector-path source exists for this mark to use instead: the
-/// PDF pipeline's `_drawSwiftLogo` (`shipping_label_pdf.dart`,
-/// `bol_label_pdf.dart`) draws from [SwiftBrandAssets.logoOrangeSvg], but
-/// despite that asset's doc comment claiming "true vector paths", it is
-/// actually a base64-embedded raster PNG wrapped in an `<svg><image>` tag
-/// (confirmed by inspecting the file) — and it's the wrong (shadowed, non-
-/// solid) variant besides. So this falls back to the solid-orange raster PNG
-/// per brand guidance, same as [SwiftChromeLogo] does elsewhere in the app.
+/// The PNG is rendered at 2987×910 from the rebuilt vector master
+/// (`assets/brand/swift_supply_logo_orange_solid.svg`, exported by
+/// `scripts/export_swift_app_logos.py`), so it stays sharp at splash sizes;
+/// same asset as [SwiftChromeLogo] uses elsewhere in the app.
 class _SwiftMark extends StatelessWidget {
   const _SwiftMark({required this.width});
 

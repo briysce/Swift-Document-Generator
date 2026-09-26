@@ -584,6 +584,11 @@ def main() -> int:
         return 1
 
     if brand_mode:
+        if "--overwrite-vector-master" not in sys.argv:
+            print("The Swift brand logos are exported from the vector master by "
+                  "scripts/export_swift_app_logos.py. This script rebuilds them from a raster "
+                  "and would replace that vector; pass --overwrite-vector-master to do it anyway.", file=sys.stderr)
+            return 2
         export_brand_assets(src, trace_vector=trace_vector)
         return 0
 

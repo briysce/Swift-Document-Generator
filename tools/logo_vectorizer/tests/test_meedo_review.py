@@ -92,6 +92,39 @@ def test_a_crushed_dark_colour_restored_to_its_hue_passes():
     assert review(out, sketch).passed
 
 
+def test_a_colour_one_level_across_the_tint_threshold_is_the_same_ink():
+    """False alarm #3: the Swift master's charcoal outline, resampled to the
+    sketch's size, read (32,32,39) against the sketch's (33,31,39) — chroma
+    either side of DARK_TINT — so the outline was reported deleted. These are
+    the colours the reviewer actually read; flat test fills cannot reproduce
+    them, because the layer reading bins them to multiples of 8."""
+    from tools.logo_vectorizer.meedo_review import _matches
+
+    assert _matches((33, 31, 39), (32, 32, 39))
+    assert not _matches((0, 0, 8), (0, 0, 0))  # crushed navy, as read, is not black
+    assert not _matches((43, 60, 62), (10, 16, 17))  # Arc's teal crushed near black
+
+
+def test_the_swift_master_passes_against_its_source():
+    import io
+    from pathlib import Path
+
+    import cairosvg
+    from PIL import Image
+
+    brand = Path(__file__).resolve().parents[3] / "assets" / "brand"
+    png = cairosvg.svg2png(url=str(brand / "swift_supply_logo_rebuilt.svg"), output_width=2972, output_height=920)
+    rv = review(Image.open(io.BytesIO(png)), Image.open(brand / "swift_supply_source.png"))
+    assert rv.passed, [f.detail for f in rv.findings]
+
+
+def test_crushed_navy_is_still_not_black():
+    """SAME_INK must stay below the closest pair of inks that differ."""
+    sketch = _logo([((10, 20, 70, 60), (0, 1, 12)), ((100, 20, 140, 60), RED)])
+    out = _logo([((10, 20, 70, 60), (0, 0, 0)), ((100, 20, 140, 60), RED)])
+    assert not review(out, sketch).passed
+
+
 def test_true_black_is_not_satisfied_by_a_colour():
     """The leniency above must not let a real black element be replaced."""
     orange = (200, 72, 48)
