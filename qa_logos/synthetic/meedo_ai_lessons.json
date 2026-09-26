@@ -1,4 +1,126 @@
 {
   "version": 1,
-  "lessons": []
+  "lessons": [
+    {
+      "id": "AL3baddfea",
+      "domain": "logo_restore",
+      "problem": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "diagnosis": "palette mush",
+      "method": "palette mush",
+      "actions": [
+        "recreate"
+      ],
+      "risks": [
+        "never invent brand colors from gray"
+      ],
+      "providers": [
+        "gemini"
+      ],
+      "tags": [
+        "collab_mind",
+        "logo_restore",
+        "gemini"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "agree": null,
+      "source": "ai_collab",
+      "ts": "2026-09-26T13:51:08Z",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "raw": {
+        "takeover": true,
+        "preferred_path": "recreate",
+        "recommended_backends": [],
+        "recommended_preprocess": {},
+        "brand_name": "",
+        "font_family_guess": "",
+        "dominant_colors_hex": [],
+        "diagnosis": "palette mush",
+        "actions": [
+          "recreate"
+        ],
+        "gemini_notes": "",
+        "claude_notes": "",
+        "providers_used": [
+          "gemini"
+        ],
+        "agree": null
+      }
+    },
+    {
+      "id": "ALe06dbf90",
+      "domain": "logo",
+      "problem": "Arc RESOURCES LTD. tagline drops in reconstruction; prep keeps navy islands; glyph_match 0. Prefer sectional color-split. Must keep teal RESOURCES LTD. + swoosh + serif ARC.",
+      "diagnosis": "The logo prep pipeline discards the smaller teal 'RESOURCES LTD.' glyphs during noise filtering because uniform area-based pruning treats them as artifacts relative to the larger navy 'ARC' letterforms. Color-based segmentation must precede size-based filtering to preserve multi-scale, multi-hue components.",
+      "method": "For logos with heterogeneous component scales and distinct color regions, apply color-domain segmentation prior to morphological operations and area-based noise removal. Process each color layer with scale-appropriate thresholds, then composite the vectorized results to preserve both dominant marks and subordinate taglines.",
+      "actions": [
+        "In the logo prep pipeline for case 'arc__tagline', implement a sectional color-split in HSV/Lab space to cleanly separate the navy mark ('ARC') from the teal elements ('RESOURCES LTD.' and swoosh).",
+        "Lower the area/contour pruning threshold specifically on the extracted teal mask so small tagline glyphs are preserved rather than culled as speckle noise.",
+        "Execute two-pass vectorization on the distinct color masks and combine them in final assembly, preserving the serif contours of 'ARC' and the stroke integrity of the swoosh.",
+        "Validate glyph matching on 'arc__tagline' to confirm recognition of both 'ARC' and 'RESOURCES LTD.'.",
+        "Implement HSV color-space segmentation in the logo prep pipeline for 'arc__tagline' to isolate navy (#1B3A5F range) and teal (#00A3A1 range) components into separate binary masks before any contour filtering.",
+        "Apply relaxed area threshold (e.g., 0.02% of image area instead of default 0.1%) exclusively to the teal mask to retain small tagline glyphs and the thin swoosh tail without admitting anti-aliasing noise.",
+        "Perform independent vectorization passes on navy and teal masks, then merge SVG paths in a single output group with original color attributes preserved from source palette values.",
+        "Add validation checkpoint: confirm OCR/glyph detection finds both 'ARC' (3 glyphs) and 'RESOURCES LTD.' (12 glyphs excluding spaces and period) in the final SVG render before marking the case as resolved."
+      ],
+      "risks": [
+        "Over-relaxing the teal noise threshold may introduce anti-aliasing boundary halos or background artifacts into the SVG.",
+        "Aggressive color quantization could fragment the thin tapering tail of the teal swoosh.",
+        "Color values must be derived strictly from the source palette; do not extrapolate colors from intermediate grayscale masks.",
+        "Teal mask with relaxed threshold may capture JPEG compression artifacts or edge anti-aliasing halos; mitigate with morphological opening (1-2px kernel) post-thresholding.",
+        "Thin swoosh tail may fragment if color quantization bins are too narrow; use \u00b15% hue tolerance in HSV segmentation.",
+        "Ensure teal and navy hex values are sampled directly from source PNG dominant colors, not interpolated from grayscale conversions, to avoid palette drift in final SVG."
+      ],
+      "providers": [
+        "gemini",
+        "claude"
+      ],
+      "tags": [
+        "arc",
+        "tagline"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "agree": true,
+      "source": "ai_collab",
+      "ts": "2026-09-26T13:51:16Z",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "raw": {
+        "domain": "logo",
+        "diagnosis": "The logo prep pipeline discards the smaller teal 'RESOURCES LTD.' glyphs during noise filtering because uniform area-based pruning treats them as artifacts relative to the larger navy 'ARC' letterforms. Color-based segmentation must precede size-based filtering to preserve multi-scale, multi-hue components.",
+        "priority": 1,
+        "actions": [
+          "In the logo prep pipeline for case 'arc__tagline', implement a sectional color-split in HSV/Lab space to cleanly separate the navy mark ('ARC') from the teal elements ('RESOURCES LTD.' and swoosh).",
+          "Lower the area/contour pruning threshold specifically on the extracted teal mask so small tagline glyphs are preserved rather than culled as speckle noise.",
+          "Execute two-pass vectorization on the distinct color masks and combine them in final assembly, preserving the serif contours of 'ARC' and the stroke integrity of the swoosh.",
+          "Validate glyph matching on 'arc__tagline' to confirm recognition of both 'ARC' and 'RESOURCES LTD.'.",
+          "Implement HSV color-space segmentation in the logo prep pipeline for 'arc__tagline' to isolate navy (#1B3A5F range) and teal (#00A3A1 range) components into separate binary masks before any contour filtering.",
+          "Apply relaxed area threshold (e.g., 0.02% of image area instead of default 0.1%) exclusively to the teal mask to retain small tagline glyphs and the thin swoosh tail without admitting anti-aliasing noise.",
+          "Perform independent vectorization passes on navy and teal masks, then merge SVG paths in a single output group with original color attributes preserved from source palette values.",
+          "Add validation checkpoint: confirm OCR/glyph detection finds both 'ARC' (3 glyphs) and 'RESOURCES LTD.' (12 glyphs excluding spaces and period) in the final SVG render before marking the case as resolved."
+        ],
+        "method": "For logos with heterogeneous component scales and distinct color regions, apply color-domain segmentation prior to morphological operations and area-based noise removal. Process each color layer with scale-appropriate thresholds, then composite the vectorized results to preserve both dominant marks and subordinate taglines.",
+        "risks": [
+          "Over-relaxing the teal noise threshold may introduce anti-aliasing boundary halos or background artifacts into the SVG.",
+          "Aggressive color quantization could fragment the thin tapering tail of the teal swoosh.",
+          "Color values must be derived strictly from the source palette; do not extrapolate colors from intermediate grayscale masks.",
+          "Teal mask with relaxed threshold may capture JPEG compression artifacts or edge anti-aliasing halos; mitigate with morphological opening (1-2px kernel) post-thresholding.",
+          "Thin swoosh tail may fragment if color quantization bins are too narrow; use \u00b15% hue tolerance in HSV segmentation.",
+          "Ensure teal and navy hex values are sampled directly from source PNG dominant colors, not interpolated from grayscale conversions, to avoid palette drift in final SVG."
+        ],
+        "gemini_notes": "Inspect intermediate prep masks for 'arc__tagline' to ensure all 12 characters of 'RESOURCES LTD.' and the continuous swoosh contour are fully isolated before passing to vector tracing.",
+        "claude_notes": "Agree with Gemini's core approach\u2014sectional color-split is the correct strategy. Refinements: (1) Specify exact HSV ranges and threshold percentages to make the plan actionable. (2) Clarify that morphological opening should follow thresholding on the teal mask to remove halos without losing the swoosh. (3) Add explicit glyph count validation (3 + 12 glyphs) as a pass/fail criterion. (4) Emphasize sampling colors from source PNG palette, not derived masks, per Gemini's risk note.",
+        "providers_used": [
+          "gemini",
+          "claude"
+        ],
+        "agree": true,
+        "handoff_to_meedo": true
+      }
+    }
+  ]
 }
