@@ -124,6 +124,40 @@
       "kind": "claim",
       "summary": "Meedo-Me learns from every Gemini/Claude consultation (track record, lessons, dataset, shadow mode)",
       "commit": "99d89a4"
+    },
+    {
+      "id": "2026-09-26T13:56:45Z-claude",
+      "ts": "2026-09-26T13:56:45Z",
+      "agent": "claude",
+      "task": "13",
+      "kind": "finding",
+      "summary": "First live minds consultation (swift solid import_combo): Claude named the real faults; Gemini said ship, calling JPEG damage a 'distressed font style'. Judged; Claude's method is E0028",
+      "commit": "735b574"
+    },
+    {
+      "id": "2026-09-26T13:56:45Z-claude-2",
+      "ts": "2026-09-26T13:56:45Z",
+      "agent": "claude",
+      "task": "13",
+      "kind": "finding",
+      "summary": "Caught before push: a test string copied from the start of a real API key; replaced with a fake and amended. The secret scan runs before every commit now, not after",
+      "commit": "735b574"
+    },
+    {
+      "id": "2026-09-26T13:56:45Z-claude-3",
+      "ts": "2026-09-26T13:56:45Z",
+      "agent": "claude",
+      "task": "13",
+      "kind": "done",
+      "summary": "Meedo-Me consultation memory (track record, disagreements, lessons\u2192episodes, dataset export, shadow readiness, app ingest); hourly WhatsApp digest + connect whatsapp; procedure traces (1,369 calls)",
+      "commit": "735b574",
+      "evidence": {
+        "tests": "pytest 130 passed (consult 5, progress 5, trace 3, MCP)",
+        "looked": "digest text read end to end; minds critique compared by eye to sketch/output/clean",
+        "review": "n/a: no logo output shipped",
+        "measured": "traces scanned: 0 key-shaped, 0 phone-shaped strings",
+        "episode": "E0028 (learned from Claude)"
+      }
     }
   ]
 }
