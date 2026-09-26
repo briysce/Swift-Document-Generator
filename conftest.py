@@ -18,7 +18,7 @@ import pytest
 ROOT = Path(__file__).resolve().parent
 MEMORY = ROOT / "qa_logos" / "synthetic"
 REAL = [MEMORY / n for n in ("meedo_episodes.json", "meedo_ledger.json", "meedo_journal.json",
-                             "meedo_consultations.json", "meedo_ai_lessons.json")]
+                             "meedo_consultations.json", "meedo_ai_lessons.json", "meedo_procedures.json")]
 
 # (module, attribute, file name) for every place a memory path lives.
 _PATHS = [
@@ -28,6 +28,7 @@ _PATHS = [
     ("tools.logo_vectorizer.meedo_consult", "CONSULTATIONS", "meedo_consultations.json"),
     ("tools.ai_collab.learn", "DEFAULT_PATH", "meedo_ai_lessons.json"),
     ("tools.ai_collab.learn", "CANONICAL_LESSONS_PATH", "meedo_ai_lessons.json"),
+    ("tools.ai_collab.procedures", "DEFAULT_PATH", "meedo_procedures.json"),
     ("tools.meedo_me.trace", "TRACES", "meedo_traces"),
 ]
 

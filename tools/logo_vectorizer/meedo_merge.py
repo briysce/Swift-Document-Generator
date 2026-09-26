@@ -156,6 +156,11 @@ def merge(ours_path: str, theirs_path: str) -> bool:
         return False
     if "consultations" in ours or "consultations" in theirs:
         result = merge_consultations(ours, theirs)
+    elif "procedures" in ours or "procedures" in theirs:
+        result = merge_procedures(
+            ours or {"version": 1, "procedures": []},
+            theirs or {"version": 1, "procedures": []},
+        )
     elif "lessons" in ours or "lessons" in theirs:
         # meedo_ai_lessons.json — union by lesson id / problem+method.
         result = merge_ai_lessons(
@@ -211,6 +216,57 @@ def merge_ai_lessons(ours: dict, theirs: dict) -> dict:
             )
     mine.sort(key=lambda e: (e.get("ts", ""), e.get("id", "")))
     return {**ours, "version": ours.get("version", 1), "lessons": mine}
+
+
+def merge_procedures(ours: dict, theirs: dict) -> dict:
+    """Union procedure playbook by id; higher confidence / offline_ready wins."""
+    mine = list(ours.get("procedures", []))
+    ids = {p.get("id"): p for p in mine if p.get("id")}
+    for p in theirs.get("procedures", []):
+        pid = p.get("id")
+        if not pid or pid not in ids:
+            mine.append(p)
+            if pid:
+                ids[pid] = p
+            continue
+        have = ids[pid]
+        if have == p:
+            continue
+        if p.get("retracted") and not have.get("retracted"):
+            mine[mine.index(have)] = p
+            ids[pid] = p
+            continue
+        if have.get("retracted"):
+            continue
+        score_have = (
+            int(have.get("times_applied_offline") or 0) * 10
+            + float(have.get("confidence") or 0) * 5
+            + (3 if have.get("offline_ready") else 0)
+            + len(have.get("steps") or [])
+        )
+        score_new = (
+            int(p.get("times_applied_offline") or 0) * 10
+            + float(p.get("confidence") or 0) * 5
+            + (3 if p.get("offline_ready") else 0)
+            + len(p.get("steps") or [])
+        )
+        if score_new > score_have:
+            mine[mine.index(have)] = p
+            ids[pid] = p
+        else:
+            have["times_recalled"] = max(
+                int(have.get("times_recalled") or 0), int(p.get("times_recalled") or 0)
+            )
+            have["times_applied_offline"] = max(
+                int(have.get("times_applied_offline") or 0),
+                int(p.get("times_applied_offline") or 0),
+            )
+            have["confidence"] = max(
+                float(have.get("confidence") or 0), float(p.get("confidence") or 0)
+            )
+            have["offline_ready"] = bool(have.get("offline_ready") or p.get("offline_ready"))
+    mine.sort(key=lambda e: (e.get("ts", ""), e.get("id", "")))
+    return {**ours, "version": ours.get("version", 1), "procedures": mine}
 
 
 def main(argv: list[str] | None = None) -> int:

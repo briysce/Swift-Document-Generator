@@ -28,20 +28,22 @@ under workstream `meedo-me`.
 | `meedo_journal_recent` | Recent journal units, filterable by agent or task. |
 | `meedo_claude_progress` | Hourly progress digest for Claude Code (board + journal + commits). Use for OpenClaw → WhatsApp updates. |
 | `meedo_ai_lessons` | Lessons Meedo learned from Gemini+Claude — prefer before calling live APIs again. |
+| `meedo_procedures` | Fine-grained procedures (Serper queries, knobs, digest shape, merge rules). Prefer `offline_ready`. |
+| `meedo_study` | What APIs/faces did that Meedo cannot yet own offline + confidence. |
 | `meedo_recall` | Before diagnosing anything: past episodes most like the problem — what it first looked like, the evidence that turned it, the cause, the method. |
 | `meedo_playbook` | List every method learned, with how each was earned. |
-| `meedo_report` | Status: run trend, how the advice has fared, what the reviewer blocked, cases that never moved. |
+| `meedo_report` | Status: run trend, how the advice has fared, what the reviewer blocked, cases that never moved (includes study). |
 | `meedo_review` | Verdict on a restored logo against its sketch. Blocked means a brand colour was dropped or the mark collapsed. |
-| `meedo_ai_lessons` | Recall lessons learned from Gemini+Claude. Prefer high-score hits before calling live APIs again. |
 | `meedo_ai_advise` | Gemini plans → Claude critiques (or recalled lesson). Persists so Meedo can own repeats offline. Fail-open. |
+| `meedo_observe` | Record what any face tried into journal + lessons + episodes + procedures (one memory). |
 | `meedo_decide` | Record the user's accept/reject on a proposal, with their reason. |
 | `meedo_record_episode` | Record how a problem was solved so the method carries forward. |
 
-The last three change what Meedo-Me believes (`meedo_ai_advise` writes lessons;
-`meedo_decide` / `meedo_record_episode` write ledger/episodes). They are absent
-when the server runs read-only — the default for any agent that reads email,
-chat or the web. Without them, tell the user what to decide or record, and let
-them do it from the Meedo-Me app or Claude Code.
+`meedo_ai_advise` / `meedo_observe` / `meedo_decide` / `meedo_record_episode` /
+`meedo_journal_log` change what Meedo-Me believes. They are absent when the
+server runs read-only — the default for any agent that reads email, chat or
+the web. Without them, tell the user what to decide or record, and let them
+do it from the Meedo-Me app or Claude Code.
 
 ## How to work
 

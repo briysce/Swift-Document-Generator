@@ -313,10 +313,35 @@ def polish_with_ai(text: str, data: dict) -> str:
             problem=("Rewrite this Meedo-Me progress digest as a concise WhatsApp update (≤1200 chars). "
                      "Keep all board #, statuses, and commit SHAs. No fluff. Return the message body only "
                      "in method or diagnosis."),
-            extra_context={"digest": text[:3500], "agent": data.get("agent")},
+            context={"digest": text[:3500], "agent": data.get("agent")},
+            tags=["openclaw", "whatsapp", "progress"],
             journal=False,
         )
         body = ((advice.method or advice.diagnosis or "") if advice is not None else "").strip()
+        # Meedo studies the digest's shape so it can own the polish offline (Cursor).
+        try:
+            from tools.ai_collab.observe import observe
+
+            observe(
+                face="openclaw", domain="meedo_progress",
+                tried="Polish hourly Claude/Cursor progress for WhatsApp",
+                evidence=f"agent={data.get('agent')} hours={data.get('hours')}",
+                method=("Headline first; ≤1800 chars; keep board #/status/SHA; no fluff; E.164 target from "
+                        "MEEDO_WHATSAPP_TO in gitignored .env only."),
+                outcome="success",
+                steps=["collect(agent, hours) from both branches' memory + COORDINATION + git",
+                       "format_digest → optional Gemini↔Claude polish",
+                       "print; OpenClaw's announce delivers (or --send once)"],
+                knobs={"max_chars": MAX_CHARS, "channel": "whatsapp",
+                       "env_keys": ["MEEDO_WHATSAPP_TO", "OPENCLAW_WHATSAPP_TO"]},
+                do_not_regress=["never commit phone numbers or API keys",
+                                "fail-open to unpolished digest when APIs dark"],
+                providers=list(getattr(advice, "providers_used", []) or []),
+                tags=["whatsapp", "openclaw", "progress"], task=6, journal=False, lesson=True,
+                episode=False, procedure=True, offline_ready=True, confidence=0.65, source="progress_polish",
+            )
+        except Exception:
+            pass
         return body[:1500] + "\n" if len(body) >= 40 else text
     except Exception as exc:  # noqa: BLE001
         print(f"[progress] AI polish skipped: {exc}", file=sys.stderr)

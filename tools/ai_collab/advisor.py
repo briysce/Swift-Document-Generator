@@ -145,6 +145,25 @@ def advise(
     )
     if journal:
         _journal(advice, kind="finding")
+    # Study the face: persist procedure playbook for offline hand-off.
+    try:
+        from tools.ai_collab.observe import observe_deliberation
+
+        observe_deliberation(
+            advice,
+            face="ai_collab" if advice.offline else (
+                "gemini" if advice.providers_used == ["gemini"]
+                else "claude" if advice.providers_used == ["claude"]
+                else "ai_collab"
+            ),
+            domain=domain,
+            problem=problem,
+            cases=cases,
+            tags=tags or [domain],
+            outcome="open",
+        )
+    except Exception:
+        pass
     return advice
 
 

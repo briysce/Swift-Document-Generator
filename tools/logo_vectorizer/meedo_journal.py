@@ -34,6 +34,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -129,7 +130,8 @@ def evidence(e: dict) -> dict:
     """An entry's answers to the house rules, whichever agent's vocabulary it
     was written in."""
     ev = dict(e.get("evidence") or {})
-    out = {k: str(ev.get(k, "")).strip() for k in ("tests", "review", "episode")}
+    out = {k: str(ev.get(k, "")).strip() for k in ("tests", "review")}
+    out["episode"] = str(ev.get("episode") or ev.get("episode_id") or "").strip()
     out["commit"] = str(e.get("commit") or ev.get("commit") or "").strip()
     looked = str(ev.get("looked", "")).strip()
     if not looked and ev.get("images_looked_at") is True:
@@ -203,7 +205,66 @@ def log(
         entry["files"] = sorted(set(files))
     data["entries"].append(entry)
     save(data, path)
+    # Done units without an episode leave Meedo-Me blind to the method (Cursor):
+    # record one from evidence.method, or flag the entry for the standup.
+    if kind == "done":
+        _prompt_episode_on_done(entry, path=path)
     return entry
+
+
+def _prompt_episode_on_done(entry: dict, *, path: Path | None = None) -> None:
+    """Fail-open: nudge / auto-capture method so Meedo studies agent dones."""
+    ev = entry.get("evidence") or {}
+    if ev.get("episode") or ev.get("episode_id"):
+        return
+    method = str(ev.get("method") or ev.get("episode_method") or "").strip()
+    summary = entry.get("summary") or ""
+    try:
+        if method:
+            from . import meedo_episodes as E
+
+            ep = E.record(
+                problem=summary[:400],
+                method=method[:600],
+                outcome="success",
+                workstream="meedo-me" if entry.get("task") == 3 else "logo-engine",
+                first_read=f"journal done by {entry.get('agent')}",
+                evidence=str(ev.get("tests") or ev.get("measured_vs_previous") or "")[:400],
+                verified=str(ev.get("tests") or "")[:200],
+                tags=["journal_done", str(entry.get("agent") or "")],
+                cases=[],
+                source="journal_done_auto",
+            )
+            # Refresh evidence pointer on the journal entry.
+            data = load(path)
+            for e in data.get("entries") or []:
+                if e.get("id") == entry.get("id"):
+                    e.setdefault("evidence", {})["episode_id"] = ep.get("id")
+                    e["evidence"]["episode_auto"] = True
+                    break
+            save(data, path)
+            entry.setdefault("evidence", {})["episode_id"] = ep.get("id")
+            print(
+                f"[meedo_journal] done {entry.get('id')} → auto episode {ep.get('id')}",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"[meedo_journal] done {entry.get('id')} missing episode — "
+                "record with meedo_record_episode or pass evidence.method / "
+                "evidence.episode_id so Meedo studies the method.",
+                file=sys.stderr,
+            )
+            # Soft flag for standup.
+            entry.setdefault("evidence", {})["needs_episode"] = True
+            data = load(path)
+            for e in data.get("entries") or []:
+                if e.get("id") == entry.get("id"):
+                    e.setdefault("evidence", {})["needs_episode"] = True
+                    break
+            save(data, path)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[meedo_journal] episode prompt skipped: {exc}", file=sys.stderr)
 
 
 def recent(*, agent: str = "", task=None, limit: int | None = 12, hours: float | None = None,

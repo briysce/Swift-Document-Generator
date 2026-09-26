@@ -12,11 +12,15 @@ from .client import available, claude_available, gemini_available, gemini_text, 
 from .deliberate import Deliberation, deliberate
 from .env import load_env, ai_configured
 from .learn import Lesson, persist_lesson, recall_lessons, lessons_path
+from .observe import ObservationResult, observe
+from .procedures import Procedure, persist_procedure, recall_procedures
 
 __all__ = [
     "Advice",
     "Deliberation",
     "Lesson",
+    "ObservationResult",
+    "Procedure",
     "advise",
     "ai_configured",
     "available",
@@ -27,6 +31,9 @@ __all__ = [
     "gemini_text",
     "lessons_path",
     "load_env",
+    "observe",
     "persist_lesson",
+    "persist_procedure",
     "recall_lessons",
+    "recall_procedures",
 ]

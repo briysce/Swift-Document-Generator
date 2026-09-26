@@ -184,6 +184,13 @@ def run_loop(skip_render: bool = False, top_n: int = 10) -> dict:
             "lessons."
         ),
     }
+    try:
+        from tools.ai_collab.improve_hook import enrich_summary as _ai_enrich
+
+        _ai_enrich(summary, domain="bol_pdf", max_items=2)
+    except Exception as e:  # pragma: no cover
+        print(f"ai_collab improve hook skipped ({e})", flush=True)
+
     record_run_snapshot("bol", summary)
     SUMMARY.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
