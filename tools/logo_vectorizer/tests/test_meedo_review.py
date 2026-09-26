@@ -197,3 +197,15 @@ def test_dots_are_found_on_an_output_cropped_to_its_ink():
     no_dots = _logo(WORD, size=(160, 80), page=page)[18:55, 10:150]
     big = np.asarray(Image.fromarray(no_dots).resize((140 * 6, 37 * 6), Image.Resampling.LANCZOS))
     assert not review(big, sketch).passed
+
+
+def test_a_dropped_letter_is_blocked_and_a_crisper_one_is_not():
+    """Arc's reconstruction kept every colour and lost tagline letters."""
+    page = (255, 255, 255)
+    letters = [((10 + 18 * i, 30, 24 + 18 * i, 55), NAVY) for i in range(6)]
+    sketch = _logo(letters, size=(130, 80), page=page)
+    dropped = _logo(letters[:2] + letters[3:], size=(130, 80), page=page)
+    rv = review(dropped, sketch)
+    assert not rv.passed and any(f.check == "element" for f in rv.findings)
+    thinner = _logo([((x0 + 3, y0 + 2, x1 - 3, y1 - 2), c) for (x0, y0, x1, y1), c in letters], size=(130, 80), page=page)
+    assert review(thinner, sketch).passed

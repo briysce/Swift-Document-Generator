@@ -90,6 +90,14 @@ DOT_MIN_FILL = 0.55        # of its bounding box: compact, not a sliver
 DOT_MAX_ASPECT = 2.5
 DOT_SOLID = 0.75           # peak darkness against the letters' typical darkness
 DOT_KEPT = 0.30            # share of the dot the output must still cover
+# Whole elements — letters, bars, marks — by the same correspondence. Arc's
+# reconstruction kept every colour and dropped "RESOURCES LTD."'s letters,
+# which no colour or dot check can see. An element is letter-sized when it is
+# at least this share of the median element in its colour. It is kept when the
+# output has ink along this share of its skeleton: presence, not area — a
+# restoration that draws a bold blurry letter thin and crisp has kept it.
+ELEMENT_MIN_FRAC = 0.3
+ELEMENT_KEPT = 0.4
 
 
 @dataclass
@@ -282,6 +290,95 @@ def _small_elements(arr: np.ndarray, layers) -> list[tuple[np.ndarray, tuple[int
     return out
 
 
+def _elements(layers) -> list[tuple[np.ndarray, tuple[int, int, int, int]]]:
+    """Letter-sized elements of all the ink together: (mask, bbox).
+
+    All colours at once: presence is judged colour-blind, and one ink can be
+    split across layers — Arc's teal tagline came back as two layers, and per
+    layer most of its letters fell under the size floor and were never checked.
+    """
+    import cv2
+
+    ink = np.zeros(layers[0][0].shape, bool) if layers else None
+    if ink is None:
+        return []
+    for m, c, _n in layers:
+        if not _is_page_white(c):
+            ink |= m.astype(bool)
+    k, lab, st, _ = cv2.connectedComponentsWithStats(ink.astype(np.uint8), connectivity=8)
+    areas = st[1:, cv2.CC_STAT_AREA]
+    sized = areas[areas >= 4 * DOT_MIN_PX]
+    if not len(sized):
+        return []
+    floor = max(4 * DOT_MIN_PX, ELEMENT_MIN_FRAC * float(np.median(sized)))
+    out = []
+    for i in np.flatnonzero(areas >= floor) + 1:
+        x, y, w, h = (int(v) for v in st[i, :4])
+        out.append((lab == i, (x, y, w, h)))
+    return out
+
+
+def _register(s_bulk: np.ndarray, o_bulk: np.ndarray, s_ink: np.ndarray, o_ink: np.ndarray) -> np.ndarray:
+    """Where each sketch pixel lands in the output: x' = sx*x + tx, y' = sy*y + ty.
+
+    Outputs are cropped to their ink and resized, so only stretch and shift
+    are possible — no shear, no rotation. Several starting points (ink
+    extents, moments of the bulk ink, the identity), each refined by a small
+    search on the correlation of blurred ink, and the best kept. One start is
+    not enough: ESRGAN's letters come back in fragments, the moments start
+    read the x-scale as 0.51 against a true 1.04, and ECC from there converged
+    to a sheared nonsense transform that called present letters missing.
+    """
+    import cv2
+
+    sb = cv2.GaussianBlur(s_ink.astype(np.float32), (0, 0), 1.5)
+    ob = cv2.GaussianBlur(o_ink.astype(np.float32), (0, 0), 1.5)
+    h, w = sb.shape
+    sn = float(np.sqrt((sb * sb).sum())) or 1.0
+
+    def score(p):
+        sx, sy, tx, ty = p
+        m = np.array([[sx, 0.0, tx], [0.0, sy, ty]], np.float32)
+        warped = cv2.warpAffine(ob, m, (w, h), flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP)
+        wn = float(np.sqrt((warped * warped).sum())) or 1.0
+        return float((sb * warped).sum()) / (sn * wn)
+
+    starts = [(1.0, 1.0, 0.0, 0.0)]
+    for a, b in ((s_ink, o_ink), (s_bulk, o_bulk)):
+        ay, ax = np.nonzero(a)
+        by, bx = np.nonzero(b)
+        if len(ax) and len(bx):
+            sx = (bx.max() - bx.min() + 1) / float(ax.max() - ax.min() + 1)
+            sy = (by.max() - by.min() + 1) / float(ay.max() - ay.min() + 1)
+            starts.append((sx, sy, bx.min() - sx * ax.min(), by.min() - sy * ay.min()))
+    ay, ax = np.nonzero(s_bulk)
+    by, bx = np.nonzero(o_bulk)
+    if len(ax) > 1 and len(bx) > 1:
+        sx = float(bx.std()) / max(float(ax.std()), 1e-6)
+        sy = float(by.std()) / max(float(ay.std()), 1e-6)
+        starts.append((sx, sy, bx.mean() - sx * ax.mean(), by.mean() - sy * ay.mean()))
+
+    best, best_s = None, -1.0
+    for p in starts:
+        p = list(p)
+        cur = score(p)
+        for step in (4.0, 2.0, 1.0, 0.5, 0.25):
+            improved = True
+            while improved:
+                improved = False
+                for i, d in ((2, step), (2, -step), (3, step), (3, -step),
+                             (0, step / 100), (0, -step / 100), (1, step / 100), (1, -step / 100)):
+                    q = list(p)
+                    q[i] = q[i] * (1 + d) if i < 2 else q[i] + d
+                    sc = score(q)
+                    if sc > cur + 1e-6:
+                        p, cur, improved = q, sc, True
+        if cur > best_s:
+            best, best_s = p, cur
+    sx, sy, tx, ty = best
+    return np.array([[sx, 0.0, tx], [0.0, sy, ty]], np.float32)
+
+
 def _check_small_elements(sketch: np.ndarray, output: np.ndarray, sketch_layers, output_layers) -> list[Finding]:
     """Every dot, accent and mark the sketch shows must still be drawn.
 
@@ -291,7 +388,8 @@ def _check_small_elements(sketch: np.ndarray, output: np.ndarray, sketch_layers,
     import cv2
 
     dots = _small_elements(sketch, sketch_layers)
-    if not dots:
+    elements = _elements(sketch_layers)
+    if not dots and not elements:
         return []
 
     def union(layers, shape):
@@ -315,54 +413,54 @@ def _check_small_elements(sketch: np.ndarray, output: np.ndarray, sketch_layers,
     o_bulk = bulk(ink)
     if not o_bulk.any() or not s_bulk.any():
         return []
-    # Align by the ink, not the canvas: preparation crops to the ink, so an
-    # output stretched onto the sketch's canvas drifts, most at the far edge —
-    # where GCM's third i-dot sits. Centre and spread, not extent: when the
-    # missing dots are the topmost ink, extents shrink and the alignment would
-    # stretch the word over the empty spots. A few dots barely move the moments.
-    # Moments give the start; ECC registration on all the ink then gives the
-    # sub-pixel fit a 4-px dot needs. Moments alone were a pixel or two off on
-    # GCM and PROPAK — enough to call present dots missing and the reverse.
-    sy, sx = np.nonzero(s_bulk)
-    oy, ox = np.nonzero(o_bulk)
-    fx = float(ox.std()) / max(float(sx.std()), 1e-6)
-    fy = float(oy.std()) / max(float(sy.std()), 1e-6)
-    warp = np.array([[fx, 0.0, ox.mean() - fx * sx.mean()],
-                     [0.0, fy, oy.mean() - fy * sy.mean()]], np.float32)
-    try:
-        t = cv2.GaussianBlur(s_bulk.astype(np.float32), (0, 0), 1.0)
-        i = cv2.GaussianBlur(o_bulk.astype(np.float32), (0, 0), 1.0)
-        crit = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 200, 1e-6)
-        # A copy: OpenCV rewrites the matrix in place even when it then fails.
-        _, warp = cv2.findTransformECC(t, i, warp.copy(), cv2.MOTION_AFFINE, crit, None, 5)
-    except cv2.error:
-        pass                                # keep the moments estimate
+    warp = _register(s_bulk, o_bulk, union(sketch_layers, sketch.shape[:2]), ink)
 
     def to_output(px, py):
         return (warp[0, 0] * px + warp[0, 1] * py + warp[0, 2],
                 warp[1, 0] * px + warp[1, 1] * py + warp[1, 2])
 
     scale = abs(float(warp[0, 0] * warp[1, 1] - warp[0, 1] * warp[1, 0]))
-    missing = []
-    for mask, (x, y, w, h) in dots:
+
+    def kept(mask, box, share, pad):
+        x, y, w, h = box
         ax, ay = to_output(x, y)
         bx, by = to_output(x + w, y + h)
-        x0, x1 = int(round(min(ax, bx))) - 1, int(round(max(ax, bx))) + 1
-        y0, y1 = int(round(min(ay, by))) - 1, int(round(max(ay, by))) + 1
+        x0, x1 = int(round(min(ax, bx))) - pad, int(round(max(ax, bx))) + pad
+        y0, y1 = int(round(min(ay, by))) - pad, int(round(max(ay, by))) + pad
         win = ink[max(0, y0):max(0, y1), max(0, x0):max(0, x1)]
-        if win.sum() < DOT_KEPT * mask.sum() * scale:
-            missing.append(f"({x + w // 2},{y + h // 2})")
-    if not missing:
-        return []
-    return [
-        Finding(
-            "small_element",
-            "block",
+        return win.sum() >= share * mask.sum() * scale
+
+    findings = []
+    missing = [f"({x + w // 2},{y + h // 2})" for mask, (x, y, w, h) in dots if not kept(mask, (x, y, w, h), DOT_KEPT, 1)]
+    if missing:
+        findings.append(Finding(
+            "small_element", "block",
             f"{len(missing)} of the {len(dots)} small elements the sketch shows "
             f"(dots, accents, marks) are missing, at {', '.join(missing)} in sketch pixels",
-            n=len(missing),
-        )
-    ]
+            n=len(missing)))
+    from skimage.morphology import skeletonize
+
+    near_ink = cv2.dilate(ink.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
+
+    def present(mask) -> bool:
+        ys, xs = np.nonzero(skeletonize(mask))
+        if not len(xs):
+            return True
+        px = np.round(warp[0, 0] * xs + warp[0, 1] * ys + warp[0, 2]).astype(int)
+        py = np.round(warp[1, 0] * xs + warp[1, 1] * ys + warp[1, 2]).astype(int)
+        inside = (px >= 0) & (py >= 0) & (px < ink.shape[1]) & (py < ink.shape[0])
+        hit = np.zeros(len(xs), bool)
+        hit[inside] = near_ink[py[inside], px[inside]]
+        return hit.mean() >= ELEMENT_KEPT
+
+    gone = [f"({x + w // 2},{y + h // 2})" for mask, (x, y, w, h) in elements if not present(mask)]
+    if gone:
+        findings.append(Finding(
+            "element", "block",
+            f"{len(gone)} of the {len(elements)} elements the sketch shows (letters, bars, marks) "
+            f"are missing, at {', '.join(gone[:8])}{' ...' if len(gone) > 8 else ''} in sketch pixels",
+            n=len(gone)))
+    return findings
 
 
 def _check_brand_colours(sketch_pal, output_pal) -> list[Finding]:
