@@ -23,9 +23,9 @@ breaks the app:
     Jan-something are Hugging Face repositories; renaming them breaks downloads.
   * internal package scopes (@janhq/*) and the jan-cli binary: imports and
     tooling reference them everywhere, and users never see them.
-  * the Jan logo images: they are Menlo Research's mark, and Apache-2.0 grants
-    no trademark rights, so they must be replaced — by a Meedo-Me logo, which
-    is a design decision this script does not invent.
+  * product logos: Jan marks must be replaced with Meedo-Me art (placeholder in
+    tools/meedo_me/branding/meedo-me-logo.svg). Apache-2.0 grants no trademark
+    rights to the Jan name or logo.
 
 Apache-2.0 obligations kept: LICENSE untouched, a NOTICE crediting Menlo
 Research, and the rename commit states what changed (section 4b).

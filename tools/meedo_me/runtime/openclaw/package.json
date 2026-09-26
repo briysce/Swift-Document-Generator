@@ -1,7 +1,7 @@
 {
-  "name": "meedo-me-openclaw-runtime",
+  "name": "meedo-me-messaging-runtime",
   "private": true,
-  "description": "OpenClaw fused into Meedo-Me — local npm tree only. Do not npm install -g openclaw.",
+  "description": "Meedo-Me messaging runtime (upstream openclaw npm deps). Not a separate product.",
   "engines": {
     "node": ">=24.16.0 <25 || >=26.1.0"
   },

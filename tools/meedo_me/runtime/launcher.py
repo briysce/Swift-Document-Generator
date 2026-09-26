@@ -224,8 +224,9 @@ def ensure_install(*, force: bool = False) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    # Early dispatch so OpenClaw flags like --version are not eaten by argparse.
-    if argv and argv[0] == "openclaw":
+    # Early dispatch so upstream CLI flags like --version are not eaten by argparse.
+    # `gateway` is the Meedo product name; `openclaw` remains a technical alias.
+    if argv and argv[0] in ("openclaw", "gateway", "messaging"):
         oc_args = argv[1:]
         if oc_args and oc_args[0] == "--":
             oc_args = oc_args[1:]
@@ -247,21 +248,23 @@ def main(argv: list[str] | None = None) -> int:
 
     ap = argparse.ArgumentParser(
         prog="python -m tools.meedo_me.runtime",
-        description="Meedo-Me fused OpenClaw runtime (no global npm install).",
+        description="Meedo-Me messaging runtime (fused; no separate global install).",
     )
     sub = ap.add_subparsers(dest="cmd", required=True)
-    e = sub.add_parser("ensure", help="npm ci the local OpenClaw tree if needed")
+    e = sub.add_parser("ensure", help="npm ci the local messaging tree if needed")
     e.add_argument("--force", action="store_true")
-    sub.add_parser("bin", help="print the local openclaw binary path")
-    sub.add_parser("home", help="print OPENCLAW_HOME (Meedo data dir)")
-    sub.add_parser("config", help="print OPENCLAW_CONFIG_PATH")
-    sub.add_parser("openclaw", help="run fused openclaw (pass args after this word)")
+    sub.add_parser("bin", help="print the local upstream CLI binary path")
+    sub.add_parser("home", help="print Meedo messaging home (OPENCLAW_HOME)")
+    sub.add_parser("config", help="print messaging config path")
+    sub.add_parser("gateway", help="run Meedo messaging gateway (pass args after this word)")
+    sub.add_parser("messaging", help="alias for gateway")
+    sub.add_parser("openclaw", help="technical alias for gateway (upstream CLI name)")
     args = ap.parse_args(argv)
 
     try:
         if args.cmd == "ensure":
             path = ensure_install(force=args.force)
-            print(f"Fused OpenClaw ready: {path}")
+            print(f"Meedo messaging runtime ready: {path}")
             print(f"OPENCLAW_HOME={meedo_openclaw_home()}")
             return 0
         if args.cmd == "bin":
@@ -273,9 +276,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "config":
             print(openclaw_config_path())
             return 0
-        if args.cmd == "openclaw":
-            print("Pass OpenClaw args after the word openclaw, e.g.\n"
-                  "  python -m tools.meedo_me.runtime openclaw --version", file=sys.stderr)
+        if args.cmd in ("openclaw", "gateway", "messaging"):
+            print("Pass gateway args after the command, e.g.\n"
+                  "  python -m tools.meedo_me.runtime gateway --version", file=sys.stderr)
             return 2
     except RuntimeError_ as e:
         print(e, file=sys.stderr)

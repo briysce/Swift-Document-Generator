@@ -1,23 +1,23 @@
 """Meedo-Me's progress update: what the agents did in the last hour, in a
-message short enough for a phone — delivered via Meedo's **fused** OpenClaw
-runtime (``python -m tools.meedo_me.runtime``), not a global OpenClaw install.
+message short enough for a phone — delivered via Meedo's **messaging**
+runtime (``python -m tools.meedo_me.runtime``), not a separate product install.
 
 Read from Meedo-Me's own memory — the work journal, the consultation memory,
 the episodes — and from the commits pushed and the board, so the update says
 what was actually done and checked, not what anyone meant to do. The memory is
 read from the pushed branches (both agents', unioned), so the machine running
-the fused runtime reports work pushed from anywhere, whatever it has checked out:
+Meedo messaging reports work pushed from anywhere, whatever it has checked out:
 
     python -m tools.meedo_me.progress --hours 1                 # print
     python -m tools.meedo_me.progress --agent claude --hours 1  # one agent
-    python -m tools.meedo_me.progress --send                    # one-off send via fused OpenClaw
+    python -m tools.meedo_me.progress --send                    # one-off send via Meedo messaging
     python -m tools.meedo_me.progress register-hourly [--dry-run]
 
-Hourly delivery is an OpenClaw command automation: it runs the generated
-wrapper (fetch, then print the update) and OpenClaw's announce delivers the
-printed text — one message, no model in the path. The number comes from
-MEEDO_WHATSAPP_TO / OPENCLAW_WHATSAPP_TO in a gitignored .env; never commit it.
-Both agents wrote a version of this on the same morning; this is the merge.
+Hourly delivery is a Meedo messaging command automation: it runs the generated
+wrapper (fetch, then print the update) and announce delivers the printed text —
+one message, no model in the path. The number comes from MEEDO_WHATSAPP_TO in a
+gitignored .env; never commit it. Both agents wrote a version of this on the
+same morning; this is the merge.
 """
 
 from __future__ import annotations
@@ -354,7 +354,7 @@ def polish_with_ai(text: str, data: dict) -> str:
 
 
 def send_whatsapp(message: str, *, to: str = "") -> tuple[bool, str]:
-    """One-off delivery via fused OpenClaw ``message send``. Returns (ok, detail)."""
+    """One-off delivery via Meedo messaging ``message send``. Returns (ok, detail)."""
     target = to or whatsapp_to()
     if not target:
         return False, "MEEDO_WHATSAPP_TO / OPENCLAW_WHATSAPP_TO not set"
@@ -364,7 +364,7 @@ def send_whatsapp(message: str, *, to: str = "") -> tuple[bool, str]:
         env = openclaw_env()
         node = require_node()
     except Exception as exc:  # noqa: BLE001
-        return False, f"fused OpenClaw runtime unavailable ({exc}); run: python -m tools.meedo_me.runtime ensure"
+        return False, f"Meedo messaging runtime unavailable ({exc}); run: python -m tools.meedo_me.runtime ensure"
     try:
         if oc.suffix in (".mjs", ".js") or oc.name.endswith(".mjs"):
             cmd = [node, str(oc), "message", "send", "--channel", "whatsapp", "--to", target,
@@ -383,7 +383,7 @@ def send_whatsapp(message: str, *, to: str = "") -> tuple[bool, str]:
 def automation_command(target: str, *, agent: str = "", cron: str = "0 * * * *") -> list[str]:
     """OpenClaw automation via the fused Meedo runtime (never a global ``openclaw``)."""
     return [
-        sys.executable, "-m", "tools.meedo_me.runtime", "openclaw",
+        sys.executable, "-m", "tools.meedo_me.runtime", "gateway",
         "automations", "create", cron,
         "--name", f"meedo-{agent or 'all'}-hourly-whatsapp",
         "--tz", TZ, "--command", str(WRAPPER), "--command-cwd", str(ROOT),
@@ -427,7 +427,7 @@ def register_hourly(*, agent: str = "", every: str = "1h", dry_run: bool = False
         return (f"Wrapper written: {WRAPPER}\n"
                 "Run after `python -m tools.meedo_me.runtime ensure` on the host "
                 "where WhatsApp is linked "
-                "(`python -m tools.meedo_me.runtime openclaw channels status --channel whatsapp --probe`):\n\n"
+                "(`python -m tools.meedo_me.runtime gateway channels status --channel whatsapp --probe`):\n\n"
                 + shown + "\n")
     # remove unused imports in register_hourly
     from tools.meedo_me.runtime.launcher import openclaw_env

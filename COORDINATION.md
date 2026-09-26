@@ -44,7 +44,7 @@ so the repository is how we talk.
    shared memory, merged via `merge=meedo`. The board says what is planned;
    the journal says what happened.
 9. **Refine Meedo-Me continuously (both agents).** Whenever the journal,
-   standup, recall, reviewer, advisor, MCP face, or desktop/OpenClaw wiring is
+   standup, recall, reviewer, advisor, MCP face, or desktop/messaging wiring is
    wrong, thin, silent, or awkward — **fix it in the same session**, with a
    test and an episode, and say so in the issue so the other agent knows. Do
    not wait for a dedicated Meedo ticket. Prefer deepening integration (one
@@ -56,7 +56,7 @@ so the repository is how we talk.
 10. **Meedo succession (advisor → GM).** User doctrine 2026-09-26: Meedo is the
     overqualified advisor who will eventually take the GM chair. Embed it in
     **every** build across our projects — learning from logo engines, Gemini,
-    Claude, Serper, OpenClaw — so project-specific skill compounds until live
+    Claude, Serper, Meedo messaging — so project-specific skill compounds until live
     APIs and specialist paths can be phased down. Do not treat Meedo as a
     secondary logger. Do not pretend it is expert yet; promote ownership only
     when offline confidence is earned. Standing rule:
@@ -66,7 +66,7 @@ so the repository is how we talk.
 - **Claude Code** — cloud container; branch `claude/relaxed-babbage-igbk0v`.
 - **Cursor Cloud Agent** — also cloud (not the Desktop app on the PC); branch
   `cursor/logo-engine-collab-d4c9`. Can remote the PC when a task truly needs
-  Flutter UI / Meedo-Me desktop / OpenClaw; otherwise works the engine here.
+  Flutter UI / Meedo-Me desktop / messaging; otherwise works the engine here.
 
 ## Task board
 
@@ -79,8 +79,8 @@ Owner: `claude`, `cursor`, or empty.
 | 2 | Look at the new Swift logo in the running Flutter app (screens, PDFs, dark/light) and report anything off | cursor | open | needs the PC: Claude cannot run the app's UI |
 | 3 | Meedo-Me earns trust + continuous product refine (both agents) | claude+cursor | in progress | **Succession doctrine:** advisor→GM (`.cursor/rules/meedo-succession.mdc`). Standing duty: embed Meedo in every change; learn from Gemini/Claude/logo engines; recall-first; phase tutors when offline confidence earned. Unified observe + MCP study/procedures; all improve loops hooked |
 | 4 | Selection rule: rank candidates by craftsmanship once identity holds; design_fit as an engine candidate | cursor | in progress | taken over from Claude (usage down); `minds_rank` recorded in improve-loop; need `logo_minds_rank.py` corpus before LOGO_MINDS_RANK=1 |
-| 5 | Build and run the Meedo-Me desktop app (briysce/meedo-me, branch `claude/relaxed-babbage-igbk0v`) with local Ollama; connect the MCP server (`python -m tools.meedo_me.connect app`); check Project Manager Mode | cursor | open | needs the PC; Jan's logos still need replacing (needs a Meedo-Me logo from the user) |
-| 6 | WhatsApp hourly Claude Code progress via **fused Meedo OpenClaw runtime** (no global `npm i -g openclaw`) + larger Ollama tool model | cursor | in progress | Runtime: `tools/meedo_me/runtime/openclaw` + `python -m tools.meedo_me.runtime`. Separate OpenClaw uninstall done on cloud. Still needs one Linked-Devices QR via fused CLI. Watch script print-only. |
+| 5 | Build and run the Meedo-Me desktop app (briysce/Meedo-Me) with local Ollama; connect the MCP server (`python -m tools.meedo_me.connect app`); check Project Manager Mode | cursor | open | needs the PC; Jan trademarks replaced with Meedo-Me marks (placeholder logo until final art) |
+| 6 | WhatsApp hourly Claude Code progress via **Meedo messaging runtime** (no separate branded gateway install) + larger Ollama tool model | cursor | in progress | Runtime: `tools/meedo_me/runtime` + `python -m tools.meedo_me.runtime gateway`. Still needs one Linked-Devices QR. Watch script print-only. |
 | 7 | PROPAK's "Services" i-dot: survives despeckle, lost later in `prepare_for_engine` | cursor | done | prepare-path closed 2026-09-26: clean PROPAK (47px) + GCM golden keep i-dot islands through `prepare_for_engine`/`prune_ink_speckles` (E0022/0673cf2). Board note "lost later" is stale for current recipes — synthetic degrade already merges the separate tittle in RAW. Residual degraded recovery → #4 (design_fit/font). Regression: `test_prepare_idot_retention.py` |
 | 8 | Arc: the reconstruction drops tagline letters; the trace draws them red | cursor | in progress | claim 2026-09-26 after #9; branch `cursor/logo-engine-collab-d4c9` |
 | 9 | Centre-line tracing for thin strokes (PROPAK's red rule, one-pixel borders) | cursor | done | 2026-09-26: `elongated_thin_components` + protect/stamp for rule-like islands inside dense lockups (Propak density gate stays closed). `fit_centerline_stroke` names 1–3px rules as stroked centre-lines; 6px Propak bar still `rect`. Tests: `test_centerline_thin_rules.py`. Do not reopen whole-logo density≤0.30 |

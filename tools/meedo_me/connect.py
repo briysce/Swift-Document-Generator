@@ -6,27 +6,28 @@ start it, and nothing else — no copies of the memory, no second server:
     python -m tools.meedo_me.connect status
     python -m tools.meedo_me.connect ollama
     python -m tools.meedo_me.connect app      [--data-folder DIR] [--read-only]
-    python -m tools.meedo_me.connect openclaw [--config PATH] [--model ollama/qwen3:8b] [--allow-writes]
+    python -m tools.meedo_me.connect messaging [--config PATH] [--model ollama/qwen3:8b] [--allow-writes]
     python -m tools.meedo_me.connect whatsapp [--to <number>] [--agent claude] [--dry-run]   # hourly progress
 
-OpenClaw is **fused into Meedo** as a local npm tree under
+Meedo messaging (WhatsApp / gateway) is fused as a local npm tree under
 ``tools/meedo_me/runtime/openclaw``. Install/run it with:
 
     python -m tools.meedo_me.runtime ensure
-    python -m tools.meedo_me.runtime openclaw …
+    python -m tools.meedo_me.runtime gateway …
 
-Never ``npm install -g openclaw`` — that is a separate product we do not want.
+Never install a separate global messaging product — Meedo owns the runtime.
+Upstream package credits: ``tools/meedo_me/THIRD_PARTY.md``.
 
 Claude Code needs nothing: `.mcp.json` at the repository root registers the
 server for any session opened here.
 
 Access follows who is in the loop. The Meedo-Me app asks the user before every
-tool call, so it gets the whole server. OpenClaw acts on its own from chat,
-email and the web — text anyone can send it — so it is connected read-only
-unless --allow-writes is passed: a prompt-injected agent that can accept
-proposals or write episodes could rewrite what Meedo-Me believes.
+tool call, so it gets the whole server. The messaging gateway acts on its own
+from chat, email and the web — text anyone can send it — so it is connected
+read-only unless --allow-writes is passed: a prompt-injected agent that can
+accept proposals or write episodes could rewrite what Meedo-Me believes.
 
-Ollama is the local model for both. OpenClaw talks to it through its native
+Ollama is the local model for both. The messaging gateway talks to it through its native
 API (its docs warn the /v1 route breaks tool calling); the app uses /v1. Either
 way the model must support tool calls, or it cannot reach Meedo-Me at all, so
 `ollama` reports which pulled models can.
@@ -58,7 +59,7 @@ SUGGESTED_MODEL = "qwen3:8b"
 
 
 class NeedsManualMerge(RuntimeError):
-    """The config exists but is not plain JSON (OpenClaw accepts JSON5). Editing
+    """The config exists but is not plain JSON (gateway accepts JSON5). Editing
     it by guesswork could lose the user's comments or settings, so hand over the
     snippet instead."""
 
@@ -99,7 +100,7 @@ def _nested(d: dict, *keys: str) -> dict:
 
 
 # --------------------------------------------------------------------------
-# the Meedo-Me app (Jan fork)
+# the Meedo-Me app (desktop face)
 # --------------------------------------------------------------------------
 
 
@@ -137,7 +138,7 @@ def connect_app(data_folder: Path | None = None, read_only: bool = False) -> Pat
 
 
 # --------------------------------------------------------------------------
-# OpenClaw (fused Meedo runtime — not a global npm install)
+# Meedo messaging runtime (fused — not a separate product)
 # --------------------------------------------------------------------------
 
 
@@ -148,7 +149,7 @@ def openclaw_config_path() -> Path:
 
 
 def openclaw_bin_path() -> Path | None:
-    """Local fused OpenClaw CLI, or None if ``runtime ensure`` has not run."""
+    """Local Meedo messaging CLI, or None if ``runtime ensure`` has not run."""
     try:
         from tools.meedo_me.runtime.launcher import openclaw_bin
 
@@ -203,12 +204,12 @@ def _e164(number: str) -> str:
 
 
 def connect_whatsapp(to: str, config: Path | None = None) -> tuple[Path, str]:
-    """Admit only this number on OpenClaw's WhatsApp channel and return the
+    """Admit only this number on Meedo's WhatsApp channel and return the
     automation that sends Meedo-Me's hourly update to it.
 
     Inbound WhatsApp text is untrusted, so the channel is an allowlist of the
-    user's own number; Meedo-Me's server stays read-only for OpenClaw
-    (connect openclaw). The update itself is a command, not a model turn."""
+    user's own number; Meedo-Me's server stays read-only for the messaging
+    gateway (connect messaging). The update itself is a command, not a model turn."""
     number = _e164(to)
     path = Path(config) if config else openclaw_config_path()
     snippet = {"channels": {"whatsapp": {"dmPolicy": "allowlist", "allowFrom": [number], "selfChatMode": True}}}
@@ -306,25 +307,25 @@ def _status() -> None:
     oc = openclaw_config_path()
     oc_bin = openclaw_bin_path()
     if oc_bin is None:
-        print("OpenClaw: fused runtime not installed — run: python -m tools.meedo_me.runtime ensure")
-        print("  (Do not npm install -g openclaw; Meedo owns the local tree.)")
+        print("Meedo messaging: runtime not installed — run: python -m tools.meedo_me.runtime ensure")
+        print("  (Do not install a separate global gateway; Meedo owns the local tree.)")
     elif oc.is_file():
         try:
             data = json.loads(oc.read_text(encoding="utf-8"))
             entry = (data.get("mcp") or {}).get("servers", {}).get(OPENCLAW_SERVER_KEY)
             state = ("connected" + (" (read-only)" if "--read-only" in entry.get("args", []) else " (WRITES ALLOWED)")
-                     if entry else "config present — run: connect openclaw to register Meedo MCP")
+                     if entry else "config present — run: connect messaging to register Meedo MCP")
             wa = (data.get("channels") or {}).get("whatsapp") or {}
             allow = wa.get("allowFrom") or []
-            print(f"OpenClaw: {state} ({oc})")
+            print(f"Meedo messaging: {state} ({oc})")
             print(f"  fused CLI: {oc_bin}")
             print(f"WhatsApp hourly: allowFrom={allow or '(none)'}; "
-                  f"link with `python -m tools.meedo_me.runtime openclaw channels login --channel whatsapp` then "
+                  f"link with `python -m tools.meedo_me.runtime gateway channels login --channel whatsapp` then "
                   f"`python -m tools.meedo_me.connect whatsapp`")
         except json.JSONDecodeError:
-            print(f"OpenClaw: config is JSON5; check by hand ({oc})")
+            print(f"Meedo messaging: config is JSON5; check by hand ({oc})")
     else:
-        print(f"OpenClaw: fused CLI ready ({oc_bin}); no config yet at {oc}")
+        print(f"Meedo messaging: CLI ready ({oc_bin}); no config yet at {oc}")
         print("WhatsApp hourly: run: python -m tools.meedo_me.connect whatsapp")
     _print_ollama(ollama_status())
 
@@ -338,12 +339,13 @@ def main(argv: list[str] | None = None) -> int:
     a = sub.add_parser("app", help="connect the Meedo-Me app")
     a.add_argument("--data-folder", type=Path)
     a.add_argument("--read-only", action="store_true")
-    c = sub.add_parser("openclaw", help="connect OpenClaw (read-only unless --allow-writes)")
+    c = sub.add_parser("messaging", aliases=["openclaw", "gateway"],
+                       help="connect Meedo messaging gateway (read-only unless --allow-writes)")
     c.add_argument("--config", type=Path)
     c.add_argument("--model", default="", help=f"e.g. ollama/{SUGGESTED_MODEL}")
     c.add_argument("--allow-writes", action="store_true")
     w = sub.add_parser("whatsapp", aliases=["whatsapp-progress"],
-                       help="hourly Meedo-Me progress to one WhatsApp number via OpenClaw")
+                       help="hourly Meedo-Me progress to one WhatsApp number via Meedo messaging")
     w.add_argument("--to", default="", help="the number that receives the updates (default: MEEDO_WHATSAPP_TO)")
     w.add_argument("--agent", default="", help="only this agent's work (default: everyone)")
     w.add_argument("--config", type=Path)
@@ -362,17 +364,17 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(f"Connected the Meedo-Me app: {path}\nRestart the app, then enable the Meedo-Me server "
               "under Settings → MCP Servers if it is not already on.")
-    elif args.cmd == "openclaw":
+    elif args.cmd in ("openclaw", "messaging", "gateway"):
         try:
             path = connect_openclaw(args.config, args.allow_writes, args.model)
         except NeedsManualMerge as e:
             print(e, file=sys.stderr)
             return 1
-        print(f"Connected OpenClaw: {path}" + ("" if args.allow_writes else " (read-only)"))
+        print(f"Connected Meedo messaging: {path}" + ("" if args.allow_writes else " (read-only)"))
         if args.model.startswith("ollama/"):
-            print("OpenClaw uses Ollama once you opt in: export OLLAMA_API_KEY=ollama-local")
-        print("Ensure fused runtime: python -m tools.meedo_me.runtime ensure")
-        print("Check it: python -m tools.meedo_me.runtime openclaw mcp doctor meedo-me --probe")
+            print("Messaging uses Ollama once you opt in: export OLLAMA_API_KEY=ollama-local")
+        print("Ensure messaging runtime: python -m tools.meedo_me.runtime ensure")
+        print("Check it: python -m tools.meedo_me.runtime gateway mcp doctor meedo-me --probe")
         print("Hourly WhatsApp progress: python -m tools.meedo_me.connect whatsapp")
     elif args.cmd in ("whatsapp", "whatsapp-progress"):
         from tools.meedo_me import progress as P
@@ -390,9 +392,9 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         os.environ["MEEDO_WHATSAPP_TO"] = _e164(to)
         print(f"WhatsApp admits only that number: {path}")
-        print("1. Ensure fused runtime: python -m tools.meedo_me.runtime ensure")
+        print("1. Ensure messaging runtime: python -m tools.meedo_me.runtime ensure")
         print("2. Link WhatsApp once (scan the QR: WhatsApp > Linked devices):")
-        print("   python -m tools.meedo_me.runtime openclaw channels login --channel whatsapp")
+        print("   python -m tools.meedo_me.runtime gateway channels login --channel whatsapp")
         print("3. Preview the update:  python -m tools.meedo_me.progress --hours 1")
         print("4. Hourly automation:")
         print(P.register_hourly(agent=args.agent, dry_run=args.dry_run))

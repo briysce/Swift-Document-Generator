@@ -2,10 +2,10 @@
 
 Meedo-Me's mind lives in this repository: the ledger (runs, proposals and the
 decisions on them), the reviewer (verdicts on outputs), and the episodes (how
-problems were actually solved). Its faces are several — the Meedo-Me app built
-from Jan, Claude Code, agents like OpenClaw — and each would otherwise need its
-own copy of that memory, which would drift. Served over the Model Context
-Protocol, every one of them reads and writes the same memory.
+problems were actually solved). Its faces are several — the Meedo-Me desktop
+app, Claude Code, Meedo messaging (WhatsApp/gateway) — and each would otherwise
+need its own copy of that memory, which would drift. Served over the Model
+Context Protocol, every one of them reads and writes the same memory.
 
 Zero dependencies, on purpose. MCP over stdio is newline-delimited JSON-RPC
 2.0, and a server needs four methods; the official SDK would bring a web stack
@@ -60,7 +60,7 @@ INSTRUCTIONS = (
     "Every question put to Gemini or Claude is kept with what its answer proved "
     "to be (meedo_minds): each mind's track record, and Meedo's readiness to "
     "answer in its place. "
-    "Every face (Gemini/Claude/Serper/Cursor/Claude Code/OpenClaw/improve loops) "
+    "Every face (Gemini/Claude/Serper/Cursor/Claude Code/Meedo messaging/improve loops) "
     "should record via observe → journal + lessons + episodes + procedures. "
     "Call meedo_study to see what APIs did that Meedo cannot yet own offline."
 )
@@ -148,7 +148,7 @@ READ_TOOLS = {
     "meedo_claude_progress": {
         "description": "Hourly-style progress digest for Claude Code (or cursor): board rows "
                        "they own, journal units in the window, and recent commits. Use for "
-                       "OpenClaw → WhatsApp updates. Returns text + structured fields.",
+                       "Meedo messaging → WhatsApp updates. Returns text + structured fields.",
         "inputSchema": _obj({
             "agent": _S,
             "hours": {"type": "number"},
@@ -211,7 +211,7 @@ WRITE_TOOLS = {
 }
 
 
-# MCP tool annotations: clients such as OpenClaw use them to decide which calls
+# MCP tool annotations: clients such as the Meedo messaging gateway use them to decide which calls
 # need a person's approval. Everything here acts only on Meedo-Me's own memory
 # (closed world); the writers add decisions and episodes but delete nothing.
 for _name, _spec in READ_TOOLS.items():

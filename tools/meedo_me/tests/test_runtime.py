@@ -63,6 +63,6 @@ def test_automation_command_uses_fused_launcher_not_global_openclaw():
     from tools.meedo_me.progress import automation_command
 
     cmd = automation_command("+15551234567")
-    assert cmd[1:4] == ["-m", "tools.meedo_me.runtime", "openclaw"]
+    assert cmd[1:4] == ["-m", "tools.meedo_me.runtime", "gateway"]
     assert "automations" in cmd
     assert cmd[0].endswith("python") or "python" in Path(cmd[0]).name
