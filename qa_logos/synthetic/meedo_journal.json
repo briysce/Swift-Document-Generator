@@ -504,6 +504,21 @@
         "branch": "cursor/logo-engine-collab-d4c9"
       },
       "source": "cli"
+    },
+    {
+      "id": "Jd0723759",
+      "ts": "2026-09-26T13:53:47Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "done",
+      "summary": "App-wide tools/ai_collab landed: shared Gemini+Claude client, Meedo recall-first learning, wired meedo_cycle + logo/shipping/app improve hooks + MCP meedo_ai_advise/lessons; tests pass; PR #7 + issue #6 updated.",
+      "evidence": {
+        "commit": "473cc0d",
+        "tests": "pytest ai_collab + meedo_cycle/merge/mcp/collab_mind (38)",
+        "measured_vs_previous": "new: meedo_ai_lessons + MCP advise/lessons; episode mirror guarded from test pollution",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
     }
   ]
 }
