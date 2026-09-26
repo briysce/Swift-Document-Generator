@@ -2592,6 +2592,18 @@
         "commit": "e501124"
       },
       "source": "manual"
+    },
+    {
+      "id": "2026-09-26T22:36:16Z-claude",
+      "ts": "2026-09-26T22:36:16Z",
+      "agent": "claude",
+      "task": 12,
+      "kind": "claim",
+      "summary": "Taken back from Cursor (quiet since 15:56): minds critique/take-over/ranking; ranking measured under #4 spec B",
+      "evidence": {
+        "commit": "8a1eec5"
+      },
+      "source": "manual"
     }
   ]
 }

@@ -152,3 +152,12 @@ def test_entries_in_either_vocabulary_answer_the_same_rules(tmp_path):
     assert J.gaps(cursor_style) == [] and J.gaps(claude_style) == []
     assert J.gaps(dict(cursor_style, evidence={"commit": "abc", "images_looked_at": False})) == [
         "tests", "looked", "review", "measured", "episode"]
+
+
+def test_a_later_claim_by_another_agent_takes_the_task_over(tmp_path):
+    p = tmp_path / "j.json"
+    J.log(agent="claude", kind="claim", summary="minds", task=12, at=T0, path=p, commit="x")
+    J.log(agent="cursor", kind="claim", summary="taken over", task=12, at=T0 + timedelta(hours=1), path=p, commit="x")
+    J.log(agent="claude", kind="claim", summary="taken back", task=12, at=T0 + timedelta(hours=8), path=p, commit="x")
+    held = J.open_claims(J.load(p)["entries"], now=T0 + timedelta(hours=8, minutes=5))
+    assert [(c["agent"], c["summary"]) for c in held] == [("claude", "taken back")]

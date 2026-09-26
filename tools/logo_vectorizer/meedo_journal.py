@@ -313,6 +313,11 @@ def open_claims(entries: list[dict], now=None) -> list[dict]:
         if any(e["agent"] == c["agent"] and _same_task(e.get("task"), c.get("task")) and e["kind"] in _CLOSES
                and e["ts"] >= c["ts"] for e in entries):
             continue
+        # A later claim on the same task by another agent is a take-over
+        # (COORDINATION.md rule 5): the task has one holder, the latest.
+        if any(e.get("kind") == "claim" and e["agent"] != c["agent"] and _same_task(e.get("task"), c.get("task"))
+               and e["ts"] > c["ts"] for e in entries):
+            continue
         quiet = now - _parse(last_word[c["agent"]])
         minutes = int(quiet.total_seconds() // 60)
         out.append({"agent": c["agent"], "task": c.get("task"), "claim_id": c.get("id"), "since": c["ts"],

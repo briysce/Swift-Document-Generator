@@ -3794,6 +3794,52 @@
       "context": "report",
       "passed": true,
       "findings": []
+    },
+    {
+      "ts": "2026-09-26T22:36:38Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "2 of the 15 elements the sketch shows (letters, bars, marks) are missing, at (342,23), (62,61) in sketch pixels",
+          "n": 2
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T22:36:39Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element",
+          "severity": "block",
+          "detail": "7 of the 15 elements the sketch shows (letters, bars, marks) are missing, at (207,23), (235,23), (242,24), (256,24), (342,23), (357,24), (62,61) in sketch pixels",
+          "n": 7
+        },
+        {
+          "check": "collapse",
+          "severity": "block",
+          "detail": "the output carries 9.6% of its sketch's ink \u2014 the mark has collapsed"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-26T22:36:39Z",
+      "run_id": "",
+      "case": "arc__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
     }
   ],
   "withheld_last": {
