@@ -7,6 +7,7 @@ exists to catch, and the two false alarms its first version raised.
 from __future__ import annotations
 
 import numpy as np
+import pytest
 from PIL import Image
 
 from tools.logo_vectorizer.meedo_review import catches, record, review
@@ -108,56 +109,44 @@ def test_a_second_sketch_can_supply_what_the_first_lost():
     assert not review(no_blue, damaged, raw).passed
 
 
-def test_dropped_same_colour_pieces_are_blocked():
-    """GCM "Modification" i-dots: same navy as the word, separate blobs.
+NAVY = (20, 40, 90)
+WORD = [((10, 30, 100, 55), NAVY), ((120, 30, 150, 55), NAVY)]
+DOTS = [((40, 18, 46, 24), NAVY), ((70, 18, 76, 24), NAVY)]
 
-    Colour share barely moves; element count does.
-    """
-    navy = (20, 40, 90)
-    # Word body + two i-dots (and a third mark so n_s >= 3).
-    sketch = _logo(
-        [
-            ((10, 30, 100, 55), navy),
-            ((40, 18, 46, 24), navy),
-            ((70, 18, 76, 24), navy),
-            ((120, 30, 150, 55), navy),
-        ],
-        size=(160, 80),
-    )
-    # Same colour share, dots gone.
-    no_dots = _logo(
-        [((10, 30, 100, 55), navy), ((120, 30, 150, 55), navy)],
-        size=(160, 80),
-    )
+
+def _scaled(fills, k, page):
+    return _logo([((x0 * k, y0 * k, x1 * k, y1 * k), c) for (x0, y0, x1, y1), c in fills],
+                 size=(160 * k, 80 * k), page=page)
+
+
+@pytest.mark.parametrize("page", [None, (255, 255, 255)])
+@pytest.mark.parametrize("k", [1, 3, 8])
+def test_dropped_dots_are_blocked_on_any_background_at_any_size(page, k):
+    """GCM "Modification" i-dots: same navy as the word, so colour share
+    barely moves. Opaque pages matter: real sketches are mostly opaque, and the
+    first version of this check found no dots at all on them."""
+    sketch = _scaled(WORD + DOTS, k, page)
     assert review(sketch, sketch).passed
-    rv = review(no_dots, sketch)
+    rv = review(_scaled(WORD, k, page), sketch)
     assert not rv.passed
-    assert any(f.check == "element_count" for f in rv.findings)
-    # Brand colour alone would still pass — that is why this check exists.
-    assert not any(f.check == "brand_colour" for f in rv.findings)
+    assert [f.check for f in rv.findings] == ["small_element"]
 
 
-def test_merging_aa_fringe_into_fewer_blobs_is_not_deletion():
-    """Losing one speck while keeping most pieces is restoration, not a drop."""
-    navy = (20, 40, 90)
-    sketch = _logo(
-        [
-            ((10, 30, 50, 55), navy),
-            ((55, 30, 95, 55), navy),
-            ((100, 30, 140, 55), navy),
-            ((20, 10, 24, 14), navy),  # one tiny fringe speck
-        ],
-        size=(160, 80),
-    )
-    merged = _logo(
-        [
-            ((10, 30, 50, 55), navy),
-            ((55, 30, 95, 55), navy),
-            ((100, 30, 140, 55), navy),
-        ],
-        size=(160, 80),
-    )
-    assert review(merged, sketch).passed
+def test_specks_elsewhere_do_not_stand_in_for_a_lost_dot():
+    """ESRGAN on GCM lost both dots but scattered specks round its letters;
+    counting components let the specks pass for the dots."""
+    specks = [((x, 60, x + 3, 63), NAVY) for x in (12, 30, 60, 90, 125)]
+    rv = review(_logo(WORD + specks, size=(160, 80)), _logo(WORD + DOTS, size=(160, 80)))
+    assert not rv.passed
+
+
+def test_removing_faint_fringe_is_not_deletion():
+    """Trialta has no dots; noise crumbs counted as dots blocked eight correct
+    outputs. Fringe is faint and hugs the stroke it bled from."""
+    haze = (150, 160, 185)
+    crumbs = [((x, 27, x + 3, 30), haze) for x in (15, 40, 65, 90)] + [((101, 40, 104, 43), NAVY)]
+    sketch = _logo(WORD + crumbs, size=(160, 80), page=(255, 255, 255))
+    assert review(_logo(WORD, size=(160, 80), page=(255, 255, 255)), sketch).passed
 
 
 def test_verdicts_are_remembered(tmp_path):
@@ -168,3 +157,18 @@ def test_verdicts_are_remembered(tmp_path):
     assert got["reviewed"] == 2
     assert got["blocked"] == 1
     assert got["by_check"].get("collapse", 0) >= 1
+
+
+def test_a_false_alarm_is_withdrawn_not_erased(tmp_path):
+    from tools.logo_vectorizer.meedo_ledger import load
+    from tools.logo_vectorizer.meedo_review import retract
+
+    ledger = tmp_path / "ledger.json"
+    rv = review(_logo(WORD, size=(160, 80)), _logo(WORD + DOTS, size=(160, 80)))
+    record(rv, case="trialta", candidate="traced", path=ledger)
+    record(review(np.zeros_like(SKETCH), SKETCH), case="c1", candidate="idealize", path=ledger)
+    assert retract("small_element", "trialta has no dots", path=ledger) == 1
+    got = catches(ledger)
+    assert got["blocked"] == 1 and got["retracted"] == 1 and "small_element" not in got["by_check"]
+    assert len(load(ledger)["reviews"]) == 2
+

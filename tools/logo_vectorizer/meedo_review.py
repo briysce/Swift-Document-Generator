@@ -71,21 +71,25 @@ LIGHTNESS_MATCH = 70.0     # 0-255, for neutrals
 # that prompted this kept 0.2% to 2%.
 MIN_INK_RATIO = 0.10
 
-# Same-colour elements the brand colour share cannot see (GCM "Modification"
-# i-dots: same navy as the word, separate blobs). Count *small satellite*
-# components — dots and accents — not every letter. Total component count
-# false-alarms on wordmarks: Trialta's sketch can read 28–32 blobs while a
-# correct reconstruction keeps ~8 letter paths, and Meedo-Me then blocked the
-# better candidate.
-MIN_ELEMENT_AREA = 8
-# Satellites are small relative to the median letter. Absolute cap keeps a
-# whole small logo from treating every letter as a "dot".
-MAX_SATELLITE_AREA = 80
-MAX_SATELLITE_FRAC = 0.20  # of median component area
-# Absolute drop of this many satellites (or more) is a deletion once the
-# relative keep falls below MIN_ELEMENT_KEEP.
-MIN_ELEMENT_DROP = 2
-MIN_ELEMENT_KEEP = 0.50
+# Small elements colour share cannot see: GCM's "Modification" lost its i-dots
+# and navy barely moved. A small element is judged by correspondence, not by
+# count — the output must still have ink where the sketch has the dot. Counting
+# was tried first and failed both ways on the corpus: JPEG specks around an
+# ESRGAN output's letters stood in for the two dots it had lost, and on Trialta,
+# which has no dots at all, noise crumbs were counted as dots and blocked eight
+# correct outputs.
+#
+# What makes a dot a dot and a crumb a crumb is how it is drawn: a dot is
+# compact, solid (as dark as the letters) and stands apart from them; a crumb is
+# faint, ragged, or touching the stroke it broke from. Every threshold is
+# relative to the logo's own letters, so it holds at any resolution and on any
+# background.
+DOT_MIN_PX = 6             # below this, a blob is sampling noise
+DOT_MAX_FRAC = 0.25        # of the median letter-sized element in its colour
+DOT_MIN_FILL = 0.55        # of its bounding box: compact, not a sliver
+DOT_MAX_ASPECT = 2.5
+DOT_SOLID = 0.75           # peak darkness against the letters' typical darkness
+DOT_KEPT = 0.30            # share of the dot the output must still cover
 
 
 @dataclass
@@ -144,6 +148,19 @@ def _as_rgba(img) -> np.ndarray:
     return arr
 
 
+def _layers(arr: np.ndarray):
+    from .idealize import _quantize_layers
+
+    return _quantize_layers(arr, max_layers=8)
+
+
+def _palette_of(layers) -> list[tuple[tuple[int, int, int], float]]:
+    total = float(sum(n for _, _, n in layers))
+    if total <= 0:
+        return []
+    return [(tuple(int(v) for v in c), n / total) for _, c, n in layers]
+
+
 def palette(img) -> list[tuple[tuple[int, int, int], float]]:
     """The colours a designer would name, each with its share of the ink.
 
@@ -152,14 +169,7 @@ def palette(img) -> list[tuple[tuple[int, int, int], float]]:
     pools them, the page removed, soft edges and halos resolved rather than
     counted.
     """
-    from .idealize import _quantize_layers
-
-    arr = _as_rgba(img)
-    layers = _quantize_layers(arr, max_layers=8)
-    total = float(sum(n for _, _, n in layers))
-    if total <= 0:
-        return []
-    return [(tuple(int(v) for v in c), n / total) for _, c, n in layers]
+    return _palette_of(_layers(_as_rgba(img)))
 
 
 def _hue(c) -> tuple[float, float, float]:
@@ -216,94 +226,87 @@ def _matches(want, have) -> bool:
 # --------------------------------------------------------------------------
 
 
-def _ink_components(arr: np.ndarray) -> int:
-    """Deprecated alias — prefer `_satellite_count` for review decisions."""
-    return _satellite_count(arr)
+def _flatten(arr: np.ndarray) -> np.ndarray:
+    """What a viewer sees: the image over a white page, as float RGB."""
+    rgb = arr[:, :, :3].astype(np.float32)
+    a = arr[:, :, 3:4].astype(np.float32) / 255.0
+    return rgb * a + 255.0 * (1.0 - a)
 
 
-def _component_stats(arr: np.ndarray) -> list[tuple[int, int, int]]:
-    """[(area, width, height), ...] for ink components above MIN_ELEMENT_AREA."""
+def _small_elements(arr: np.ndarray, layers) -> list[tuple[np.ndarray, tuple[int, int, int, int]]]:
+    """Dots, accents and marks: small, compact, solid and standing apart.
+
+    Returns (mask, bbox) for each. See DOT_* for why each property is there.
+    """
     import cv2
 
-    alpha = arr[:, :, 3] if arr.shape[2] == 4 else np.full(arr.shape[:2], 255, np.uint8)
-    mask = (alpha > 32).astype(np.uint8) * 255
-    kernel = np.ones((2, 2), np.uint8)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-    n, _labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
-    out: list[tuple[int, int, int]] = []
-    for i in range(1, n):
-        a = int(stats[i, cv2.CC_STAT_AREA])
-        if a < MIN_ELEMENT_AREA:
+    flat = _flatten(arr)
+    border = np.concatenate([flat[0], flat[-1], flat[:, 0], flat[:, -1]])
+    page = np.median(border, axis=0)
+    dark = np.abs(flat - page).sum(axis=2)          # distance from the page
+    ink = np.zeros(arr.shape[:2], bool)
+    for m, c, _n in layers:
+        if not _is_page_white(c):
+            ink |= m.astype(bool)
+    out = []
+    for m, c, _n in layers:
+        if _is_page_white(c):
             continue
-        w = int(stats[i, cv2.CC_STAT_WIDTH])
-        h = int(stats[i, cv2.CC_STAT_HEIGHT])
-        out.append((a, w, h))
+        k, lab, st, _ = cv2.connectedComponentsWithStats(m.astype(np.uint8), connectivity=8)
+        areas = st[1:, cv2.CC_STAT_AREA]
+        letters = areas[areas >= 4 * DOT_MIN_PX]
+        if len(letters) < 2:
+            continue
+        median = float(np.median(letters))
+        big = np.isin(lab, 1 + np.flatnonzero(areas >= median * 0.5))
+        typical = float(np.median(dark[big])) if big.any() else 0.0
+        if typical <= 0:
+            continue
+        for i in range(1, k):
+            x, y, w, h, area = (int(v) for v in st[i])
+            if area < DOT_MIN_PX or area > median * DOT_MAX_FRAC:
+                continue
+            if area / float(w * h) < DOT_MIN_FILL or max(w, h) > DOT_MAX_ASPECT * min(w, h):
+                continue
+            mask = lab == i
+            if np.percentile(dark[mask], 90) < DOT_SOLID * typical:
+                continue                                   # faint: fringe, not ink
+            g = max(2, int(np.ceil(0.5 * max(w, h))))
+            y0, y1, x0, x1 = max(0, y - g), min(ink.shape[0], y + h + g), max(0, x - g), min(ink.shape[1], x + w + g)
+            if (ink[y0:y1, x0:x1] & ~mask[y0:y1, x0:x1]).any():
+                continue                                   # touching a stroke: a broken piece
+            out.append((mask, (x, y, w, h)))
     return out
 
 
-def _satellite_count(arr: np.ndarray) -> int:
-    """How many small satellite ink blobs (i-dots, accents) are present.
+def _check_small_elements(sketch: np.ndarray, output: np.ndarray, sketch_layers, output_layers) -> list[Finding]:
+    """Every dot, accent and mark the sketch shows must still be drawn.
 
-    Letters and bars are the bulk of a wordmark; satellites are the pieces
-    colour-share cannot see. Size threshold comes from the median *large*
-    component (letters), not from the dots themselves. Compact aspect rejects
-    JPEG streaks that otherwise invent false satellites on degraded sketches.
+    GCM "Modification": the baseline lost one i-dot and ESRGAN lost two, and
+    neither moved the navy share enough for the colour check to see.
     """
-    comps = _component_stats(arr)
-    if not comps:
-        return 0
-    # Letters/bars: wider or taller than a dot. Use them for the size scale.
-    letter_areas = [a for a, w, h in comps if max(w, h) >= 12 and a >= 40]
-    if not letter_areas:
-        letter_areas = [a for a, _w, _h in comps]
-    letter_areas.sort()
-    median = float(letter_areas[len(letter_areas) // 2])
-    cap = min(MAX_SATELLITE_AREA, max(MIN_ELEMENT_AREA, median * MAX_SATELLITE_FRAC))
-    n = 0
-    for a, w, h in comps:
-        if a > cap:
-            continue
-        if w <= 0 or h <= 0:
-            continue
-        aspect = w / float(h)
-        if aspect < 0.45 or aspect > 2.2:
-            continue
-        n += 1
-    return n
+    import cv2
 
-
-def _check_element_count(sketch: np.ndarray, output: np.ndarray) -> list[Finding]:
-    """Block when small same-colour satellites vanish while their colour stays.
-
-    Colour share alone missed GCM dropping the i-dots on "Modification": navy
-    ink share barely moved, but two small components were gone. Counts only
-    satellites so a correct letter reconstruction is not blocked for having
-    fewer path groups than a noisy sketch.
-
-    Skips when the sketch itself looks fragmented (many "satellites") — that is
-    JPEG crumb noise, not intentional dots, and it was blocking Trialta
-    reconstructions that Meedo-Me should have preferred.
-    """
-    n_s = _satellite_count(sketch)
-    n_o = _satellite_count(output)
-    if n_s < 2:
-        # No dots to protect — letter-only marks.
+    dots = _small_elements(sketch, sketch_layers)
+    if not dots:
         return []
-    if n_s > 4:
-        # Degraded sketches invent a dozen compact crumbs; that is not a
-        # constellation of i-dots. Do not block on noise.
-        return []
-    dropped = n_s - n_o
-    if dropped < MIN_ELEMENT_DROP:
-        return []
-    if n_o / float(n_s) >= MIN_ELEMENT_KEEP:
+    ink = np.zeros(output.shape[:2], bool)
+    for m, c, _n in output_layers:
+        if not _is_page_white(c):
+            ink |= m.astype(bool)
+    missing = []
+    for mask, (x, y, w, h) in dots:
+        near = cv2.dilate(mask.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
+        if (ink & near).sum() < DOT_KEPT * mask.sum():
+            missing.append(f"({x + w // 2},{y + h // 2})")
+    if not missing:
         return []
     return [
         Finding(
-            "element_count",
+            "small_element",
             "block",
-            f"sketch has {n_s} small ink satellites, output has {n_o} "
-            f"({dropped} dropped) — dots/accents are missing",
+            f"{len(missing)} of the {len(dots)} small elements the sketch shows "
+            f"(dots, accents, marks) are missing, at {', '.join(missing)} in sketch pixels",
         )
     ]
 
@@ -368,12 +371,12 @@ def _review_one(o_full: np.ndarray, sketch) -> Review:
         o = np.asarray(
             Image.fromarray(o, "RGBA").resize((w, h), Image.Resampling.LANCZOS)
         )
-    sp = palette(s)
-    op = palette(o)
+    sl, ol = _layers(s), _layers(o)
+    sp, op = _palette_of(sl), _palette_of(ol)
     rv = Review(sketch_palette=sp, output_palette=op)
     rv.findings += _check_collapse(s, o, sp, op)
     rv.findings += _check_brand_colours(sp, op)
-    rv.findings += _check_element_count(s, o)
+    rv.findings += _check_small_elements(s, o, sl, ol)
     return rv
 
 
@@ -466,12 +469,37 @@ def record(
         pass
 
 
+def retract(check: str, reason: str, *, path: Path | None = None) -> int:
+    """Withdraw blocks a check made in error, keeping them on file.
+
+    A false alarm deleted from the record teaches nothing, and one left in it
+    inflates what Meedo-Me claims to have caught. So each stays, marked with why
+    it was wrong, and stops counting as a catch. Returns how many were withdrawn.
+    """
+    from .meedo_ledger import _now, load, save
+
+    data = load(path)
+    n = 0
+    for r in data.get("reviews", []):
+        if r.get("passed") or r.get("retracted"):
+            continue
+        blocks = [f for f in r.get("findings", []) if f.get("severity") == "block"]
+        if blocks and all(f.get("check") == check for f in blocks):
+            r["retracted"] = {"reason": reason, "at": _now()}
+            n += 1
+    if n:
+        save(data, path)
+    return n
+
+
 def catches(path: Path | None = None) -> dict:
     """What Meedo-Me has stopped, by kind — the visible measure of its use."""
     from .meedo_ledger import load
 
     data = load(path)
     reviews = data.get("reviews", [])
+    retracted = [r for r in reviews if r.get("retracted")]
+    reviews = [r for r in reviews if not r.get("retracted")]
     blocked = [r for r in reviews if not r.get("passed")]
     by_check: dict[str, int] = {}
     for r in blocked:
@@ -481,6 +509,7 @@ def catches(path: Path | None = None) -> dict:
     return {
         "reviewed": len(reviews),
         "blocked": len(blocked),
+        "retracted": len(retracted),
         "by_check": by_check,
         "recent_blocks": [
             {"case": r["case"], "candidate": r["candidate"], "why": [f["detail"] for f in r["findings"]]}
@@ -489,4 +518,4 @@ def catches(path: Path | None = None) -> dict:
     }
 
 
-__all__ = ["Finding", "Review", "catches", "palette", "record", "review"]
+__all__ = ["Finding", "Review", "catches", "palette", "record", "retract", "review"]

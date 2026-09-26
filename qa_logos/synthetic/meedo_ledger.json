@@ -834,7 +834,11 @@
           "severity": "block",
           "detail": "sketch has 32 ink elements, output has 8 (24 dropped) \u2014 small same-colour pieces are missing"
         }
-      ]
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
     },
     {
       "ts": "2026-09-25T04:25:02Z",
@@ -849,7 +853,11 @@
           "severity": "block",
           "detail": "sketch has 28 ink elements, output has 7 (21 dropped) \u2014 small same-colour pieces are missing"
         }
-      ]
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
     },
     {
       "ts": "2026-09-25T04:26:32Z",
@@ -891,7 +899,11 @@
           "severity": "block",
           "detail": "sketch has 4 small ink satellites, output has 1 (3 dropped) \u2014 dots/accents are missing"
         }
-      ]
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
     },
     {
       "ts": "2026-09-25T04:38:37Z",
@@ -924,7 +936,11 @@
           "severity": "block",
           "detail": "sketch has 4 small ink satellites, output has 0 (4 dropped) \u2014 dots/accents are missing"
         }
-      ]
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
     },
     {
       "ts": "2026-09-25T04:40:56Z",
@@ -939,7 +955,11 @@
           "severity": "block",
           "detail": "sketch has 6 small ink satellites, output has 1 (5 dropped) \u2014 dots/accents are missing"
         }
-      ]
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
     },
     {
       "ts": "2026-09-25T04:40:56Z",
@@ -954,7 +974,11 @@
           "severity": "block",
           "detail": "sketch has 6 small ink satellites, output has 2 (4 dropped) \u2014 dots/accents are missing"
         }
-      ]
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
     },
     {
       "ts": "2026-09-25T04:40:59Z",
@@ -969,7 +993,11 @@
           "severity": "block",
           "detail": "sketch has 14 small ink satellites, output has 2 (12 dropped) \u2014 dots/accents are missing"
         }
-      ]
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
     },
     {
       "ts": "2026-09-25T04:40:59Z",
@@ -984,7 +1012,11 @@
           "severity": "block",
           "detail": "sketch has 14 small ink satellites, output has 4 (10 dropped) \u2014 dots/accents are missing"
         }
-      ]
+      ],
+      "retracted": {
+        "reason": "False alarm: Trialta has no dots or accents. The counting check read JPEG noise crumbs as dots; replaced by a correspondence check that finds no small elements on 17 of 18 sketches' noise and blocks only verified losses.",
+        "at": "2026-09-26T02:03:21Z"
+      }
     },
     {
       "ts": "2026-09-25T04:41:02Z",
