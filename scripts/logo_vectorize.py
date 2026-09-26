@@ -690,8 +690,14 @@ def convert(
                 if cand is not None:
                     save_rgba(kdir / f"{src.stem}__{role}.png", cand.finished)
             (kdir / f"{src.stem}__candidates.json").write_text(json.dumps({
-                role: {"name": c.name, "has_vector": c.has_vector, "agreement": c.agreement,
-                       "ideality": c.ideality, "passed_review": c.passed_review}
+                role: {
+                    "name": c.name,
+                    "has_vector": c.has_vector,
+                    "agreement": c.agreement,
+                    "ideality": c.ideality,
+                    "passed_review": c.passed_review,
+                    "review": None if c.review is None else c.review.as_dict(),
+                }
                 for role, c in kept.items() if c is not None}, indent=2), encoding="utf-8")
 
         # Identity first. A candidate Meedo-Me passed beats one it blocked,
@@ -700,9 +706,23 @@ def convert(
         # that kept it, because the score blends a missing element into one
         # term among five. Only between two candidates that are both still the
         # logo does the derived rule decide.
+        #
+        # When both are blocked but ideal lost *strictly less* (tagline letters
+        # retained, trace dropped them), ship ideal even if the trace has a
+        # vector — `_prefer_reconstruction` alone would keep the wrong red
+        # trace forever once has_vector is true.
         winner = traced
         if ideal is not None:
+            ideal_less = _lost_no_more(ideal, traced) and not _lost_no_more(
+                traced, ideal
+            )
             if ideal.passed_review and not traced.passed_review:
+                winner = ideal
+            elif (
+                not ideal.passed_review
+                and not traced.passed_review
+                and ideal_less
+            ):
                 winner = ideal
             elif ideal.passed_review and _prefer_reconstruction(ideal, traced):
                 winner = ideal

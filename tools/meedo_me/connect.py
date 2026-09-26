@@ -284,16 +284,25 @@ def _status() -> None:
     else:
         print("Meedo-Me app: no config found (open the app once)")
     oc = openclaw_config_path()
+    oc_bin = shutil.which("openclaw")
     if oc.is_file():
         try:
-            entry = json.loads(oc.read_text(encoding="utf-8")).get("mcp", {}).get("servers", {}).get(OPENCLAW_SERVER_KEY)
+            data = json.loads(oc.read_text(encoding="utf-8"))
+            entry = (data.get("mcp") or {}).get("servers", {}).get(OPENCLAW_SERVER_KEY)
             state = ("connected" + (" (read-only)" if "--read-only" in entry.get("args", []) else " (WRITES ALLOWED)")
-                     if entry else "not connected — run: connect openclaw")
+                     if entry else "config present — run: connect openclaw to register Meedo MCP")
+            wa = (data.get("channels") or {}).get("whatsapp") or {}
+            allow = wa.get("allowFrom") or []
+            print(f"OpenClaw: {state} ({oc})" + (f" CLI={oc_bin}" if oc_bin else " CLI=missing"))
+            print(f"WhatsApp hourly: allowFrom={allow or '(none)'}; "
+                  f"link with `openclaw channels login --channel whatsapp` then "
+                  f"`python -m tools.meedo_me.connect whatsapp`")
         except json.JSONDecodeError:
-            state = "config is JSON5; check mcp.servers.meedo-me by hand"
-        print(f"OpenClaw: {state} ({oc})")
+            print(f"OpenClaw: config is JSON5; check by hand ({oc})")
     else:
-        print("OpenClaw: not installed here (no ~/.openclaw/openclaw.json)")
+        print("OpenClaw: not configured here (no ~/.openclaw/openclaw.json)"
+              + (f"; CLI at {oc_bin}" if oc_bin else ""))
+        print("WhatsApp hourly: not set up — run: python -m tools.meedo_me.connect whatsapp")
     _print_ollama(ollama_status())
 
 

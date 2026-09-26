@@ -416,32 +416,59 @@ def _is_small_mark(
     return False
 
 
-def prune_ink_speckles(
+def _chromatic_prune_layers(arr: np.ndarray, ink: np.ndarray) -> list[np.ndarray]:
+    """Split ink into distinct chromatic layers for per-hue speckle prune.
+
+    Arc's teal RESOURCES LTD. letters are ~200 px beside a 1500 px red ARC.
+    A global area floor keyed off the largest island treats those tagline
+    glyphs as crumbs. Splitting by brand hue first lets each layer prune
+    against its own largest mark (Gemini+Claude board #8 advice).
+    Near-neutral ink (black/gray) is left for the whole-ink pass.
+    """
+    rgb = arr[:, :, :3].astype(np.int32)
+    sat = rgb.max(axis=2) - rgb.min(axis=2)
+    chromatic = ink & (sat >= 18)
+    if int(chromatic.sum()) < 40:
+        return []
+    # Coarse 4-bit RGB buckets — enough to separate red ARC from teal tagline
+    # without inventing hues. Buckets under 2% of chromatic ink are noise.
+    q = (rgb[chromatic] // 32).astype(np.int32)
+    keys, inv, counts = np.unique(q, axis=0, return_inverse=True, return_counts=True)
+    floor = max(24, int(0.02 * int(chromatic.sum())))
+    keep_idx = [i for i, c in enumerate(counts) if int(c) >= floor]
+    if len(keep_idx) < 2:
+        return []
+    ys, xs = np.where(chromatic)
+    layers: list[np.ndarray] = []
+    for i in keep_idx:
+        m = np.zeros(ink.shape, dtype=bool)
+        sel = inv == i
+        m[ys[sel], xs[sel]] = True
+        layers.append(m)
+    return layers
+
+
+def _prune_mask_speckles(
     arr: np.ndarray,
-    min_px: int = 18,
-    min_frac: float = 0.012,
-    protect: np.ndarray | None = None,
+    ink: np.ndarray,
+    *,
+    min_px: int,
+    min_frac: float,
+    protect: np.ndarray | None,
 ) -> np.ndarray:
-    """Drop tiny disconnected ink islands left by JPEG plate / import noise."""
-    try:
-        from scipy import ndimage
-    except ImportError:
-        return arr
-    out = arr.copy()
-    ink = out[:, :, 3] >= 48
+    """Boolean drop mask for one ink set (whole logo or one colour layer)."""
+    from scipy import ndimage
+
     n_ink = int(ink.sum())
-    if n_ink < 80:
-        return arr
+    if n_ink < 40:
+        return np.zeros(ink.shape, dtype=bool)
     lab, n = ndimage.label(ink)
     if n <= 1:
-        return arr
+        return np.zeros(ink.shape, dtype=bool)
     sizes = np.bincount(lab.ravel())
     largest = int(sizes[1:].max())
     thr = max(min_px, int(largest * min_frac))
-    drop = sizes[lab] < thr
-    # Keep glyph-sized islands even when pixel count is low vs the main
-    # cluster (Trialta/GCM JPEG can isolate a letter). Only drop crumbs
-    # whose AABB is tiny relative to the full ink box.
+    drop = (sizes[lab] < thr) & ink
     ys, xs = np.where(ink)
     bw = max(1, int(xs.max() - xs.min()) + 1)
     bh = max(1, int(ys.max() - ys.min()) + 1)
@@ -450,13 +477,11 @@ def prune_ink_speckles(
     y0, y1 = int(ys.min()), int(ys.max())
     kept = ink & ~drop
     kept_lab, _ = ndimage.label(kept)
-    kept_dt = ndimage.distance_transform_edt(kept)
+    kept_dt = ndimage.distance_transform_edt(kept) if kept.any() else kept.astype(np.float64)
     for i in range(1, n + 1):
         if sizes[i] >= thr:
             continue
         iy, ix = np.where(lab == i)
-        # Never drop a component that defines the current ink AABB — that
-        # collapsed Trialta/GCM aspect when JPEG isolated an edge glyph.
         if (
             int(ix.min()) <= x0
             or int(ix.max()) >= x1
@@ -470,10 +495,59 @@ def prune_ink_speckles(
         ) >= keep_h:
             drop[lab == i] = False
             continue
-        if _is_small_mark(out, ix, iy, kept, kept_lab, kept_dt):
+        if _is_small_mark(arr, ix, iy, kept, kept_lab, kept_dt):
             drop[lab == i] = False
     if protect is not None:
         drop = drop & ~protect
+    return drop
+
+
+def prune_ink_speckles(
+    arr: np.ndarray,
+    min_px: int = 18,
+    min_frac: float = 0.012,
+    protect: np.ndarray | None = None,
+) -> np.ndarray:
+    """Drop tiny disconnected ink islands left by JPEG plate / import noise.
+
+    When the mark has two or more distinct chromatic layers (Arc red ARC +
+    teal RESOURCES LTD.), prune each layer against its own largest island
+    before a whole-ink pass. Size floors keyed off the global largest island
+    otherwise erase subordinate tagline glyphs.
+    """
+    try:
+        from scipy import ndimage  # noqa: F401 — availability gate
+    except ImportError:
+        return arr
+    out = arr.copy()
+    ink = out[:, :, 3] >= 48
+    n_ink = int(ink.sum())
+    if n_ink < 80:
+        return arr
+
+    drop = np.zeros(ink.shape, dtype=bool)
+    layers = _chromatic_prune_layers(out, ink)
+    if layers:
+        for layer in layers:
+            drop |= _prune_mask_speckles(
+                out, layer, min_px=min_px, min_frac=min_frac, protect=protect
+            )
+        # Neutrals / leftovers: prune only ink not already claimed by a
+        # chromatic layer, so AA fringe around ARC does not inherit teal's
+        # smaller thr and wipe stroke edges.
+        claimed = np.zeros(ink.shape, dtype=bool)
+        for layer in layers:
+            claimed |= layer
+        residual = ink & ~claimed
+        if int(residual.sum()) >= 40:
+            drop |= _prune_mask_speckles(
+                out, residual, min_px=min_px, min_frac=min_frac, protect=protect
+            )
+    else:
+        drop = _prune_mask_speckles(
+            out, ink, min_px=min_px, min_frac=min_frac, protect=protect
+        )
+
     out[drop & ink, 3] = 0
     return out
 

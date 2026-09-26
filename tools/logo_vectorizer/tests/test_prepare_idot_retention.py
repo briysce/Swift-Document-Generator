@@ -132,3 +132,29 @@ def test_prune_ink_speckles_keeps_compact_mark_beside_stem():
     sizes = sorted(int((lab == i).sum()) for i in range(1, n + 1))
     assert any(20 <= s <= 40 for s in sizes), f"tittle missing; sizes={sizes}"
     assert any(s >= 300 for s in sizes), f"stem missing; sizes={sizes}"
+
+
+def test_color_split_prune_keeps_small_teal_beside_large_red():
+    """Board #8: teal tagline letters must not be sized against red ARC area."""
+    h, w = 80, 200
+    arr = np.zeros((h, w, 4), dtype=np.uint8)
+    # Large red ARC stand-in (~3500 px) — global 1.2% floor ≈ 42 px.
+    arr[15:65, 10:80, :] = (226, 45, 62, 255)
+    # Small teal RESOURCES stand-ins (~30 px each), well under a global
+    # floor keyed off the red block, but safe vs teal's own largest island.
+    for x0 in (100, 120, 140, 160):
+        arr[30:40, x0 : x0 + 3, :] = (45, 70, 75, 255)
+
+    # Global prune (single mask) would drop the teal letters; color-split
+    # must keep them.
+    out = prune_ink_speckles(arr, min_px=18, min_frac=0.012)
+    teal = (
+        (out[:, :, 3] >= 48)
+        & (out[:, :, 2].astype(int) > out[:, :, 0].astype(int) + 10)
+    )
+    from scipy import ndimage
+
+    lab, n = ndimage.label(teal)
+    sizes = sorted(int((lab == i).sum()) for i in range(1, n + 1))
+    assert n >= 4, f"expected >=4 teal islands; sizes={sizes}"
+    assert all(s >= 20 for s in sizes), f"teal letters pruned; sizes={sizes}"

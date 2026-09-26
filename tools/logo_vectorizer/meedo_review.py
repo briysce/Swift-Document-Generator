@@ -476,15 +476,78 @@ def _check_small_elements(sketch: np.ndarray, output: np.ndarray, sketch_layers,
     return findings
 
 
-def _check_brand_colours(sketch_pal, output_pal) -> list[Finding]:
+def _is_fringe_neutral_layer(mask, colour, other_ink=None) -> bool:
+    """Near-neutral AA fringe quantized as its own 'brand' colour.
+
+    Arc's prepare palette invents a near-black layer (~12% of ink) made of
+    hundreds of 1–4 px crumbs around red/teal edges. Official artwork has
+    only red ARC + teal tagline — requiring that fringe of every candidate
+    blocked both the trace and the reconstruction on the same false alarm,
+    so identity-first could not choose. A real neutral letterform (black
+    wordmark) has a few letter-sized components, not crumb soup — and it
+    does not hug other chromatic ink as a one-pixel halo.
+    """
+    if _has_hue(colour) or _is_page_white(colour):
+        return False
+    import cv2
+
+    k, _lab, st, _ = cv2.connectedComponentsWithStats(
+        mask.astype(np.uint8), connectivity=8
+    )
+    areas = st[1:, cv2.CC_STAT_AREA] if k > 1 else np.array([], dtype=np.int32)
+    crumb_soup = (
+        k >= 25
+        and len(areas)
+        and float(np.median(areas)) <= 4.0
+        and int(np.percentile(areas, 90)) <= 12
+    )
+    if crumb_soup:
+        return True
+    # Merged AA ring: near-neutral mass that almost entirely touches other
+    # chromatic ink (a one-pixel halo), not a freestanding black wordmark.
+    if other_ink is None or not other_ink.any() or not mask.any():
+        return False
+    dil = cv2.dilate(other_ink.astype(np.uint8), np.ones((3, 3), np.uint8))
+    touch = mask.astype(bool) & dil.astype(bool)
+    return float(touch.sum()) >= 0.85 * float(mask.sum()) and int(mask.sum()) < int(
+        other_ink.sum()
+    )
+
+
+def _check_brand_colours(sketch_pal, output_pal, sketch_layers=None) -> list[Finding]:
     """Every colour the sketch shows must still be in the drawing.
 
     The GCM monogram: 11% of the sketch's ink, 0% of the output's, scored as
     the best result in the corpus.
     """
+    layer_by_colour = {}
+    other_by_colour = {}
+    if sketch_layers:
+        for m, c, _n in sketch_layers:
+            key = tuple(int(v) for v in c)
+            layer_by_colour[key] = m
+        for key, m in layer_by_colour.items():
+            rest = np.zeros(m.shape, dtype=bool)
+            for k2, m2 in layer_by_colour.items():
+                if k2 == key:
+                    continue
+                # Only chromatic "other" ink — page white is not a neighbour
+                # that makes a black wordmark look like AA fringe.
+                if _is_page_white(k2):
+                    continue
+                if not _has_hue(k2):
+                    continue
+                rest |= m2.astype(bool)
+            other_by_colour[key] = rest
     out: list[Finding] = []
     for colour, share in sketch_pal:
         if share < REQUIRED_SHARE or _is_page_white(colour):
+            continue
+        key = tuple(colour)
+        mask = layer_by_colour.get(key)
+        if mask is not None and _is_fringe_neutral_layer(
+            mask, colour, other_by_colour.get(key)
+        ):
             continue
         kept = sum(s for c, s in output_pal if _matches(colour, c))
         if kept < share * MIN_RETAINED:
@@ -540,7 +603,7 @@ def _review_one(o_full: np.ndarray, sketch) -> Review:
     sp, op = _palette_of(sl), _palette_of(ol)
     rv = Review(sketch_palette=sp, output_palette=op)
     rv.findings += _check_collapse(s, o, sp, op)
-    rv.findings += _check_brand_colours(sp, op)
+    rv.findings += _check_brand_colours(sp, op, sketch_layers=sl)
     rv.findings += _check_small_elements(s, o, sl, ol)
     return rv
 

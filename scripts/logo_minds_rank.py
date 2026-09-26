@@ -93,6 +93,14 @@ def main(argv: list[str] | None = None) -> int:
     def derived(r):  # today's rule, identity first (see convert / _prefer_reconstruction)
         if r["passed_review_ideal"] and not r["passed_review_traced"]:
             return "ideal"
+        # Strict-less loss is recorded when LOGO_KEEP_CANDIDATES writes
+        # review finding counts; without it, fall through to has_vector rule.
+        if (
+            not r["passed_review_ideal"]
+            and not r["passed_review_traced"]
+            and r.get("ideal_lost_strictly_less")
+        ):
+            return "ideal"
         if r["passed_review_ideal"] and not r["has_vector_traced"] and r["agreement_ideal"] >= COLLAPSE_FLOOR:
             return "ideal"
         return "traced"
