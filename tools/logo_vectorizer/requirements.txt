@@ -10,6 +10,9 @@ scipy>=1.10
 scikit-image>=0.21
 fonttools>=4.40
 pyransac3d>=0.6
+# Designed construction (design_fit): outline offsets, swept shadows, unions —
+# exact geometry for building a logo the way a designer does.
+shapely>=2.0
 # Optional, probed at runtime and fail-open:
 #   potrace (binary)   — apt-get install potrace   [element tracing]
 #   exiftool (binary)  — apt-get install libimage-exiftool-perl  [provenance]
