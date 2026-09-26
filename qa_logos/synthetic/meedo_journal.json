@@ -269,6 +269,101 @@
         "branch": "cursor/logo-engine-collab-d4c9"
       },
       "source": "cli"
+    },
+    {
+      "id": "J4e154b06",
+      "ts": "2026-09-26T13:37:46Z",
+      "agent": "meedo",
+      "task": 8,
+      "kind": "finding",
+      "summary": "collab_mind escalate path=sectional providers=gemini,claude severity=0.80 case=arc__tagline \u2014 Gemini is correct: the tagline 'RESOURCES LTD.' is being lost because small letterforms in the dark teal channel are filtered as noise or merged into a blob wit",
+      "evidence": {
+        "collab_mind": {
+          "takeover": true,
+          "preferred_path": "sectional",
+          "recommended_backends": [
+            "opencv-tree",
+            "potrace",
+            "vtracer"
+          ],
+          "recommended_preprocess": {
+            "upscale": 6,
+            "blur_radius": 0.3,
+            "alpha_threshold": 140,
+            "min_area": 8.0
+          },
+          "brand_name": "ARC RESOURCES LTD.",
+          "font_family_guess": "Trajan Pro (ARC), Copperplate Gothic / Trade Gothic Extended (RESOURCES LTD.)",
+          "dominant_colors_hex": [
+            "#cf2933",
+            "#22383c",
+            "#ffffff",
+            "#c92a35",
+            "#2d4a4e"
+          ],
+          "diagnosis": "Gemini is correct: the tagline 'RESOURCES LTD.' is being lost because small letterforms in the dark teal channel are filtered as noise or merged into a blob with the swoosh arc. The high aspect ratio and tight spacing of these caps make them vulnerable to aggressive min_area filtering. The swoosh and tagline share the same color channel, requiring careful separation.",
+          "actions": [
+            "Lower min_area filtering threshold to preserve small letter islands in the tagline.",
+            "Split color masks into crimson red ('ARC') and dark teal ('RESOURCES LTD.' plus arc swoosh) before contour extraction.",
+            "Run independent high-resolution potrace extraction on the separated tagline mask to reconstruct crisp letterforms.",
+            "Use sectional path: isolate three regions (red 'ARC', navy swoosh, navy tagline) via tight bounding boxes before any filtering.",
+            "For tagline region: apply aggressive upscale (6\u00d7), minimal blur (0.3), very low min_area (8 px) to preserve dot on 'i' and narrow letters like 'I', 'T', 'L'.",
+            "For swoosh region: use moderate min_area (50) to keep the thin taper but reject stray pixels.",
+            "For 'ARC' region: standard settings (min_area 20) since letters are large and robust.",
+            "Run potrace with --turdsize 2 on tagline mask independently to capture small features.",
+            "Recombine the three traced SVG layers with correct color assignments and spatial registration.",
+            "Fallback: if sectional fails, use idealize path with font reconstruction for tagline (Copperplate Gothic 'RESOURCES LTD.' at ~18-20pt tracking +200)."
+          ],
+          "gemini_notes": "Verify that the swoosh taper tip does not bridge into the letter 'A' or get severed at the far right thin taper.",
+          "claude_notes": "I agree with Gemini's diagnosis and color-splitting strategy, but disagree on approach. 'Idealize' with full-image processing will still struggle because the swoosh and tagline occupy overlapping vertical space and share a color\u2014connected component analysis will merge them. **Sectional** is superior here: physically separate the three elements by region BEFORE any filtering or tracing, then process each with tuned parameters. I've increased upscale to 6\u00d7 (from 4\u00d7) and dropped min_area to 8 (from 15) specifically for the tagline to preserve period dots and thin strokes. I've also tightened blur to 0.3 to avoid letter merging. Gemini's font guesses are solid; I refined Gotham\u2192Trade Gothic Extended as more likely for the condensed sans caps.",
+          "providers_used": [
+            "gemini",
+            "claude"
+          ],
+          "agree": false
+        },
+        "stuck": {
+          "stuck": true,
+          "reasons": [
+            "failed_score_gates",
+            "low_score=0.450",
+            "meedo_review_blocked",
+            "plateau_composite=0.4500"
+          ],
+          "severity": 0.8,
+          "metrics": {
+            "score_total": 0.45,
+            "alpha_iou": null,
+            "p_hollow": null,
+            "hole_count": null,
+            "passes_gates": false,
+            "candidates_tried": 0,
+            "all_ai_rejected": false,
+            "fell_to_lanczos": false,
+            "review_blocked": true,
+            "plateau_composite": 0.45
+          }
+        },
+        "case_id": "arc__tagline",
+        "commit": "38ed7bb"
+      },
+      "source": "collab_mind"
+    },
+    {
+      "id": "J914c159d",
+      "ts": "2026-09-26T13:42:25Z",
+      "agent": "cursor",
+      "task": 8,
+      "kind": "finding",
+      "summary": "collab_mind on Arc: Gemini+Claude agree tagline lost via navy channel merge / min_area; prefer sectional color-split. Root cause here: idealize _compose hard-required potrace and returned None without it (smooth_fit works). Fail-open landed; with potrace installed Arc idealize emits 18 groups incl. L0 tagline els (glyph_match still 0).",
+      "evidence": {
+        "commit": "38ed7bb",
+        "tests": "test_idealize_potrace_optional.py + test_collab_mind.py",
+        "images_looked_at": true,
+        "measured_vs_previous": "idealize SVG None \u2192 31kB with 14 navy L0 groups retained; glyph_match still 0",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "cli"
     }
   ]
 }
