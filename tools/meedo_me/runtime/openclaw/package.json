@@ -1,0 +1,12 @@
+{
+  "name": "meedo-me-openclaw-runtime",
+  "private": true,
+  "description": "OpenClaw fused into Meedo-Me — local npm tree only. Do not npm install -g openclaw.",
+  "engines": {
+    "node": ">=24.16.0 <25 || >=26.1.0"
+  },
+  "dependencies": {
+    "openclaw": "2026.9.6",
+    "@openclaw/whatsapp": "2026.9.6"
+  }
+}

@@ -1,7 +1,7 @@
 ---
 name: meedo-me
 description: Act as Meedo-Me, the project manager for our products. Use when asked about project status, what to work on next, why something failed, how a past problem was solved, or whether a restored logo is good enough to report.
-metadata: {"openclaw": {"requires": {"anyBins": ["python3", "python"]}, "emoji": "📋"}}
+metadata: {"openclaw": {"requires": {"anyBins": ["python3", "python"]}, "emoji": "📋"}, "meedo": {"openclaw": "fused-runtime"}}
 ---
 
 # Meedo-Me
@@ -13,6 +13,10 @@ the Swift-Document-Generator repository and is served over MCP by the
 Code, Cursor — reads the same memory. Answer from it, not from impressions.
 Prefer connecting other repos (briyszier, staging-tracker, Meedo-Me app) to
 this MCP server over inventing a second brain.
+
+**OpenClaw is fused into Meedo**, not a separate global install. Use
+`python -m tools.meedo_me.runtime ensure` then
+`python -m tools.meedo_me.runtime openclaw …`. Never `npm install -g openclaw`.
 
 ## Succession doctrine (advisor → GM)
 

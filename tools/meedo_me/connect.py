@@ -9,6 +9,14 @@ start it, and nothing else — no copies of the memory, no second server:
     python -m tools.meedo_me.connect openclaw [--config PATH] [--model ollama/qwen3:8b] [--allow-writes]
     python -m tools.meedo_me.connect whatsapp [--to <number>] [--agent claude] [--dry-run]   # hourly progress
 
+OpenClaw is **fused into Meedo** as a local npm tree under
+``tools/meedo_me/runtime/openclaw``. Install/run it with:
+
+    python -m tools.meedo_me.runtime ensure
+    python -m tools.meedo_me.runtime openclaw …
+
+Never ``npm install -g openclaw`` — that is a separate product we do not want.
+
 Claude Code needs nothing: `.mcp.json` at the repository root registers the
 server for any session opened here.
 
@@ -129,12 +137,24 @@ def connect_app(data_folder: Path | None = None, read_only: bool = False) -> Pat
 
 
 # --------------------------------------------------------------------------
-# OpenClaw
+# OpenClaw (fused Meedo runtime — not a global npm install)
 # --------------------------------------------------------------------------
 
 
 def openclaw_config_path() -> Path:
-    return Path.home() / ".openclaw" / "openclaw.json"
+    from tools.meedo_me.runtime.launcher import openclaw_config_path as _fused
+
+    return _fused()
+
+
+def openclaw_bin_path() -> Path | None:
+    """Local fused OpenClaw CLI, or None if ``runtime ensure`` has not run."""
+    try:
+        from tools.meedo_me.runtime.launcher import openclaw_bin
+
+        return openclaw_bin(ensure=False)
+    except Exception:
+        return None
 
 
 def openclaw_snippet(allow_writes: bool = False, model: str = "") -> dict:
@@ -284,8 +304,11 @@ def _status() -> None:
     else:
         print("Meedo-Me app: no config found (open the app once)")
     oc = openclaw_config_path()
-    oc_bin = shutil.which("openclaw")
-    if oc.is_file():
+    oc_bin = openclaw_bin_path()
+    if oc_bin is None:
+        print("OpenClaw: fused runtime not installed — run: python -m tools.meedo_me.runtime ensure")
+        print("  (Do not npm install -g openclaw; Meedo owns the local tree.)")
+    elif oc.is_file():
         try:
             data = json.loads(oc.read_text(encoding="utf-8"))
             entry = (data.get("mcp") or {}).get("servers", {}).get(OPENCLAW_SERVER_KEY)
@@ -293,16 +316,16 @@ def _status() -> None:
                      if entry else "config present — run: connect openclaw to register Meedo MCP")
             wa = (data.get("channels") or {}).get("whatsapp") or {}
             allow = wa.get("allowFrom") or []
-            print(f"OpenClaw: {state} ({oc})" + (f" CLI={oc_bin}" if oc_bin else " CLI=missing"))
+            print(f"OpenClaw: {state} ({oc})")
+            print(f"  fused CLI: {oc_bin}")
             print(f"WhatsApp hourly: allowFrom={allow or '(none)'}; "
-                  f"link with `openclaw channels login --channel whatsapp` then "
+                  f"link with `python -m tools.meedo_me.runtime openclaw channels login --channel whatsapp` then "
                   f"`python -m tools.meedo_me.connect whatsapp`")
         except json.JSONDecodeError:
             print(f"OpenClaw: config is JSON5; check by hand ({oc})")
     else:
-        print("OpenClaw: not configured here (no ~/.openclaw/openclaw.json)"
-              + (f"; CLI at {oc_bin}" if oc_bin else ""))
-        print("WhatsApp hourly: not set up — run: python -m tools.meedo_me.connect whatsapp")
+        print(f"OpenClaw: fused CLI ready ({oc_bin}); no config yet at {oc}")
+        print("WhatsApp hourly: run: python -m tools.meedo_me.connect whatsapp")
     _print_ollama(ollama_status())
 
 
@@ -348,7 +371,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Connected OpenClaw: {path}" + ("" if args.allow_writes else " (read-only)"))
         if args.model.startswith("ollama/"):
             print("OpenClaw uses Ollama once you opt in: export OLLAMA_API_KEY=ollama-local")
-        print("Check it: openclaw mcp doctor meedo-me --probe")
+        print("Ensure fused runtime: python -m tools.meedo_me.runtime ensure")
+        print("Check it: python -m tools.meedo_me.runtime openclaw mcp doctor meedo-me --probe")
         print("Hourly WhatsApp progress: python -m tools.meedo_me.connect whatsapp")
     elif args.cmd in ("whatsapp", "whatsapp-progress"):
         from tools.meedo_me import progress as P
@@ -366,10 +390,11 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         os.environ["MEEDO_WHATSAPP_TO"] = _e164(to)
         print(f"WhatsApp admits only that number: {path}")
-        print("1. Link WhatsApp once (scan the QR with the phone: WhatsApp > Linked devices):")
-        print("   openclaw channels login --channel whatsapp")
-        print("2. Preview the update:  python -m tools.meedo_me.progress --hours 1")
-        print("3. Hourly automation:")
+        print("1. Ensure fused runtime: python -m tools.meedo_me.runtime ensure")
+        print("2. Link WhatsApp once (scan the QR: WhatsApp > Linked devices):")
+        print("   python -m tools.meedo_me.runtime openclaw channels login --channel whatsapp")
+        print("3. Preview the update:  python -m tools.meedo_me.progress --hours 1")
+        print("4. Hourly automation:")
         print(P.register_hourly(agent=args.agent, dry_run=args.dry_run))
     return 0
 

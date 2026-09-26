@@ -1,15 +1,16 @@
 """Meedo-Me's progress update: what the agents did in the last hour, in a
-message short enough for a phone — for OpenClaw to deliver to WhatsApp.
+message short enough for a phone — delivered via Meedo's **fused** OpenClaw
+runtime (``python -m tools.meedo_me.runtime``), not a global OpenClaw install.
 
 Read from Meedo-Me's own memory — the work journal, the consultation memory,
 the episodes — and from the commits pushed and the board, so the update says
 what was actually done and checked, not what anyone meant to do. The memory is
 read from the pushed branches (both agents', unioned), so the machine running
-OpenClaw reports work pushed from anywhere, whatever it has checked out:
+the fused runtime reports work pushed from anywhere, whatever it has checked out:
 
     python -m tools.meedo_me.progress --hours 1                 # print
     python -m tools.meedo_me.progress --agent claude --hours 1  # one agent
-    python -m tools.meedo_me.progress --send                    # one-off send via openclaw
+    python -m tools.meedo_me.progress --send                    # one-off send via fused OpenClaw
     python -m tools.meedo_me.progress register-hourly [--dry-run]
 
 Hourly delivery is an OpenClaw command automation: it runs the generated
@@ -25,7 +26,6 @@ import argparse
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -354,16 +354,25 @@ def polish_with_ai(text: str, data: dict) -> str:
 
 
 def send_whatsapp(message: str, *, to: str = "") -> tuple[bool, str]:
-    """One-off delivery via ``openclaw message send``. Returns (ok, detail)."""
+    """One-off delivery via fused OpenClaw ``message send``. Returns (ok, detail)."""
     target = to or whatsapp_to()
     if not target:
         return False, "MEEDO_WHATSAPP_TO / OPENCLAW_WHATSAPP_TO not set"
-    oc = shutil.which("openclaw")
-    if not oc:
-        return False, "openclaw CLI not on PATH (install/link on the PC running WhatsApp)"
     try:
-        proc = subprocess.run([oc, "message", "send", "--channel", "whatsapp", "--to", target,
-                               "--message", message], capture_output=True, text=True, timeout=120)
+        from tools.meedo_me.runtime.launcher import openclaw_bin, openclaw_env, require_node
+        oc = openclaw_bin(ensure=True)
+        env = openclaw_env()
+        node = require_node()
+    except Exception as exc:  # noqa: BLE001
+        return False, f"fused OpenClaw runtime unavailable ({exc}); run: python -m tools.meedo_me.runtime ensure"
+    try:
+        if oc.suffix in (".mjs", ".js") or oc.name.endswith(".mjs"):
+            cmd = [node, str(oc), "message", "send", "--channel", "whatsapp", "--to", target,
+                   "--message", message]
+        else:
+            cmd = [str(oc), "message", "send", "--channel", "whatsapp", "--to", target,
+                   "--message", message]
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120, env=env)
     except Exception as exc:  # noqa: BLE001
         return False, str(exc)
     if proc.returncode != 0:
@@ -372,17 +381,21 @@ def send_whatsapp(message: str, *, to: str = "") -> tuple[bool, str]:
 
 
 def automation_command(target: str, *, agent: str = "", cron: str = "0 * * * *") -> list[str]:
-    """The OpenClaw command automation: run the wrapper, announce its output."""
-    return ["openclaw", "automations", "create", cron, "--name", f"meedo-{agent or 'all'}-hourly-whatsapp",
-            "--tz", TZ, "--command", str(WRAPPER), "--command-cwd", str(ROOT),
-            "--announce", "--channel", "whatsapp", "--to", target]
+    """OpenClaw automation via the fused Meedo runtime (never a global ``openclaw``)."""
+    return [
+        sys.executable, "-m", "tools.meedo_me.runtime", "openclaw",
+        "automations", "create", cron,
+        "--name", f"meedo-{agent or 'all'}-hourly-whatsapp",
+        "--tz", TZ, "--command", str(WRAPPER), "--command-cwd", str(ROOT),
+        "--announce", "--channel", "whatsapp", "--to", target,
+    ]
 
 
 def register_hourly(*, agent: str = "", every: str = "1h", dry_run: bool = False) -> str:
     """Write the wrapper and register the hourly automation (or print it where
-    OpenClaw is not installed). The wrapper prints the update and does not
-    send it itself: OpenClaw's announce delivers what it prints, so the user
-    gets one message an hour, not two."""
+    the fused runtime is not installed yet). The wrapper prints the update and
+    does not send it itself: OpenClaw's announce delivers what it prints, so the
+    user gets one message an hour, not two."""
     target = whatsapp_to()
     if not target:
         raise RuntimeError("Set MEEDO_WHATSAPP_TO=+1XXXXXXXXXX in gitignored .env before registering")
@@ -403,11 +416,23 @@ def register_hourly(*, agent: str = "", every: str = "1h", dry_run: bool = False
     cron = "0 * * * *" if every in ("1h", "60m", "hourly") else f"*/{every.rstrip('m')} * * * *" if every.endswith("m") else "0 * * * *"
     cmd = automation_command(target, agent=agent, cron=cron)
     shown = " ".join(json.dumps(c) if " " in c or "*" in c else c for c in cmd)
-    if dry_run or not shutil.which("openclaw"):
+    fused_ok = False
+    try:
+        from tools.meedo_me.runtime.launcher import openclaw_bin
+        openclaw_bin(ensure=False)
+        fused_ok = True
+    except Exception:
+        fused_ok = False
+    if dry_run or not fused_ok:
         return (f"Wrapper written: {WRAPPER}\n"
-                "Run on the machine where OpenClaw has WhatsApp linked "
-                "(`openclaw channels status --probe` healthy):\n\n" + shown + "\n")
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                "Run after `python -m tools.meedo_me.runtime ensure` on the host "
+                "where WhatsApp is linked "
+                "(`python -m tools.meedo_me.runtime openclaw channels status --channel whatsapp --probe`):\n\n"
+                + shown + "\n")
+    # remove unused imports in register_hourly
+    from tools.meedo_me.runtime.launcher import openclaw_env
+    env = openclaw_env()
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60, env=env, cwd=str(ROOT))
     if proc.returncode == 0:
         return (proc.stdout or "registered").strip()
     return f"register failed:\n{(proc.stderr or proc.stdout or '').strip()}\n\nTry manually:\n{shown}"
