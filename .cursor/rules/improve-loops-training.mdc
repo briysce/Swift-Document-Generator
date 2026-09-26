@@ -25,14 +25,18 @@ Shipping layout lock: `shipping-label-approved-layout.mdc`.
 
 ## Training contract (every loop)
 
-1. **Read** the latest `improve_summary_latest.json` before changing that domain.
-2. **Attack** top failures that are real (not scorer false positives / honest limits).
-3. **Re-run** the domain runner; promote only score-proven changes.
-4. **Record lessons** in that domain’s `training_lessons.json` (append): what failed,
-   what fixed it, what must never regress, honest capability limits.
-5. **Expand the curriculum** over time — add cases for new failure modes (long text,
+1. **Meedo-Me first** (logo domain, and methodological lessons elsewhere): standup
+   → decide → recall; after the run, observe + propose so advice compounds.
+   See `.cursor/rules/meedo-me-pm.mdc`.
+2. **Read** the latest `improve_summary_latest.json` before changing that domain.
+3. **Attack** top failures that are real (not scorer false positives / honest limits).
+4. **Re-run** the domain runner; promote only score-proven changes.
+5. **Record lessons** in that domain’s `training_lessons.json` (append): what failed,
+   what fixed it, what must never regress, honest capability limits — and record the
+   method in Meedo-Me episodes when it is reusable.
+6. **Expand the curriculum** over time — add cases for new failure modes (long text,
    dual logos, slow restore, history wipe, etc.) so the suite gets harder and smarter.
-6. **Do not plateau silently** — if scores stall, document the limit in
+7. **Do not plateau silently** — if scores stall, document the limit in
    `training_lessons.json` and either raise the case matrix or note why further
    gains need new engines (not invented brand redraws / broken locks).
 

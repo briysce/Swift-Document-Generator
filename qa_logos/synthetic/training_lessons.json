@@ -148,7 +148,7 @@
       "id": "20260822T222600Z",
       "ts": "2026-08-22T22:26:00Z",
       "title": "Customer-logo knockout Dart/Python parity",
-      "lesson": "normalizeToVisibleContent punches enclosed plate holes AFTER crop/pad because crop can isolate counters the first flood saw as border-connected (ARJAE white A-disc). Python prepare_for_engine must do the same. White outer flood matches Dart _isEmptyPixel (lum>=200 sat<=28) and 8-way on light plates; black plates stay 4-way + _isNearBlackCanvas (lum<=40 sat<=16). Letter-counter punch skips comps <8 px. Do not treat *_restored.png debug dumps as a reason to skip disk batch — gitignore them from commits only. Timing >300ms is not a bbox anomaly.",
+      "lesson": "normalizeToVisibleContent punches enclosed plate holes AFTER crop/pad because crop can isolate counters the first flood saw as border-connected (ARJAE white A-disc). Python prepare_for_engine must do the same. White outer flood matches Dart _isEmptyPixel (lum>=200 sat<=28) and 8-way on light plates; black plates stay 4-way + _isNearBlackCanvas (lum<=40 sat<=16). Letter-counter punch skips comps <8 px. Do not treat *_restored.png debug dumps as a reason to skip disk batch \u2014 gitignore them from commits only. Timing >300ms is not a bbox anomaly.",
       "do_not_regress": "solid brand fills >=80% ink; white/black plate corners clear; O/B/D/P counters clear; no AABB collapse <55%",
       "case_ids": [
         "customer_logos/ARJAE.png",
@@ -160,6 +160,393 @@
         "parity",
         "customer-logos"
       ]
+    },
+    {
+      "ts": "2026-09-19T20:22:14.771696+00:00",
+      "title": "Port briyszier engine back; prefer cairosvg for sectional rasterize",
+      "lesson": "Restored tools/logo_vectorizer + logo_vectorize/improve-loop scripts from pre-move history. logo_vectorize now tries sectional (briyszier) first then vtracer. Prefer cairosvg over PyMuPDF for SVG\u2192PNG (PyMuPDF under-renders evenodd fills \u2192 ~0.50 IoU). Do not promote document brand PNG without score-proven IoU win vs current asset at native size.",
+      "do_not_regress": [
+        "no invented brand colors from gray import_combo",
+        "do not overwrite swift_supply_logo_document.png without beating prior ink_iou at native resolution",
+        "vtracer fallthrough must remain when sectional IoU < gate"
+      ],
+      "scores": {
+        "swift_anchor_mean_best_engine": 0.9279,
+        "target_north_star": 0.92
+      }
+    },
+    {
+      "id": "20260919T213006Z",
+      "ts": "2026-09-19T21:30:06Z",
+      "title": "Restore-safe sectional: no residual scoop, cairosvg gate, IoU 0.90",
+      "lesson": "logo_vectorize restore path uses decompose_swift_supply(scoop_residual=False), prefer_chrome=False (cairosvg), target_iou=0.90. Residual scoop stays default for document export; rasterize is cairosvg-first (no Chrome required). Plate-mush dens>0.70 skips sectional. Solid chrome must NOT use Swift sectional (keep color decompose). Swift vectorize mean 0.9269 restored.",
+      "do_not_regress": "scoop_residual default True for document; rasterize cairosvg-first (Chrome last-resort / LOGO_NO_CHROME); Swift vectorize mean>=0.9269; no invented brand colors",
+      "case_ids": [],
+      "tags": []
+    },
+    {
+      "id": "20260919T213500Z",
+      "ts": "2026-09-19T21:32:57.960207+00:00",
+      "title": "Hierarchical polish + DejaType anchors + VTracer/Inkscape lead",
+      "lesson": "Baked raster_polish.py: classical Gigapixel/Upscayl/Remacri/UltraSharp-inspired OpenCV path \u2192 Real-ESRGAN family weights (drop Upscayl .pth into .cache/realesrgan) \u2192 optional GFPGAN/InstructIR/DeOldify/Upscayl CLI; all fail-open. Pre-polish in logo_vectorize is OFF by default (--polish / LOGO_PRE_POLISH=1) with ink IoU\u22650.92 honesty gate so Swift restore mean cannot regress below 0.9269. Document export keeps residual scoop; cairosvg rasterize (no Chrome required). Ensemble backend_priority now leads with vtracer, inkscape (DejaType sectional already does per-element corner/extrema/inflection anchors in manual_trace). Progressions: document true-ink IoU ~0.997; restore-safe sectional restores 0.9269. Regressions avoided: residual scoop on degraded mush, Chrome-first on restore gate, AI preprocess hints that weaken upscale/blur, token exhaustion blocking local engines.",
+      "do_not_regress": [
+        "Swift vectorize mean_composite >= 0.9269",
+        "document SVG true-ink IoU >= 0.99 at native with residual scoop (cairosvg, no Chrome required)",
+        "AI quota/token \u2192 fail-open local path",
+        "pre-polish default off on improve-loop restore",
+        "vtracer+inkscape remain in ensemble race"
+      ],
+      "case_ids": [
+        "swift_orange__import_combo",
+        "swift_orange_solid__import_combo",
+        "baseline_document_svg"
+      ],
+      "tags": [
+        "polish",
+        "upscayl",
+        "remacri",
+        "ultrasharp",
+        "gigapixel",
+        "gfpgan",
+        "realesrgan",
+        "vtracer",
+        "inkscape",
+        "dejatype",
+        "training"
+      ]
+    },
+    {
+      "id": "20260919T214000Z",
+      "ts": "2026-09-19T21:39:44.859508+00:00",
+      "title": "Unified engine; no Chrome dependency; restore mean locked 0.9269",
+      "lesson": "Combined polish\u2192sectional(DejaType anchors)\u2192VTracer/Inkscape\u2192Real-ESRGAN into tools.logo_vectorizer.engine for SDG+briyszier. SVG rasterize default is cairosvg\u2192PyMuPDF; Chrome is last-resort only (LOGO_NO_CHROME=1 skips it). Document true-ink stays ~0.9966 without Chrome via residual scoop. Restore color_masks must stay ce8-strict (r>140); loosened AA gates regress Swift import_combo (~0.922). Progressions kept: residual+tuning for document, AI quota fail-open, Upscayl/Remacri/UltraSharp/Gigapixel polish hooks, VTracer+Inkscape lead ensemble. Do not regress Swift vectorize mean < 0.9269.",
+      "do_not_regress": [
+        "Swift vectorize mean >= 0.9269",
+        "color_masks orange r>140 / black r<90 on restore",
+        "cairosvg-first rasterize (no Chrome required)",
+        "document residual scoop true-ink >= 0.99",
+        "AI token exhaustion fail-open"
+      ],
+      "scores": {
+        "swift_vectorize_mean": 0.9269,
+        "document_true_ink_cairosvg": 0.9966
+      },
+      "tags": [
+        "engine",
+        "chrome",
+        "cairosvg",
+        "unified",
+        "briyszier",
+        "training"
+      ]
+    },
+    {
+      "id": "20260919T213952Z",
+      "ts": "2026-09-19T21:39:52Z",
+      "title": "Optional pre-polish default off; restore mean 0.9269 locked",
+      "lesson": "raster_polish (Gigapixel/Remacri/UltraSharp/Real-ESRGAN family) is opt-in via --polish or LOGO_PRE_POLISH=1 with ink IoU honesty gate \u22650.92. Improve-loop restore keeps polish off. rasterize_svg prefer_chrome defaults False (cairosvg\u2192PyMuPDF); Chrome last-resort only / LOGO_NO_CHROME=1. Swift vectorize mean measured 0.9269.",
+      "do_not_regress": "Swift vectorize mean>=0.9269; polish default off; rasterize cairosvg-first (Chrome last-resort / LOGO_NO_CHROME); scoop_residual default True",
+      "case_ids": [],
+      "tags": []
+    },
+    {
+      "id": "20260919T214500Z",
+      "ts": "2026-09-19T21:44:44.514520+00:00",
+      "title": "Chat-prompt compliance audit (briyszier port session)",
+      "lesson": "Audited every prompt in this chat. DONE: (1) briyszier engine ported into SDG tools/logo_vectorizer + logo_vectorize/logo_restorer; (2) measure lock Swift vectorize mean>=0.9269 \u2014 last locked score 0.9269 (run 20260919T201825Z/20260919T202214Z); run 20260919T213014Z had one engine_fail (swift_orange__downscale_jpeg: transient name 'os' is not defined during polish landing) which dropped anchor_mean to 0.9255 \u2014 import os is present and convert() re-verified; re-score required to reconfirm lock; (3) AI quota/token fail-open (AiQuotaExhausted, Gemini cooldown, preprocess hint floor); (4) training_lessons progressions/regressions recorded; (5) DejaType-style per-element anchors in manual_trace/sectional; (6) VTracer+Inkscape lead ensemble; (7) raster_polish hooks Real-ESRGAN/Upscayl-family/Remacri/UltraSharp/Gigapixel-inspired classical + optional GFPGAN/InstructIR/DeOldify/Upscayl CLI; (8) unified engine.py for SDG+briyszier; (9) Chrome not required (cairosvg\u2192PyMuPDF, prefer_chrome default False, LOGO_NO_CHROME). HONEST LIMITS: Topaz Gigapixel proprietary binary is NOT embedded\u2014only principle-level classical approx + Upscayl-compatible RRDB weights when user drops .pth files. InstructIR has no stable logo API in-tree (fail-open stub). Inkscape/GFPGAN/DeOldify require local install/weights. Clean document SVG true-ink ~0.997; degraded synthetic restore mean 0.9269 is the improve-loop lock (0.99 is the clean/document north star, not degraded mush).",
+      "do_not_regress": [
+        "Swift vectorize mean >= 0.9269",
+        "cairosvg-first / LOGO_NO_CHROME",
+        "AI fail-open",
+        "do not claim Topaz binary is bundled",
+        "polish default off on improve-loop"
+      ],
+      "tags": [
+        "compliance",
+        "audit",
+        "training",
+        "honest-limit"
+      ]
+    },
+    {
+      "id": "20260919T214517Z",
+      "ts": "2026-09-19T21:45:17Z",
+      "title": "Full-suite loop holds anchors at 0.927; trialta/arc blur_crush are honest limits",
+      "lesson": "Run 20260919T214003Z: anchor_mean=0.927, swift_vectorize_mean=0.9269, full mean=0.7395, 0 engine fails. Top failures trialta/arc blur_crush (palette_fidelity\u22480) are crush recipes that wipe brand chroma \u2014 do not invent colors. Further mean gains need softer recipes or neural, not gate loosening.",
+      "do_not_regress": "Swift vectorize mean>=0.9269; anchor_mean>=0.92; no invented Arc/Trialta colors from gray crush",
+      "case_ids": [],
+      "tags": []
+    },
+    {
+      "id": "20260919T215200Z",
+      "ts": "2026-09-19T21:49:52.511407+00:00",
+      "title": "Compliance re-score: Swift vectorize mean 0.9269",
+      "lesson": "After chat-prompt audit, re-ran logo_restore_improve_loop (run 20260919T214501Z). Zero engine fails. Swift anchor vectorize mean exactly 0.9269 (six pairs). Prior 213014Z fail was transient NameError during polish landing; current import os + cairosvg-first path holds the lock. Stale Chrome-prefer lesson text corrected.",
+      "do_not_regress": [
+        "Swift vectorize mean >= 0.9269",
+        "cairosvg-first / LOGO_NO_CHROME",
+        "AI fail-open",
+        "polish default off on improve-loop"
+      ],
+      "case_ids": [
+        "swift_orange__downscale_jpeg",
+        "swift_orange__blur_crush",
+        "swift_orange__import_combo",
+        "swift_orange_solid__downscale_jpeg",
+        "swift_orange_solid__blur_crush",
+        "swift_orange_solid__import_combo"
+      ],
+      "tags": [
+        "compliance",
+        "lock",
+        "swift",
+        "training"
+      ]
+    },
+    {
+      "id": "20260919T222936Z",
+      "ts": "2026-09-19T22:29:36Z",
+      "title": "The improve wall was the scoreboard: composite cannot score a perfect restoration",
+      "lesson": "Feeding a clean reference back in AS ITS OWN restoration scores 0.9331 (swift_orange), 0.9500 (swift_orange_solid), 0.9225 (gcm) \u2014 not 1.0. composite's edge term is 0.10*min(eer,2.0)/2.0, which only pays out in full at TWICE the reference's edge energy; an exact copy has eer=1.0 and collects half. alpha_clean and palette_fidelity are absolute and the references do not score 1.0 on themselves. So 0.9269 on the Swift anchor was 0.0062 from a byte-identical copy, and the 0.97-0.99 target was unreachable by anything faithful \u2014 it requires eer>=2.0, i.e. deliberate ringing. Worse, the metric INVERTS ranking: swift_orange__blur_crush__vectorize scores legacy 0.9312 at eer=2.22 (visibly over-sharpened) while downscale_jpeg__vectorize scores legacy 0.9179 at eer=0.885 (faithful). Tuning to maximize composite selects for artifacts. Added composite_v2 (identity == 1.0 exactly, symmetric edge term) alongside; legacy composite left byte-identical and re-verified with zero drift across 54 rows.",
+      "do_not_regress": "Swift vectorize mean 0.9269 on legacy composite; legacy composite must stay byte-identical",
+      "case_ids": [
+        "swift_orange__blur_crush",
+        "swift_orange__downscale_jpeg"
+      ],
+      "tags": [
+        "metric",
+        "ceiling",
+        "composite-v2"
+      ]
+    },
+    {
+      "id": "20260919T222936Z",
+      "ts": "2026-09-19T22:29:36Z",
+      "title": "Raster-fidelity scoring is the wrong target; two brand SVGs are wrapped bitmaps",
+      "lesson": "qa_logos/synthetic/clean/swift_orange.png has exactly two alpha values (0 and 255) and ZERO anti-aliased pixels \u2014 the reference is hard-edged with jaggies baked in, so IoU against it rewards reproducing the staircase. The goal is the artwork the raster is a degraded rendering OF, not a copy of it. Separately: assets/brand/swift_supply_logo_orange.svg and swift_supply_logo_orange_solid.svg contain NO vector geometry at all \u2014 they are base64 PNGs inside an <svg><image> wrapper (36708 and 159063 bytes of PNG). Any 'true-ink IoU 1.0000' measured on them is a bitmap scored against itself and means nothing. Only swift_supply_logo_document.svg (8992 anchors, 114.8/1k) and swift_supply_logo_white.svg (11614 anchors, 307.5/1k) have real paths, and both are dense raster traces. Added tools/logo_vectorizer/ideality.py: a reference-free score (anchor economy, straightness, curvature smoothness, staircase detection) calibrated against the one genuinely hand-built vector in the repo, briysce_wordmark_paper.svg at 57 anchors/1k => 0.9246.",
+      "do_not_regress": "never quote fidelity from an <image>-wrapped SVG as vector quality",
+      "case_ids": [],
+      "tags": [
+        "ideality",
+        "vector-quality",
+        "honest-limit"
+      ]
+    },
+    {
+      "id": "20260919T225959Z",
+      "ts": "2026-09-19T22:59:59Z",
+      "title": "Establish intent by recognition, not inference: glyph > shape > residual",
+      "lesson": "Ranked evidence beats statistics. (1) Run-level font ID: group elements by baseline/cap-height, pick the ONE font maximizing agreement across the run, then emit the font's own outline. Positive control 12/12 correct (font AND every character) for Oswald-Bold SUPPLY, Montserrat-Bold SWIFT, LiberationSans-Bold CARGO down to 0.18x scale + JPEG q40. On a degraded SUPPLY this cut anchors 149.6/1k -> 2.7/1k AND raised IoU vs the TRUE original 0.9479 -> 0.9776 \u2014 recognition beats tracing on BOTH quality and accuracy. Glyph must outrank generic polygon fit or an L/I gets claimed as a polygon and the real curves are lost. Placement must be refined by local offset/scale search against the element mask; naive bbox mapping lost ~0.5-3% IoU. (2) Shape vocabulary (circle/ellipse/rect/rotated-rect/regular-polygon/rounded-rect/polygon), most-constrained-wins by DOF. (3) Residual character only as last resort.",
+      "do_not_regress": "glyph match must outrank generic polygon; placement refinement must stay on",
+      "case_ids": [],
+      "tags": [
+        "font-id",
+        "shapes",
+        "recognition"
+      ]
+    },
+    {
+      "id": "20260919T225959Z",
+      "ts": "2026-09-19T22:59:59Z",
+      "title": "Three metric traps: fixed coverage gates, side-length residuals, and equal sides without equal angles",
+      "lesson": "All three produced wrong answers before being caught. (a) A fixed coverage threshold (0.972) is size-blind: a 44px circle tops out at 0.938 no matter how perfect the fit, because its 1px rim is ~6% of its area. Gate against the achievable ceiling 1-(perimeter*0.5*pixel/area) instead, or every small shape is rejected \u2014 exactly the low-res case that matters most. (b) Residual must mean the same thing for every primitive (mean boundary distance in px). Using side-length spread for polygons read ~15 on a clean large triangle and wrongly rejected it. (c) Regular polygon needs equal TURN ANGLES as well as equal sides: a kite has sides std/mean 0.018 (passes) but turn-angle std 6.72deg, and was falsely called regular. Also: never fall back to 'accept the best candidate anyway' when nothing passes the gate \u2014 inventing regularity that was not there is worse than tracing honestly.",
+      "do_not_regress": "size-aware coverage floor; unified boundary residual; angle check on regular polygons",
+      "case_ids": [],
+      "tags": [
+        "shapes",
+        "metric",
+        "honest-limit"
+      ]
+    },
+    {
+      "id": "20260919T225959Z",
+      "ts": "2026-09-19T22:59:59Z",
+      "title": "Damage metrics must be chosen empirically; most candidates invert on flat artwork",
+      "lesson": "First cut of flaw_analysis scored the CLEAN anchor as more damaged (0.476) than blur_crush (0.306) \u2014 the same failure it accuses BRISQUE of. Three of five measures invert on flat art: posterization (flat brand art legitimately has 2-3 colours), staircase (clean anchors are hard-alpha renders so 100% of steps are on the pixel grid), and spectral cutoff (JPEG noise ADDS high-frequency energy, so damage reads as MORE resolution). Tested candidates against known severity across every slug and kept only ink_speckle (share of ink components <64px): monotonic everywhere \u2014 swift_orange 0.00/0.71/0.91, gcm 0.00/0.80/0.96, propak 0.04/0.80/0.93, trialta 0.00/0.71/0.95. Rejected hf_noise (gcm clean 0.377 > degraded 0.268), contour roughness, chroma variance, and BRISQUE (clean 171.46 vs degraded 93.68/96.88 \u2014 ranks pristine worst, needs 3 shims to even run). Known asymmetry: speckle is strong positive evidence but its absence proves little; a clean 0.18x/q40 rescale still reports ~0.10. Score only ever RAISES correction strength from a safe baseline, so a false low is a missed opportunity, not a regression.",
+      "do_not_regress": "never wire BRISQUE into the degradation score; validate any new damage metric for monotonicity across all slugs first",
+      "case_ids": [],
+      "tags": [
+        "flaw-analysis",
+        "metric",
+        "honest-limit"
+      ]
+    },
+    {
+      "id": "20260919T225959Z",
+      "ts": "2026-09-19T22:59:59Z",
+      "title": "RANSAC consensus over least-squares for damaged primitives; corpus size gates font ID",
+      "lesson": "A mean-radius circle fit is least-squares so every outlier pulls it \u2014 wrong estimator for damaged artwork. RANSAC (pyransac3d, 2D lifted to z=0) finds the circle the largest agreeing subset supports and treats damage as outliers. A/B: chunk bitten out 4.34px/7.32px centre/radius error -> 1.50/0.45; ragged bled edge 5.30/0.64 -> 1.57/1.04; IDENTICAL on clean input, so no regression. Keep the robust fit only when it beats the least-squares coverage. Separately: font ID is bounded by corpus, not by matcher tuning. Swift SUPPLY (a Eurostile/Microgramma-like square face) scored 0.608 against 103 system fonts and 0.851 against 458 after pulling Google Fonts via the css2 API \u2014 still below the 0.86 run threshold, so it correctly declines. Note Google content-negotiates format from User-Agent: a BROWSER UA gets WOFF (PIL cannot open it), an unrecognized UA gets plain TTF.",
+      "do_not_regress": "RANSAC must not change clean-input fits; font_fetch must not send a browser UA",
+      "case_ids": [],
+      "tags": [
+        "ransac",
+        "font-corpus"
+      ]
+    },
+    {
+      "id": "20260920T071537Z",
+      "ts": "2026-09-20T07:15:37Z",
+      "title": "Simplify-then-fit beats tracing on clean bold artwork, and loses everywhere else",
+      "lesson": "potrace follows the pixel boundary faithfully, which means faithfully reproducing stair-steps: the Swift lockup traced to 28,643 anchors at 196.9 per 1k contour against 57 for the hand-built briysce wordmark. Replacing the tracer with RDP simplify -> Chaikin -> Catmull-Rom (smooth.py, which already existed and named SWIFT in its docstring but was never called by idealize) gives ~2,600 anchors at ~32/1k and ideality 0.5985 -> 0.8691 on swift_orange, 0.6277 -> 0.8502 on swift_orange_solid. Rendered at 3x the S becomes one continuous sweep where the source and potrace are both visibly staircased. BUT it wins only 1-2 cases in 17: on arc/gcm/propak (all <720px) it LOSES 0.08-0.11 because corner-cutting adds points on short contours RDP barely reduced, and on every degraded input it is far worse (0.55-0.70 vs potrace 0.75-0.84) because RDP+Chaikin on a noisy contour makes mush. So build both and keep the measured winner, guarded by shape agreement with a 0.06 budget.",
+      "do_not_regress": "never declare one fitter the winner from the Swift result alone; keep the build-both-and-measure chooser",
+      "case_ids": [
+        "swift_orange",
+        "swift_orange_solid",
+        "arc",
+        "propak"
+      ],
+      "tags": [
+        "idealize",
+        "smooth-fit",
+        "craftsmanship"
+      ]
+    },
+    {
+      "id": "20260920T071537Z",
+      "ts": "2026-09-20T07:15:37Z",
+      "title": "Simplification tolerance must never approach the feature size",
+      "lesson": "RDP epsilon in smooth.py is a fraction of PERIMETER, which is the wrong yardstick for a long thin shape. The Swift bars are 2981x93, so a perimeter-based epsilon lands near 4% of their height; with the corner-cutting pass on top the parallel edges converge and the bar leaves as a tapered wedge. Shape agreement caught it (0.893 vs potrace 0.9957) and the chooser refused the candidate, costing a real +0.22 ideality win until the cause was found. Fix: cap epsilon at 2% of each contour's own thinnest bounding dimension (RDP_THIN_FRACTION). swift_orange_solid smooth IoU then went 0.893 -> 0.9625 and the chooser accepted it. Related: the same bars ARE rect-snapped in swift_orange (2981x91) but not in swift_orange_solid (2981x93) because the letters touch them there and coverage drops below the strict gate \u2014 worth fixing separately so bars never reach the fitter at all. Also note potrace scored 0.996 raster agreement on that logo with visibly jagged edges: high raster agreement and good craftsmanship are different things.",
+      "do_not_regress": "RDP epsilon capped against contour thinnest dimension; bars must keep parallel edges",
+      "case_ids": [
+        "swift_orange_solid"
+      ],
+      "tags": [
+        "idealize",
+        "honest-limit",
+        "metric"
+      ]
+    },
+    {
+      "id": "20260920T112543Z",
+      "ts": "2026-09-20T11:25:43Z",
+      "title": "A bounding fit is the wrong estimator for a shape that carries damage",
+      "lesson": "cv2.minAreaRect must enclose every boundary pixel, so a handful of antialiasing crumbs sets the size AND the angle of the whole rectangle. Three stray pixels out of 268,100 stretched the solid Swift top bar from 2980x89 to 2980x91 down its entire length (coverage 0.9993 -> 0.9776, under the gate, bar refused and traced as a curve); on a shorter 300px bar the same three crumbs also tilted it 0.28 degrees, which smears the edges across 1.5px and defeats any trim taken in that frame. Fix both with consensus estimates -- extents from quantiles of the boundary, orientation from the element's own second moments -- and let rendered coverage pick among them with the bounding fit still in the running, so a genuine rectangle cannot be talked out of its real size. Same argument fit_circle already made for RANSAC over least squares.",
+      "do_not_regress": "Trim fractions do not scale down: 0.4% of a 6150-point outline sheds 3 crumbs, but 0.4% of a 680-point outline is fewer points than those crumbs contribute and the trim silently no-ops. Try a ladder of trims and let coverage choose.",
+      "case_ids": [
+        "swift_orange_solid"
+      ],
+      "tags": [
+        "shapes",
+        "consensus-fit"
+      ]
+    },
+    {
+      "id": "20260920T112543Z",
+      "ts": "2026-09-20T11:25:43Z",
+      "title": "Clearing the coverage floor is not the same as fitting",
+      "lesson": "best_fit ranked candidates by degrees of freedom on the principle that the more constrained shape is the stronger claim about intent -- but that principle is stated as 'when both fit within tolerance', and the code read it as 'both cleared the coverage floor'. The floor is a MINIMUM and relaxes to 0.80 on small elements, so a rect covering 0.8000 outranked a polygon covering 0.9728, and a rect covering 0.9611 outranked a polygon that fitted exactly. Gate the dof preference on the freer shape failing to remove most of the tighter one's leftover error, measured as a FRACTION of that leftover so the test means the same thing at every element size, and only while there is material error left -- otherwise it turns hair-trigger as coverage approaches 1 and noise decides in the other direction.",
+      "do_not_regress": "A relative-error criterion is meaningless once the leftover error is tiny; require the constrained shape to be leaving at least MATERIAL_ERROR uncovered before asking the question at all.",
+      "case_ids": [
+        "gcm"
+      ],
+      "tags": [
+        "shapes",
+        "ranking"
+      ]
+    },
+    {
+      "id": "20260920T123213Z",
+      "ts": "2026-09-20T12:32:13Z",
+      "title": "A score is only a score next to the settings that produced it",
+      "lesson": "The improve loop recorded composite scores but nothing about the configuration behind them. Re-running with --engines baseline,vectorize --min-height 3000 and comparing against a history of --engines baseline,esrgan,vectorize --min-height 1200 runs showed Swift vectorize anchors at 0.9234 vs 0.9269 and read as a 0.0035 regression in the default path. It was not one: min_height feeds the Lanczos target, the SVG rasterize width and the scale the metrics are measured at, and the engine set changes anchor_mean_composite because that mean averages across engines. Nothing in the log said so, so the two runs looked comparable. min_height and the engine list are now recorded on every row and in the summary.",
+      "do_not_regress": "Never compare improve-loop runs without checking min_height and engines match; the loop's --min-height default is 1200 and the historical anchor baseline (vectorize Swift = 0.9269 composite / 0.9356 v2) was measured there.",
+      "case_ids": [
+        "swift_orange"
+      ],
+      "tags": [
+        "measurement",
+        "improve-loop"
+      ]
+    },
+    {
+      "id": "20260920T145300Z",
+      "ts": "2026-09-20T14:53:00Z",
+      "title": "Reconstruction clearing its gate does not mean it beats the alternative",
+      "lesson": "Ran the whole 18-pair corpus with LOGO_IDEALIZE=1 at --min-height 1200, against the confirmed 20260920T123110Z vectorize baseline. 14 of 18 were untouched (idealize declined and fell through). Of the 4 it accepted, all Swift: swift_orange_solid__blur_crush improved on both scales (+0.010 composite, +0.020 v2), swift_orange__import_combo got WORSE on both (-0.033, -0.038), and two improved composite while losing v2 (solid__downscale_jpeg +0.005/-0.033, solid__import_combo +0.017/-0.053). Swift anchors net: composite 0.9269 -> 0.9268 flat, composite_v2 0.9356 -> 0.9183, a 0.017 LOSS on the scale the suite says to judge 0.99-class fidelity on. The reconstruction path must stay opt-in.",
+      "do_not_regress": "An absolute IoU-vs-source gate does not predict the final score: candidates cleared 0.90 and still finished below what vtracer produced for the same pair. Accepting a reconstruction because it agrees with the source is not the same as it being the better restoration. The gate has to compare against the alternative actually available, which means building both candidates and scoring them, not thresholding one.",
+      "case_ids": [
+        "swift_orange"
+      ],
+      "tags": [
+        "idealize",
+        "gating"
+      ]
+    },
+    {
+      "id": "20260920T174604Z",
+      "ts": "2026-09-20T17:46:04Z",
+      "title": "Agreement with the source cannot rank restorations within a pair",
+      "lesson": "Built every candidate on all 18 pairs and scored each against the clean original, to choose the idealize gate on evidence. Agreement-vs-source is the strongest signal ACROSS the corpus (r=+0.57) and nearly useless WITHIN a pair: trialta__import_combo's reconstruction agrees at 0.180 against the trace's 0.914 and scores better (0.5787 vs 0.5045). It is also structurally biased toward doing nothing, because when tracing fails it falls back to a Lanczos upscale -- the degraded source enlarged -- which agrees with that source almost perfectly while being no restoration at all. Ideality alone is worse (r=+0.08). What separates them is whether the trace produced a vector at all: where it fell through to Lanczos the reconstruction wins 8 of 9, the exception being one where the reconstruction itself collapsed to 0.002 agreement. Rule: trace has no vector AND reconstruction did not collapse -> ship the reconstruction. Corpus composite 0.7433 -> 0.7567, v2 0.7455 -> 0.7584, 7 of 18, zero regressions, against an oracle ceiling of 0.7688.",
+      "do_not_regress": "Where the trace DID produce a vector, none of agreement, ideality or edge-ratio separates the winner (5 of 9 favour the reconstruction with no signal distinguishing them). Do not add a rule for that case without a signal that ranks candidates inside a pair -- guessing there costs real pairs.",
+      "case_ids": [
+        "gcm"
+      ],
+      "tags": [
+        "idealize",
+        "gating"
+      ]
+    },
+    {
+      "id": "20260926T131801Z",
+      "ts": "2026-09-26T13:18:01Z",
+      "title": "PROPAK Services i-dot prepare-path closed (board #7)",
+      "lesson": "Clean PROPAK's Services tittle (47px, 8x6) survives all prepare_for_engine stages; elements_of finds area 34. E0022/0673cf2 already fixed GCM+PROPAK mark retention for separate islands. On current synthetic degrade recipes the separate blue i-dot is already gone/merged in the RAW degrade \u2014 not lost later in prepare. Do not loosen prune_ink_speckles further for degraded PROPAK; residual recovery is reconstruction/font/design_fit (#4). Locked by test_prepare_idot_retention.py.",
+      "do_not_regress": "clean propak + gcm golden i-dot islands through prepare_for_engine; _is_small_mark keep for compact stem-adjacent marks",
+      "case_ids": [
+        "propak",
+        "gcm"
+      ],
+      "tags": [
+        "dots",
+        "preparation",
+        "propak",
+        "board-7",
+        "honest-limit"
+      ]
+    },
+    {
+      "id": "20260926T132712Z",
+      "ts": "2026-09-26T13:27:12Z",
+      "title": "Centre-line thin rules inside dense lockups (board #9)",
+      "lesson": "Do not reopen whole-logo density<=0.30 for Propak/Trialta. Instead elongated_thin_components (aspect>=6, thick<=8, dens>=0.35) feeds centerline_protect_mask and stamp_centerline. fit_centerline_stroke names 1\u20133px / sub-40px solid rules as stroked centre-lines; thicker Propak red bar remains rect. Locked by test_centerline_thin_rules.py.",
+      "do_not_regress": "Propak fills not treated as thin wordmark; Propak red rule protect/stamp; Swift bars still rect",
+      "case_ids": [
+        "propak"
+      ],
+      "tags": [
+        "centerline",
+        "thin-stroke",
+        "propak",
+        "board-9"
+      ]
+    },
+    {
+      "id": "20260926T134225Z",
+      "ts": "2026-09-26T13:42:25Z",
+      "title": "idealize must not require potrace when smooth_fit works",
+      "lesson": "collab_mind on arc__tagline diagnosed sectional/color-split; deeper probe found _compose returned None whenever potrace was missing, even though _smooth_trace draws without it. That made LOGO_IDEALIZE decline on hosts without potrace and looked like 'reconstruction drops tagline'. Fail-open: allow smooth_fit compose without potrace; only hard-require potrace for the plain/potrace-only pass.",
+      "do_not_regress": "Never gate the entire idealize composition on have_potrace() when smooth_fit=True.",
+      "case_ids": [
+        "arc__tagline",
+        "arc"
+      ],
+      "tags": [
+        "idealize",
+        "potrace",
+        "collab_mind",
+        "arc",
+        "fail-open"
+      ],
+      "source": "cursor/board-11+8"
+    },
+    {
+      "id": "20260926T135925Z",
+      "ts": "2026-09-26T13:59:25Z",
+      "title": "Meedo unified observe + procedure playbook",
+      "lesson": "Every face (Gemini/Claude/Serper/Cursor/Claude Code/OpenClaw/improve loops/collab_mind) must record via tools.ai_collab.observe into one memory: journal + ai_lessons + episodes + meedo_procedures. Receiving/BOL loops now use improve_hook; Serper persists query patterns + must_keep; journal done auto-episodes when evidence.method set; meedo_cycle/meedo_study surfaces cannot-yet-own + offline confidence. Prefer deepen MCP over parallel brains.",
+      "do_not_regress": "Shipping SO/Contact lock; never invent brand colors; fail-open when APIs dark; one Meedo brain",
+      "case_ids": [],
+      "tags": []
     }
   ],
   "run_snapshots": [
@@ -833,7 +1220,1029 @@
         "esrgan": 0.7735,
         "vectorize": 0.7744
       }
+    },
+    {
+      "ts": "2026-09-19T20:14:04Z",
+      "run_id": "20260919T201404Z",
+      "mean_composite": 0.9248,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "swift_orange__import_combo",
+          "engine": "baseline",
+          "composite": 0.9117,
+          "ink_iou": 0.9711,
+          "palette_fidelity": 0.8939,
+          "alpha_clean": 0.9944,
+          "aspect_drift": 0.0038
+        },
+        {
+          "pair_id": "swift_orange__import_combo",
+          "engine": "vectorize",
+          "composite": 0.9123,
+          "ink_iou": 0.971,
+          "palette_fidelity": 0.8881,
+          "alpha_clean": 0.9943,
+          "aspect_drift": 0.0038
+        },
+        {
+          "pair_id": "swift_orange_solid__import_combo",
+          "engine": "vectorize",
+          "composite": 0.9126,
+          "ink_iou": 0.9262,
+          "palette_fidelity": 0.8947,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0014
+        },
+        {
+          "pair_id": "swift_orange__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.9179,
+          "ink_iou": 0.9617,
+          "palette_fidelity": 0.9541,
+          "alpha_clean": 0.9948,
+          "aspect_drift": 0.0022
+        },
+        {
+          "pair_id": "swift_orange_solid__downscale_jpeg",
+          "engine": "baseline",
+          "composite": 0.9275,
+          "ink_iou": 0.9441,
+          "palette_fidelity": 0.913,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0009
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9248,
+      "engine_mean_composite": {
+        "baseline": 0.927,
+        "vectorize": 0.9227
+      }
+    },
+    {
+      "ts": "2026-09-19T20:18:25Z",
+      "run_id": "20260919T201825Z",
+      "mean_composite": 0.927,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "swift_orange__import_combo",
+          "engine": "baseline",
+          "composite": 0.9117,
+          "ink_iou": 0.9711,
+          "palette_fidelity": 0.8939,
+          "alpha_clean": 0.9944,
+          "aspect_drift": 0.0038
+        },
+        {
+          "pair_id": "swift_orange__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.9179,
+          "ink_iou": 0.9617,
+          "palette_fidelity": 0.9541,
+          "alpha_clean": 0.9948,
+          "aspect_drift": 0.0022
+        },
+        {
+          "pair_id": "swift_orange__import_combo",
+          "engine": "vectorize",
+          "composite": 0.9218,
+          "ink_iou": 0.9773,
+          "palette_fidelity": 0.9743,
+          "alpha_clean": 0.9886,
+          "aspect_drift": 0.0013
+        },
+        {
+          "pair_id": "swift_orange_solid__downscale_jpeg",
+          "engine": "baseline",
+          "composite": 0.9275,
+          "ink_iou": 0.9441,
+          "palette_fidelity": 0.913,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0009
+        },
+        {
+          "pair_id": "swift_orange__downscale_jpeg",
+          "engine": "baseline",
+          "composite": 0.9283,
+          "ink_iou": 0.9613,
+          "palette_fidelity": 0.9473,
+          "alpha_clean": 0.9814,
+          "aspect_drift": 0.0003
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.927,
+      "engine_mean_composite": {
+        "baseline": 0.927,
+        "vectorize": 0.9269
+      }
+    },
+    {
+      "ts": "2026-09-19T20:22:14Z",
+      "run_id": "20260919T202214Z",
+      "mean_composite": 0.9269,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "swift_orange__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.9179,
+          "ink_iou": 0.9617,
+          "palette_fidelity": 0.9541,
+          "alpha_clean": 0.9948,
+          "aspect_drift": 0.0022
+        },
+        {
+          "pair_id": "swift_orange__import_combo",
+          "engine": "vectorize",
+          "composite": 0.9218,
+          "ink_iou": 0.9773,
+          "palette_fidelity": 0.9743,
+          "alpha_clean": 0.9886,
+          "aspect_drift": 0.0013
+        },
+        {
+          "pair_id": "swift_orange_solid__import_combo",
+          "engine": "vectorize",
+          "composite": 0.9292,
+          "ink_iou": 0.9771,
+          "palette_fidelity": 1.0,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0057
+        },
+        {
+          "pair_id": "swift_orange_solid__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.9302,
+          "ink_iou": 0.9386,
+          "palette_fidelity": 0.8098,
+          "alpha_clean": 0.9999,
+          "aspect_drift": 0.0036
+        },
+        {
+          "pair_id": "swift_orange__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.9312,
+          "ink_iou": 0.9489,
+          "palette_fidelity": 0.7987,
+          "alpha_clean": 0.9985,
+          "aspect_drift": 0.0013
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9269,
+      "engine_mean_composite": {
+        "vectorize": 0.9269
+      }
+    },
+    {
+      "ts": "2026-09-19T20:58:22Z",
+      "run_id": "20260919T205822Z",
+      "mean_composite": 0.7389,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5016,
+          "ink_iou": 0.2248,
+          "palette_fidelity": 0.3853,
+          "alpha_clean": 0.9973,
+          "aspect_drift": 0.0608
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9252,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "vectorize": 0.7421
+      }
+    },
+    {
+      "ts": "2026-09-19T21:16:05Z",
+      "run_id": "20260919T211605Z",
+      "mean_composite": 0.7388,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5016,
+          "ink_iou": 0.2248,
+          "palette_fidelity": 0.3853,
+          "alpha_clean": 0.9973,
+          "aspect_drift": 0.0608
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9248,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "vectorize": 0.7419
+      }
+    },
+    {
+      "ts": "2026-09-19T21:30:14Z",
+      "run_id": "20260919T213014Z",
+      "mean_composite": 0.7337,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5016,
+          "ink_iou": 0.2248,
+          "palette_fidelity": 0.3853,
+          "alpha_clean": 0.9973,
+          "aspect_drift": 0.0608
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9255,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "vectorize": 0.7316
+      }
+    },
+    {
+      "ts": "2026-09-19T21:40:03Z",
+      "run_id": "20260919T214003Z",
+      "mean_composite": 0.7395,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5016,
+          "ink_iou": 0.2248,
+          "palette_fidelity": 0.3853,
+          "alpha_clean": 0.9973,
+          "aspect_drift": 0.0608
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.927,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "vectorize": 0.7433
+      }
+    },
+    {
+      "ts": "2026-09-19T21:45:01Z",
+      "run_id": "20260919T214501Z",
+      "mean_composite": 0.7395,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5016,
+          "ink_iou": 0.2248,
+          "palette_fidelity": 0.3853,
+          "alpha_clean": 0.9973,
+          "aspect_drift": 0.0608
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.927,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "vectorize": 0.7433
+      }
+    },
+    {
+      "ts": "2026-09-19T21:57:44Z",
+      "run_id": "20260919T215744Z",
+      "mean_composite": 0.7384,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "esrgan",
+          "composite": 0.4242,
+          "ink_iou": 0.2207,
+          "palette_fidelity": 0.0,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0802
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9118,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "esrgan": 0.7361,
+        "vectorize": 0.7433
+      }
+    },
+    {
+      "ts": "2026-09-19T22:59:28Z",
+      "run_id": "20260919T225928Z",
+      "mean_composite": 0.7384,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "esrgan",
+          "composite": 0.4242,
+          "ink_iou": 0.2207,
+          "palette_fidelity": 0.0,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0802
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9118,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "esrgan": 0.7361,
+        "vectorize": 0.7433
+      }
+    },
+    {
+      "ts": "2026-09-19T23:33:24Z",
+      "run_id": "20260919T233324Z",
+      "mean_composite": 0.7384,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "esrgan",
+          "composite": 0.4242,
+          "ink_iou": 0.2207,
+          "palette_fidelity": 0.0,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0802
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9118,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "esrgan": 0.7361,
+        "vectorize": 0.7433
+      }
+    },
+    {
+      "ts": "2026-09-20T00:41:54Z",
+      "run_id": "20260920T004154Z",
+      "mean_composite": 0.7384,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "esrgan",
+          "composite": 0.4242,
+          "ink_iou": 0.2207,
+          "palette_fidelity": 0.0,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0802
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9118,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "esrgan": 0.7361,
+        "vectorize": 0.7433
+      }
+    },
+    {
+      "ts": "2026-09-20T04:43:25Z",
+      "run_id": "20260920T044325Z",
+      "mean_composite": 0.7384,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "esrgan",
+          "composite": 0.4242,
+          "ink_iou": 0.2207,
+          "palette_fidelity": 0.0,
+          "alpha_clean": 1.0,
+          "aspect_drift": 0.0802
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9118,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "esrgan": 0.7361,
+        "vectorize": 0.7433
+      }
+    },
+    {
+      "ts": "2026-09-20T11:49:09Z",
+      "run_id": "20260920T114909Z",
+      "mean_composite": 0.7388,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.402,
+          "ink_iou": 0.2639,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9953,
+          "aspect_drift": 0.1264
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.271,
+          "palette_fidelity": 0.0041,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0065
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4459,
+          "ink_iou": 0.1904,
+          "palette_fidelity": 0.0424,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0805
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.446,
+          "ink_iou": 0.1904,
+          "palette_fidelity": 0.0427,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0805
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "baseline",
+          "composite": 0.5017,
+          "ink_iou": 0.2247,
+          "palette_fidelity": 0.386,
+          "alpha_clean": 0.9973,
+          "aspect_drift": 0.0611
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9251,
+      "engine_mean_composite": {
+        "baseline": 0.7356,
+        "vectorize": 0.742
+      }
+    },
+    {
+      "ts": "2026-09-20T12:31:10Z",
+      "run_id": "20260920T123110Z",
+      "mean_composite": 0.7395,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4419,
+          "ink_iou": 0.2712,
+          "palette_fidelity": 0.0037,
+          "alpha_clean": 0.9947,
+          "aspect_drift": 0.0061
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "baseline",
+          "composite": 0.4463,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0432,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0811
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.927,
+      "engine_mean_composite": {
+        "baseline": 0.7357,
+        "vectorize": 0.7433
+      }
+    },
+    {
+      "ts": "2026-09-20T14:20:01Z",
+      "run_id": "20260920T142001Z",
+      "min_height": 1200,
+      "engines": [
+        "vectorize"
+      ],
+      "mean_composite": 0.7432,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "vectorize",
+          "composite": 0.5045,
+          "ink_iou": 0.2249,
+          "palette_fidelity": 0.387,
+          "alpha_clean": 0.9977,
+          "aspect_drift": 0.0621
+        },
+        {
+          "pair_id": "trialta__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.5373,
+          "ink_iou": 0.2688,
+          "palette_fidelity": 0.3123,
+          "alpha_clean": 0.9705,
+          "aspect_drift": 0.0241
+        },
+        {
+          "pair_id": "propak__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.6542,
+          "ink_iou": 0.5901,
+          "palette_fidelity": 0.2258,
+          "alpha_clean": 0.9965,
+          "aspect_drift": 0.0404
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9268,
+      "engine_mean_composite": {
+        "vectorize": 0.7432
+      }
+    },
+    {
+      "ts": "2026-09-20T17:45:11Z",
+      "run_id": "20260920T174511Z",
+      "min_height": 1200,
+      "engines": [
+        "vectorize"
+      ],
+      "mean_composite": 0.7567,
+      "ok": true,
+      "top_failures": [
+        {
+          "pair_id": "trialta__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4021,
+          "ink_iou": 0.2638,
+          "palette_fidelity": 0.003,
+          "alpha_clean": 0.9957,
+          "aspect_drift": 0.1262
+        },
+        {
+          "pair_id": "arc__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.4461,
+          "ink_iou": 0.1914,
+          "palette_fidelity": 0.0422,
+          "alpha_clean": 0.9981,
+          "aspect_drift": 0.0812
+        },
+        {
+          "pair_id": "trialta__import_combo",
+          "engine": "vectorize",
+          "composite": 0.5045,
+          "ink_iou": 0.2249,
+          "palette_fidelity": 0.387,
+          "alpha_clean": 0.9977,
+          "aspect_drift": 0.0621
+        },
+        {
+          "pair_id": "trialta__downscale_jpeg",
+          "engine": "vectorize",
+          "composite": 0.5937,
+          "ink_iou": 0.279,
+          "palette_fidelity": 0.6436,
+          "alpha_clean": 0.9539,
+          "aspect_drift": 0.0494
+        },
+        {
+          "pair_id": "propak__blur_crush",
+          "engine": "vectorize",
+          "composite": 0.6592,
+          "ink_iou": 0.4966,
+          "palette_fidelity": 0.3684,
+          "alpha_clean": 0.9917,
+          "aspect_drift": 0.0251
+        }
+      ],
+      "gate_fails": [],
+      "next": "Read qa_logos/synthetic/training_lessons.json; improve the lowest-composite engine/recipe gaps; re-run this script; promote only techniques that raise scores (esp. swift_orange anchors); append score-proven lessons. Neural fine-tune only if suite plateaus.",
+      "anchor_mean_composite": 0.9285,
+      "engine_mean_composite": {
+        "vectorize": 0.7567
+      }
     }
   ],
-  "updated_at": "2026-08-22T21:44:55Z"
+  "updated_at": "2026-09-26T13:59:25Z",
+  "entries": []
 }

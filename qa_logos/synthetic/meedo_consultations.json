@@ -1,0 +1,297 @@
+{
+  "version": 1,
+  "consultations": [
+    {
+      "id": "2026-09-26T13:51:57Z-claude-critique",
+      "ts": "2026-09-26T13:51:57Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "critique",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "smoke-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is the engine's restoration of it.\n\nJudge IMAGE 2 as a designer reviewing a junior's vector redraw. Return JSON only:\n{\n  \"same_logo\": true,\n  \"missing\": [\"elements in the sketch that IMAGE 2 lacks, e.g. 'i-dot on Services'\"],\n  \"extra\": [\"things IMAGE 2 draws that are not part of the design, e.g. 'grey halo around letters'\"],\n  \"geometry\": [\"lines that should be straight, curves that should be fair, corners that should be sharp\"],\n  \"colour\": [\"colours that are wrong, washed or missing\"],\n  \"verdict\": \"ship | redo | takeover\",\n  \"advice\": \"one sentence: the method that would fix the worst fault\",\n  \"confidence\": 0.0\n}\n\"ship\" = a designer would sign it off. \"redo\" = the engine should try again.\n\"takeover\" = the engine cannot get there; the logo should be drawn afresh.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png",
+        "qa_logos/synthetic/minds/inputs/fa955944c4527a73.png"
+      ],
+      "answer": "```json\n{\n  \"same_logo\": true,\n  \"missing\": [],\n  \"extra\": [\n    \"jagged, serrated edge noise along all outlines, traced from JPEG and anti-aliasing artefacts\",\n    \"small nubs and notches on SUPPLY letter corners (e.g. the S terminals, the P bowls, the Y arms)\",\n    \"dark ragged specks at the ends of the top and bottom bars\"\n  ],\n  \"geometry\": [\n    \"the top and bottom bars should be perfect rectangles with dead-straight edges; they currently wobble\",\n    \"the SUPPLY letterforms (a geometric sans) need straight stems, consistent corner radii and true horizontals and verticals instead of bumpy traced edges\",\n    \"the SWIFT italic stems should have straight, parallel slanted sides; they are currently lumpy\",\n    \"the SWIFT serifs and curves (the S spine, the flared serif tips) should be fair, smooth B\u00e9ziers rather than rough polylines\",\n    \"the slant angle should be identical across the W, I, F, F and T stems\"\n  ],\n  \"colour\": [\n    \"the flat orange is close, but it should be sampled cleanly (~#C24D2F) and applied uniformly; no further issue\"\n  ],\n  \"verdict\": \"redo\",\n  \"advice\": \"Re-fit the outlines as primitives: bars as exact rectangles, SUPPLY as straight-segment and constant-radius geometry, and SWIFT as smoothed B\u00e9zier curves with shared slant angles, instead of tracing the noisy pixel edge.\",\n  \"confidence\": 0.85\n}\n```",
+      "parsed": {
+        "same_logo": true,
+        "missing": [],
+        "extra": [
+          "jagged, serrated edge noise along all outlines, traced from JPEG and anti-aliasing artefacts",
+          "small nubs and notches on SUPPLY letter corners (e.g. the S terminals, the P bowls, the Y arms)",
+          "dark ragged specks at the ends of the top and bottom bars"
+        ],
+        "geometry": [
+          "the top and bottom bars should be perfect rectangles with dead-straight edges; they currently wobble",
+          "the SUPPLY letterforms (a geometric sans) need straight stems, consistent corner radii and true horizontals and verticals instead of bumpy traced edges",
+          "the SWIFT italic stems should have straight, parallel slanted sides; they are currently lumpy",
+          "the SWIFT serifs and curves (the S spine, the flared serif tips) should be fair, smooth B\u00e9ziers rather than rough polylines",
+          "the slant angle should be identical across the W, I, F, F and T stems"
+        ],
+        "colour": [
+          "the flat orange is close, but it should be sampled cleanly (~#C24D2F) and applied uniformly; no further issue"
+        ],
+        "verdict": "redo",
+        "advice": "Re-fit the outlines as primitives: bars as exact rectangles, SUPPLY as straight-segment and constant-radius geometry, and SWIFT as smoothed B\u00e9zier curves with shared slant angles, instead of tracing the noisy pixel edge.",
+        "confidence": 0.85
+      },
+      "outcome": {
+        "result": "helped",
+        "detail": "faults confirmed by eye: lumpy S/W edges, bars not crisp rectangles; matches the known gap (engine ships its trace on swift solid import_combo)",
+        "judged_at": "2026-09-26T13:52:43Z",
+        "by": "claude-code"
+      },
+      "latency_s": 11.88,
+      "lesson": "E0028"
+    },
+    {
+      "id": "2026-09-26T13:52:08Z-gemini-critique",
+      "ts": "2026-09-26T13:52:08Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "critique",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "smoke-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is the engine's restoration of it.\n\nJudge IMAGE 2 as a designer reviewing a junior's vector redraw. Return JSON only:\n{\n  \"same_logo\": true,\n  \"missing\": [\"elements in the sketch that IMAGE 2 lacks, e.g. 'i-dot on Services'\"],\n  \"extra\": [\"things IMAGE 2 draws that are not part of the design, e.g. 'grey halo around letters'\"],\n  \"geometry\": [\"lines that should be straight, curves that should be fair, corners that should be sharp\"],\n  \"colour\": [\"colours that are wrong, washed or missing\"],\n  \"verdict\": \"ship | redo | takeover\",\n  \"advice\": \"one sentence: the method that would fix the worst fault\",\n  \"confidence\": 0.0\n}\n\"ship\" = a designer would sign it off. \"redo\" = the engine should try again.\n\"takeover\" = the engine cannot get there; the logo should be drawn afresh.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png",
+        "qa_logos/synthetic/minds/inputs/fa955944c4527a73.png"
+      ],
+      "answer": "{\n  \"same_logo\": true,\n  \"missing\": [],\n  \"extra\": [],\n  \"geometry\": [],\n  \"colour\": [],\n  \"verdict\": \"ship\",\n  \"advice\": \"Excellent work preserving the distressed font style while cleaning up the geometric elements.\",\n  \"confidence\": 0.95\n}",
+      "parsed": {
+        "same_logo": true,
+        "missing": [],
+        "extra": [],
+        "geometry": [],
+        "colour": [],
+        "verdict": "ship",
+        "advice": "Excellent work preserving the distressed font style while cleaning up the geometric elements.",
+        "confidence": 0.95
+      },
+      "outcome": {
+        "result": "wrong",
+        "detail": "said ship at 0.95 and called JPEG raggedness a 'distressed font style'; the clean master and the rebuilt vector have smooth edges",
+        "judged_at": "2026-09-26T13:52:43Z",
+        "by": "claude-code"
+      },
+      "latency_s": 11.33
+    },
+    {
+      "id": "2026-09-26T14:13:01Z-claude-critique",
+      "ts": "2026-09-26T14:13:01Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "critique",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "20260926T141241Z-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is the engine's restoration of it.\n\nJudge IMAGE 2 as a designer reviewing a junior's vector redraw. Return JSON only:\n{\n  \"same_logo\": true,\n  \"missing\": [\"elements in the sketch that IMAGE 2 lacks, e.g. 'i-dot on Services'\"],\n  \"extra\": [\"things IMAGE 2 draws that are not part of the design, e.g. 'grey halo around letters'\"],\n  \"geometry\": [\"lines that should be straight, curves that should be fair, corners that should be sharp\"],\n  \"colour\": [\"colours that are wrong, washed or missing\"],\n  \"verdict\": \"ship | redo | takeover\",\n  \"advice\": \"one sentence: the method that would fix the worst fault\",\n  \"confidence\": 0.0\n}\n\"ship\" = a designer would sign it off. \"redo\" = the engine should try again.\n\"takeover\" = the engine cannot get there; the logo should be drawn afresh.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png",
+        "qa_logos/synthetic/minds/inputs/50fd08f36505812b.png"
+      ],
+      "answer": "```json\n{\n  \"same_logo\": true,\n  \"missing\": [],\n  \"extra\": [\n    \"lighter orange speckled fringe/halo dots traced around every letter edge (JPEG noise vectorised)\",\n    \"stray speckles along the edges of the top and bottom bars\",\n    \"ragged noise specks on the SUPPLY letterforms\"\n  ],\n  \"geometry\": [\n    \"top and bottom bars have ragged, stair-stepped edges instead of perfectly straight lines and sharp rectangular corners\",\n    \"the italic SWIFT strokes have jagged, crumbly edges; long diagonals should be exactly straight\",\n    \"the S curves and serif flares are not fair; they wobble with traced noise\",\n    \"SUPPLY letter corners and the round bowls of S, P and U are rough rather than clean geometric shapes\",\n    \"the Y diagonals and L/P verticals should be dead straight\"\n  ],\n  \"colour\": [\n    \"multiple orange tones: the main fill is roughly right, but edge pixels are a paler salmon; the logo should be a single flat brick-orange (~#C44D2E) on white\"\n  ],\n  \"verdict\": \"redo\",\n  \"advice\": \"Quantise the image to exactly two colours (one flat orange plus background) before tracing, then fit straight line segments to the bars and letter stems and smooth B\u00e9zier curves to the S and serif shapes, discarding speckle regions below a minimum area.\",\n  \"confidence\": 0.85\n}\n```",
+      "parsed": {
+        "same_logo": true,
+        "missing": [],
+        "extra": [
+          "lighter orange speckled fringe/halo dots traced around every letter edge (JPEG noise vectorised)",
+          "stray speckles along the edges of the top and bottom bars",
+          "ragged noise specks on the SUPPLY letterforms"
+        ],
+        "geometry": [
+          "top and bottom bars have ragged, stair-stepped edges instead of perfectly straight lines and sharp rectangular corners",
+          "the italic SWIFT strokes have jagged, crumbly edges; long diagonals should be exactly straight",
+          "the S curves and serif flares are not fair; they wobble with traced noise",
+          "SUPPLY letter corners and the round bowls of S, P and U are rough rather than clean geometric shapes",
+          "the Y diagonals and L/P verticals should be dead straight"
+        ],
+        "colour": [
+          "multiple orange tones: the main fill is roughly right, but edge pixels are a paler salmon; the logo should be a single flat brick-orange (~#C44D2E) on white"
+        ],
+        "verdict": "redo",
+        "advice": "Quantise the image to exactly two colours (one flat orange plus background) before tracing, then fit straight line segments to the bars and letter stems and smooth B\u00e9zier curves to the S and serif shapes, discarding speckle regions below a minimum area.",
+        "confidence": 0.85
+      },
+      "outcome": {
+        "result": "no_change",
+        "detail": "critique said redo; engine review passed; 0 mind drawing(s) beat the engine",
+        "judged_at": "2026-09-26T14:18:41Z",
+        "by": "logo_minds (auto)"
+      },
+      "latency_s": 9.91
+    },
+    {
+      "id": "2026-09-26T14:13:11Z-gemini-critique",
+      "ts": "2026-09-26T14:13:11Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "critique",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "20260926T141241Z-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is the engine's restoration of it.\n\nJudge IMAGE 2 as a designer reviewing a junior's vector redraw. Return JSON only:\n{\n  \"same_logo\": true,\n  \"missing\": [\"elements in the sketch that IMAGE 2 lacks, e.g. 'i-dot on Services'\"],\n  \"extra\": [\"things IMAGE 2 draws that are not part of the design, e.g. 'grey halo around letters'\"],\n  \"geometry\": [\"lines that should be straight, curves that should be fair, corners that should be sharp\"],\n  \"colour\": [\"colours that are wrong, washed or missing\"],\n  \"verdict\": \"ship | redo | takeover\",\n  \"advice\": \"one sentence: the method that would fix the worst fault\",\n  \"confidence\": 0.0\n}\n\"ship\" = a designer would sign it off. \"redo\" = the engine should try again.\n\"takeover\" = the engine cannot get there; the logo should be drawn afresh.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png",
+        "qa_logos/synthetic/minds/inputs/50fd08f36505812b.png"
+      ],
+      "answer": "{\n  \"same_logo\": true,\n  \"missing\": [],\n  \"extra\": [],\n  \"geometry\": [\n    \"Jagged edges on all elements\",\n    \"Straight lines are wavy\",\n    \"Corners are not sharp\"\n  ],\n  \"colour\": [],\n  \"verdict\": \"takeover\",\n  \"advice\": \"Redraw using basic geometric shapes and the pen tool for clean, straight lines and smooth curves.\",\n  \"confidence\": 0.9\n}",
+      "parsed": {
+        "same_logo": true,
+        "missing": [],
+        "extra": [],
+        "geometry": [
+          "Jagged edges on all elements",
+          "Straight lines are wavy",
+          "Corners are not sharp"
+        ],
+        "colour": [],
+        "verdict": "takeover",
+        "advice": "Redraw using basic geometric shapes and the pen tool for clean, straight lines and smooth curves.",
+        "confidence": 0.9
+      },
+      "outcome": {
+        "result": "no_change",
+        "detail": "critique said takeover; engine review passed; 0 mind drawing(s) beat the engine",
+        "judged_at": "2026-09-26T14:18:41Z",
+        "by": "logo_minds (auto)"
+      },
+      "latency_s": 10.6
+    },
+    {
+      "id": "2026-09-26T14:13:40Z-claude-takeover",
+      "ts": "2026-09-26T14:13:40Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "takeover",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "20260926T141241Z-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch, 1374 by 418 pixels. \nDraw the logo yourself as a clean SVG: viewBox=\"0 0 1374 418\", positioned over\nthe sketch exactly (same place, same size, same proportions), flat fills only,\nno <image>, no filters, no gradients unless the design plainly has one, no\n<text> elements (draw letters as paths), background transparent. Use these ink\ncolours unless the sketch plainly shows others: #C0492A.\nBuild it the way a designer would: geometry first (rectangles, circles, lines,\narcs), fair Bezier curves for letters, shared baselines and cap heights,\nconsistent stroke weights.\nReply with the SVG only, starting with <svg and ending with </svg>.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png"
+      ],
+      "answer": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1374 418\"><g fill=\"#C0492A\"><rect x=\"2\" y=\"2\" width=\"1370\" height=\"40\"/><rect x=\"2\" y=\"375\" width=\"1370\" height=\"40\"/><g transform=\"translate(0,232) skewX(-30) translate(0,-232)\"><path d=\"M100,75 H245 V125 H215 Q205,105 170,105 H120 Q95,105 95,125 Q95,140 120,145 L180,150 Q260,160 255,195 Q250,232 180,232 H20 V180 H50 Q60,202 95,202 H160 Q185,202 185,185 Q185,172 160,170 L100,165 Q25,158 30,120 Q35,75 100,75 Z\"/><path d=\"M245,75 H340 V100 H325 L350,180 L380,95 H420 L450,180 L475,100 H460 V75 H540 V100 H525 L480,232 H425 L400,160 L375,232 H320 L270,100 H245 Z\"/><path d=\"M545,75 H655 V100 H630 V207 H655 V232 H545 V207 H570 V100 H545 Z\"/><path d=\"M680,75 H910 V130 H880 Q875,105 840,105 H765 V140 H820 V125 H840 V185 H820 V168 H765 V207 H790 V232 H680 V207 H705 V100 H680 Z\"/><path d=\"M930,75 H1250 V135 H1220 Q1215,105 1180,105 H1120 V207 H1150 V232 H1030 V207 H1060 V105 H1000 Q965,105 960,135 H930 Z\"/></g></g><g fill=\"none\" stroke=\"#C0492A\" stroke-width=\"18\"><path d=\"M435,277 H350 Q335,277 335,291 V291 Q335,304 350,304 H418 Q432,304 432,317 V317 Q432,331 418,331 H327\"/><path d=\"M479,268 V318 Q479,331 494,331 H551 Q566,331 566,318 V268\"/><path d=\"M614,340 V277 H685 Q697,277 697,290 V297 Q697,310 685,310 H614\"/><path d=\"M739,340 V277 H810 Q822,277 822,290 V297 Q822,310 810,310 H739\"/><path d=\"M869,268 V331 H942\"/><path d=\"M950,270 L995,306 L1040,270 M995,306 V340\"/></g></svg>",
+      "parsed": {},
+      "outcome": {
+        "result": "wrong",
+        "detail": "claude_svg blocked by the reviewer: 4 of the 21 elements the sketch shows (letters, bars, marks) are missing, at (1174,152), (510,306), (886,306), (990,306) in sketch pixels",
+        "judged_at": "2026-09-26T14:13:45Z",
+        "by": "logo_minds (auto)",
+        "delta": -0.1345
+      },
+      "latency_s": 28.82
+    },
+    {
+      "id": "2026-09-26T14:17:27Z-gemini-takeover",
+      "ts": "2026-09-26T14:17:27Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "takeover",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "20260926T141241Z-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch, 1374 by 418 pixels. \nDraw the logo yourself as a clean SVG: viewBox=\"0 0 1374 418\", positioned over\nthe sketch exactly (same place, same size, same proportions), flat fills only,\nno <image>, no filters, no gradients unless the design plainly has one, no\n<text> elements (draw letters as paths), background transparent. Use these ink\ncolours unless the sketch plainly shows others: #C0492A.\nBuild it the way a designer would: geometry first (rectangles, circles, lines,\narcs), fair Bezier curves for letters, shared baselines and cap heights,\nconsistent stroke weights.\nReply with the SVG only, starting with <svg and ending with </svg>.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png"
+      ],
+      "answer": "```xml\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1374 418\">\n  <rect x=\"0\" y=\"3\" width=\"1374\" height=\"40\" fill=\"#C0492A\" />\n  <rect x=\"0\" y=\"375\" width=\"1374\" height=\"40\" fill=\"#C0492A\" />\n  \n  <!-- SWIFT -->\n  <path fill=\"#C0492A\" d=\"\n    M 320 78 L 380 78 C 400 78, 410 90, 390 110 L 360 110 C 370 100, 360 90, 340 90 Z\n    M 190 225 C 250 225, 320 220, 340 170 C 350 140, 300 130, 260 115 C 220 100, 210 85, 240 78 L 300 78 C 270 85, 260 95, 280 105 C 300 115, 360 125, 320 160 C 290 190, 240 200, 200 200 Z\n    M 180 225 L 120 225 C 110 225, 110 210, 130 200 L 160 190 C 150 200, 160 210, 170 210 Z\n  \" />\n  <path fill=\"#C0492A\" d=\"\n    M 445 78 L 505 78 L 446 225 L 386 225 L 408 170 L 423 170 L 427 160 L 412 160 Z\n    M 515 78 L 555 78 L 535 150 L 585 78 L 625 78 L 566 225 L 456 225 Z\n  \" />\n  <path fill=\"#C0492A\" d=\"\n    M 783 78 L 723 78 L 690 160 L 705 160 L 701 170 L 686 170 L 664 225 L 724 225 Z\n  \" />\n  <path fill=\"#C0492A\" d=\"\n    M 845 78 L 1000 78 L 985 115 L 885 115 L 846 225 L 786 225 L 812 160 L 827 160 L 823 170 L 808 170 Z\n    M 885 140 L 960 140 L 945 175 L 865 175 Z\n  \" />\n  <path fill=\"#C0492A\" d=\"\n    M 1150 78 L 1300 78 L 1285 115 L 1195 115 L 1151 225 L 1091 225 L 1117 160 L 1132 160 L 1128 170 L 1113 170 L 1135 115 Z\n    M 1050 78 L 1140 78 L 1125 115 L 1035 115 Z\n  \" />\n\n  <!-- SUPPLY -->\n  <path fill=\"#C0492A\" d=\"\n    M 420 290 C 420 270, 400 265, 380 265 L 360 265 C 340 265, 320 275, 320 295 C 320 315, 340 320, 360 320 L 380 320 C 390 320, 400 325, 400 335 C 400 345, 390 350, 380 350 L 360 350 C 340 350, 330 345, 330 335 L 315 335 C 315 ",
+      "parsed": {},
+      "outcome": {
+        "result": "wrong",
+        "detail": "gemini_svg: no usable drawing",
+        "judged_at": "2026-09-26T14:17:27Z",
+        "by": "logo_minds (auto)"
+      },
+      "latency_s": 221.97
+    },
+    {
+      "id": "2026-09-26T14:17:43Z-gemini-image-redraw",
+      "ts": "2026-09-26T14:17:43Z",
+      "mind": "gemini-image",
+      "model": "gemini-3-pro-image",
+      "role": "redraw",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "20260926T141241Z-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nRepaint IMAGE 1 as the clean original artwork at high resolution: the same\nlogo, the same letters, the same layout and proportions, the same brand\ncolours (#C0492A), every element present \u2014 only sharp and flat, as if\nexported from the designer's file. Plain white background. Do not add,\nremove, restyle or re-letter anything.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png",
+        "qa_logos/synthetic/minds/inputs/01e46d7e88b8bff2.png"
+      ],
+      "answer": "",
+      "parsed": {},
+      "outcome": {
+        "result": "no_change",
+        "detail": "gemini_redraw_trace passed review but did not beat the engine",
+        "judged_at": "2026-09-26T14:18:12Z",
+        "by": "logo_minds (auto)",
+        "delta": -0.0607
+      },
+      "latency_s": 16.39
+    },
+    {
+      "id": "2026-09-26T14:18:22Z-gemini-critique",
+      "ts": "2026-09-26T14:18:22Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "critique",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "20260926T141241Z-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is the engine's restoration of it.\nWhat is known so far:  IMAGE 2 is claude's drawing.\n\nJudge IMAGE 2 as a designer reviewing a junior's vector redraw. Return JSON only:\n{\n  \"same_logo\": true,\n  \"missing\": [\"elements in the sketch that IMAGE 2 lacks, e.g. 'i-dot on Services'\"],\n  \"extra\": [\"things IMAGE 2 draws that are not part of the design, e.g. 'grey halo around letters'\"],\n  \"geometry\": [\"lines that should be straight, curves that should be fair, corners that should be sharp\"],\n  \"colour\": [\"colours that are wrong, washed or missing\"],\n  \"verdict\": \"ship | redo | takeover\",\n  \"advice\": \"one sentence: the method that would fix the worst fault\",\n  \"confidence\": 0.0\n}\n\"ship\" = a designer would sign it off. \"redo\" = the engine should try again.\n\"takeover\" = the engine cannot get there; the logo should be drawn afresh.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png",
+        "qa_logos/synthetic/minds/inputs/db0ce1e81f6f5b6d.png"
+      ],
+      "answer": "{\n  \"same_logo\": true,\n  \"missing\": [],\n  \"extra\": [],\n  \"geometry\": [],\n  \"colour\": [],\n  \"verdict\": \"ship\",\n  \"advice\": \"Excellent restoration, accurately capturing the stylized letterforms from a degraded source.\",\n  \"confidence\": 0.95\n}",
+      "parsed": {
+        "same_logo": true,
+        "missing": [],
+        "extra": [],
+        "geometry": [],
+        "colour": [],
+        "verdict": "ship",
+        "advice": "Excellent restoration, accurately capturing the stylized letterforms from a degraded source.",
+        "confidence": 0.95
+      },
+      "outcome": {
+        "result": "no_change",
+        "detail": "gemini's critique of claude's drawing: revision did not improve it",
+        "judged_at": "2026-09-26T14:18:41Z",
+        "by": "logo_minds (auto)",
+        "delta": 0.0
+      },
+      "latency_s": 9.86
+    },
+    {
+      "id": "2026-09-26T14:18:35Z-claude-revise",
+      "ts": "2026-09-26T14:18:35Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "revise",
+      "source": "engine",
+      "case": "swift_orange_solid__import_combo",
+      "session": "20260926T141241Z-swift_orange_solid__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is your SVG drawing of it, rendered.\nAnother reviewer said: advice: Excellent restoration, accurately capturing the stylized letterforms from a degraded source.\nFix what is right in that critique and ignore what is not; keep everything\nthat was already right. Same rules: viewBox=\"0 0 1374 418\", flat fills, letters\nas paths, no <text>, no <image>.\nYour previous SVG:\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1374 418\"><g fill=\"#C0492A\"><rect x=\"2\" y=\"2\" width=\"1370\" height=\"40\"/><rect x=\"2\" y=\"375\" width=\"1370\" height=\"40\"/><g transform=\"translate(0,232) skewX(-30) translate(0,-232)\"><path d=\"M100,75 H245 V125 H215 Q205,105 170,105 H120 Q95,105 95,125 Q95,140 120,145 L180,150 Q260,160 255,195 Q250,232 180,232 H20 V180 H50 Q60,202 95,202 H160 Q185,202 185,185 Q185,172 160,170 L100,165 Q25,158 30,120 Q35,75 100,75 Z\"/><path d=\"M245,75 H340 V100 H325 L350,180 L380,95 H420 L450,180 L475,100 H460 V75 H540 V100 H525 L480,232 H425 L400,160 L375,232 H320 L270,100 H245 Z\"/><path d=\"M545,75 H655 V100 H630 V207 H655 V232 H545 V207 H570 V100 H545 Z\"/><path d=\"M680,75 H910 V130 H880 Q875,105 840,105 H765 V140 H820 V125 H840 V185 H820 V168 H765 V207 H790 V232 H680 V207 H705 V100 H680 Z\"/><path d=\"M930,75 H1250 V135 H1220 Q1215,105 1180,105 H1120 V207 H1150 V232 H1030 V207 H1060 V105 H1000 Q965,105 960,135 H930 Z\"/></g></g><g fill=\"none\" stroke=\"#C0492A\" stroke-width=\"18\"><path d=\"M435,277 H350 Q335,277 335,291 V291 Q335,304 350,304 H418 Q432,304 432,317 V317 Q432,331 418,331 H327\"/><path d=\"M479,268 V318 Q479,331 494,331 H551 Q566,331 566,318 V268\"/><path d=\"M614,340 V277 H685 Q697,277 697,290 V297 Q697,310 685,310 H614\"/><path d=\"M739,340 V277 H810 Q822,277 822,290 V297 Q822,310 810,310 H739\"/><path d=\"M869,268 V331 H942\"/><path d=\"M950,270 L995,306 L1040,270 M995,306 V340\"/></g></svg>\nReply with the revised SVG only, starting with <svg and ending with </svg>.",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/d2ad57338309d60c.png",
+        "qa_logos/synthetic/minds/inputs/db0ce1e81f6f5b6d.png"
+      ],
+      "answer": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1374 418\"><g fill=\"#C0492A\"><rect x=\"2\" y=\"2\" width=\"1370\" height=\"40\"/><rect x=\"2\" y=\"375\" width=\"1370\" height=\"40\"/><g transform=\"translate(0,232) skewX(-30) translate(0,-232)\"><path d=\"M100,75 H245 V125 H215 Q205,105 170,105 H120 Q95,105 95,125 Q95,140 120,145 L180,150 Q260,160 255,195 Q250,232 180,232 H20 V180 H50 Q60,202 95,202 H160 Q185,202 185,185 Q185,172 160,170 L100,165 Q25,158 30,120 Q35,75 100,75 Z\"/><path d=\"M245,75 H340 V100 H325 L350,180 L380,95 H420 L450,180 L475,100 H460 V75 H540 V100 H525 L480,232 H425 L400,160 L375,232 H320 L270,100 H245 Z\"/><path d=\"M545,75 H655 V100 H630 V207 H655 V232 H545 V207 H570 V100 H545 Z\"/><path d=\"M680,75 H910 V130 H880 Q875,105 840,105 H765 V140 H820 V125 H840 V185 H820 V168 H765 V207 H790 V232 H680 V207 H705 V100 H680 Z\"/><path d=\"M930,75 H1250 V135 H1220 Q1215,105 1180,105 H1120 V207 H1150 V232 H1030 V207 H1060 V105 H1000 Q965,105 960,135 H930 Z\"/></g></g><g fill=\"none\" stroke=\"#C0492A\" stroke-width=\"18\"><path d=\"M435,277 H350 Q335,277 335,291 V291 Q335,304 350,304 H418 Q432,304 432,317 V317 Q432,331 418,331 H327\"/><path d=\"M479,268 V318 Q479,331 494,331 H551 Q566,331 566,318 V268\"/><path d=\"M614,340 V277 H685 Q697,277 697,290 V297 Q697,310 685,310 H614\"/><path d=\"M739,340 V277 H810 Q822,277 822,290 V297 Q822,310 810,310 H739\"/><path d=\"M869,268 V331 H942\"/><path d=\"M950,270 L995,306 L1040,270 M995,306 V340\"/></g></svg>",
+      "parsed": {},
+      "outcome": {
+        "result": "wrong",
+        "detail": "claude_svg_revised blocked by the reviewer: 4 of the 21 elements the sketch shows (letters, bars, marks) are missing, at (1174,152), (510,306), (886,306), (990,306) in sketch pixels",
+        "judged_at": "2026-09-26T14:18:41Z",
+        "by": "logo_minds (auto)",
+        "delta": -0.1345
+      },
+      "latency_s": 13.17
+    }
+  ]
+}

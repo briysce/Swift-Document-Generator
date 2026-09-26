@@ -187,6 +187,17 @@ def run_loop(skip_render: bool = False, top_n: int = 10) -> dict:
             "shipping_label_score.py."
         ),
     }
+    # Gemini↔Claude QA critique on stuck layout failures — never edits locked
+    # SO/Contact constants; advice only. Fail-open.
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from tools.ai_collab.improve_hook import enrich_summary as _ai_enrich
+
+        _ai_enrich(summary, domain="shipping_pdf", max_items=2)
+    except Exception as e:  # pragma: no cover
+        print(f"ai_collab improve hook skipped ({e})", flush=True)
+
     record_run_snapshot("shipping", summary)
     SUMMARY.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 

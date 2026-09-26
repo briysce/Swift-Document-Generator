@@ -50,30 +50,12 @@
   },
   "pairs": [
     {
-      "id": "arc__import_combo",
-      "slug": "arc",
-      "clean": "clean/arc.png",
-      "degraded": "degraded/arc__import_combo.png",
-      "recipe": "import_combo",
-      "seed": 61,
-      "params": {
-        "scale": 0.46,
-        "jpeg_q": 72,
-        "blur": 0.22,
-        "crush": 0.08,
-        "plate": 0.28,
-        "band": 8,
-        "halo": 0.1
-      },
-      "anchor": false
-    },
-    {
       "id": "arc__downscale_jpeg",
       "slug": "arc",
       "clean": "clean/arc.png",
       "degraded": "degraded/arc__downscale_jpeg.png",
       "recipe": "downscale_jpeg",
-      "seed": 78,
+      "seed": 61,
       "params": {
         "scale": 0.55,
         "jpeg_q": 78,
@@ -86,30 +68,30 @@
       "anchor": false
     },
     {
-      "id": "arc__plate_halo",
+      "id": "arc__blur_crush",
       "slug": "arc",
       "clean": "clean/arc.png",
-      "degraded": "degraded/arc__plate_halo.png",
-      "recipe": "plate_halo",
-      "seed": 95,
+      "degraded": "degraded/arc__blur_crush.png",
+      "recipe": "blur_crush",
+      "seed": 78,
       "params": {
-        "scale": 0.62,
-        "jpeg_q": 78,
-        "blur": 0.18,
-        "crush": 0.05,
-        "plate": 0.42,
+        "scale": 0.45,
+        "jpeg_q": 70,
+        "blur": 1.15,
+        "crush": 0.55,
+        "plate": 0.0,
         "band": 0,
-        "halo": 0.22
+        "halo": 0.0
       },
       "anchor": false
     },
     {
-      "id": "gcm__import_combo",
-      "slug": "gcm",
-      "clean": "clean/gcm.png",
-      "degraded": "degraded/gcm__import_combo.png",
+      "id": "arc__import_combo",
+      "slug": "arc",
+      "clean": "clean/arc.png",
+      "degraded": "degraded/arc__import_combo.png",
       "recipe": "import_combo",
-      "seed": 62,
+      "seed": 95,
       "params": {
         "scale": 0.46,
         "jpeg_q": 72,
@@ -127,7 +109,7 @@
       "clean": "clean/gcm.png",
       "degraded": "degraded/gcm__downscale_jpeg.png",
       "recipe": "downscale_jpeg",
-      "seed": 79,
+      "seed": 62,
       "params": {
         "scale": 0.55,
         "jpeg_q": 78,
@@ -140,30 +122,30 @@
       "anchor": false
     },
     {
-      "id": "gcm__plate_halo",
+      "id": "gcm__blur_crush",
       "slug": "gcm",
       "clean": "clean/gcm.png",
-      "degraded": "degraded/gcm__plate_halo.png",
-      "recipe": "plate_halo",
-      "seed": 96,
+      "degraded": "degraded/gcm__blur_crush.png",
+      "recipe": "blur_crush",
+      "seed": 79,
       "params": {
-        "scale": 0.62,
-        "jpeg_q": 78,
-        "blur": 0.18,
-        "crush": 0.05,
-        "plate": 0.42,
+        "scale": 0.45,
+        "jpeg_q": 70,
+        "blur": 1.15,
+        "crush": 0.55,
+        "plate": 0.0,
         "band": 0,
-        "halo": 0.22
+        "halo": 0.0
       },
       "anchor": false
     },
     {
-      "id": "propak__import_combo",
-      "slug": "propak",
-      "clean": "clean/propak.png",
-      "degraded": "degraded/propak__import_combo.png",
+      "id": "gcm__import_combo",
+      "slug": "gcm",
+      "clean": "clean/gcm.png",
+      "degraded": "degraded/gcm__import_combo.png",
       "recipe": "import_combo",
-      "seed": 113,
+      "seed": 96,
       "params": {
         "scale": 0.46,
         "jpeg_q": 72,
@@ -181,7 +163,7 @@
       "clean": "clean/propak.png",
       "degraded": "degraded/propak__downscale_jpeg.png",
       "recipe": "downscale_jpeg",
-      "seed": 130,
+      "seed": 113,
       "params": {
         "scale": 0.55,
         "jpeg_q": 78,
@@ -194,30 +176,30 @@
       "anchor": false
     },
     {
-      "id": "propak__plate_halo",
+      "id": "propak__blur_crush",
       "slug": "propak",
       "clean": "clean/propak.png",
-      "degraded": "degraded/propak__plate_halo.png",
-      "recipe": "plate_halo",
-      "seed": 147,
+      "degraded": "degraded/propak__blur_crush.png",
+      "recipe": "blur_crush",
+      "seed": 130,
       "params": {
-        "scale": 0.62,
-        "jpeg_q": 78,
-        "blur": 0.18,
-        "crush": 0.05,
-        "plate": 0.42,
+        "scale": 0.45,
+        "jpeg_q": 70,
+        "blur": 1.15,
+        "crush": 0.55,
+        "plate": 0.0,
         "band": 0,
-        "halo": 0.22
+        "halo": 0.0
       },
       "anchor": false
     },
     {
-      "id": "swift_orange__import_combo",
-      "slug": "swift_orange",
-      "clean": "clean/swift_orange.png",
-      "degraded": "degraded/swift_orange__import_combo.png",
+      "id": "propak__import_combo",
+      "slug": "propak",
+      "clean": "clean/propak.png",
+      "degraded": "degraded/propak__import_combo.png",
       "recipe": "import_combo",
-      "seed": 69,
+      "seed": 147,
       "params": {
         "scale": 0.46,
         "jpeg_q": 72,
@@ -227,7 +209,7 @@
         "band": 8,
         "halo": 0.1
       },
-      "anchor": true
+      "anchor": false
     },
     {
       "id": "swift_orange__downscale_jpeg",
@@ -235,7 +217,7 @@
       "clean": "clean/swift_orange.png",
       "degraded": "degraded/swift_orange__downscale_jpeg.png",
       "recipe": "downscale_jpeg",
-      "seed": 86,
+      "seed": 69,
       "params": {
         "scale": 0.55,
         "jpeg_q": 78,
@@ -248,30 +230,30 @@
       "anchor": true
     },
     {
-      "id": "swift_orange__plate_halo",
+      "id": "swift_orange__blur_crush",
       "slug": "swift_orange",
       "clean": "clean/swift_orange.png",
-      "degraded": "degraded/swift_orange__plate_halo.png",
-      "recipe": "plate_halo",
-      "seed": 103,
+      "degraded": "degraded/swift_orange__blur_crush.png",
+      "recipe": "blur_crush",
+      "seed": 86,
       "params": {
-        "scale": 0.62,
-        "jpeg_q": 78,
-        "blur": 0.18,
-        "crush": 0.05,
-        "plate": 0.42,
+        "scale": 0.45,
+        "jpeg_q": 70,
+        "blur": 1.15,
+        "crush": 0.55,
+        "plate": 0.0,
         "band": 0,
-        "halo": 0.22
+        "halo": 0.0
       },
       "anchor": true
     },
     {
-      "id": "swift_orange_solid__import_combo",
-      "slug": "swift_orange_solid",
-      "clean": "clean/swift_orange_solid.png",
-      "degraded": "degraded/swift_orange_solid__import_combo.png",
+      "id": "swift_orange__import_combo",
+      "slug": "swift_orange",
+      "clean": "clean/swift_orange.png",
+      "degraded": "degraded/swift_orange__import_combo.png",
       "recipe": "import_combo",
-      "seed": 121,
+      "seed": 103,
       "params": {
         "scale": 0.46,
         "jpeg_q": 72,
@@ -289,7 +271,7 @@
       "clean": "clean/swift_orange_solid.png",
       "degraded": "degraded/swift_orange_solid__downscale_jpeg.png",
       "recipe": "downscale_jpeg",
-      "seed": 138,
+      "seed": 121,
       "params": {
         "scale": 0.55,
         "jpeg_q": 78,
@@ -302,30 +284,30 @@
       "anchor": true
     },
     {
-      "id": "swift_orange_solid__plate_halo",
+      "id": "swift_orange_solid__blur_crush",
       "slug": "swift_orange_solid",
       "clean": "clean/swift_orange_solid.png",
-      "degraded": "degraded/swift_orange_solid__plate_halo.png",
-      "recipe": "plate_halo",
-      "seed": 155,
+      "degraded": "degraded/swift_orange_solid__blur_crush.png",
+      "recipe": "blur_crush",
+      "seed": 138,
       "params": {
-        "scale": 0.62,
-        "jpeg_q": 78,
-        "blur": 0.18,
-        "crush": 0.05,
-        "plate": 0.42,
+        "scale": 0.45,
+        "jpeg_q": 70,
+        "blur": 1.15,
+        "crush": 0.55,
+        "plate": 0.0,
         "band": 0,
-        "halo": 0.22
+        "halo": 0.0
       },
       "anchor": true
     },
     {
-      "id": "trialta__import_combo",
-      "slug": "trialta",
-      "clean": "clean/trialta.png",
-      "degraded": "degraded/trialta__import_combo.png",
+      "id": "swift_orange_solid__import_combo",
+      "slug": "swift_orange_solid",
+      "clean": "clean/swift_orange_solid.png",
+      "degraded": "degraded/swift_orange_solid__import_combo.png",
       "recipe": "import_combo",
-      "seed": 116,
+      "seed": 155,
       "params": {
         "scale": 0.46,
         "jpeg_q": 72,
@@ -335,7 +317,7 @@
         "band": 8,
         "halo": 0.1
       },
-      "anchor": false
+      "anchor": true
     },
     {
       "id": "trialta__downscale_jpeg",
@@ -343,7 +325,7 @@
       "clean": "clean/trialta.png",
       "degraded": "degraded/trialta__downscale_jpeg.png",
       "recipe": "downscale_jpeg",
-      "seed": 133,
+      "seed": 116,
       "params": {
         "scale": 0.55,
         "jpeg_q": 78,
@@ -356,20 +338,38 @@
       "anchor": false
     },
     {
-      "id": "trialta__plate_halo",
+      "id": "trialta__blur_crush",
       "slug": "trialta",
       "clean": "clean/trialta.png",
-      "degraded": "degraded/trialta__plate_halo.png",
-      "recipe": "plate_halo",
+      "degraded": "degraded/trialta__blur_crush.png",
+      "recipe": "blur_crush",
+      "seed": 133,
+      "params": {
+        "scale": 0.45,
+        "jpeg_q": 70,
+        "blur": 1.15,
+        "crush": 0.55,
+        "plate": 0.0,
+        "band": 0,
+        "halo": 0.0
+      },
+      "anchor": false
+    },
+    {
+      "id": "trialta__import_combo",
+      "slug": "trialta",
+      "clean": "clean/trialta.png",
+      "degraded": "degraded/trialta__import_combo.png",
+      "recipe": "import_combo",
       "seed": 150,
       "params": {
-        "scale": 0.62,
-        "jpeg_q": 78,
-        "blur": 0.18,
-        "crush": 0.05,
-        "plate": 0.42,
-        "band": 0,
-        "halo": 0.22
+        "scale": 0.46,
+        "jpeg_q": 72,
+        "blur": 0.22,
+        "crush": 0.08,
+        "plate": 0.28,
+        "band": 8,
+        "halo": 0.1
       },
       "anchor": false
     }

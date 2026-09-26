@@ -1,0 +1,64 @@
+---
+description: Continue synthetic logo restore improve loop (Phase 4) without waiting for re-prompt
+globs: scripts/logo_*.py,mobile/lib/logo_*.dart,qa_logos/**/*,logo_restorer.py
+alwaysApply: false
+---
+
+# Logo restore — synthetic improve loop (Phase 4)
+
+## Training (incremental)
+
+This loop **trains** the restore/remover stack over time. Each run must leave
+the suite smarter: better scores, new cases, and lessons in
+`qa_logos/synthetic/training_lessons.json`. Do not treat a single green run as
+“done forever.”
+
+## Must continue unprompted
+
+When the task touches logo restore, vectorize, ESRGAN, golden suite, or
+`qa_logos/**`, agents **MUST** continue the synthetic improve loop without
+waiting for the user to re-ask for Phase 4.
+
+Executable loop (scaffolding lives here already):
+
+1. `qa_logos/synthetic/clean/` → degrade → `degraded/` (`scripts/logo_synthetic_degrade.py`)
+2. Restore with current engines (`scripts/logo_restore_improve_loop.py`)
+3. Score vs clean with **golden suite metrics** (`scripts/logo_golden_suite.py`)
+4. Append `qa_logos/synthetic/improve_log.jsonl`; read `improve_summary_latest.json`
+5. Fix top failures; re-run; promote only score-proven techniques
+6. Append **training_lessons.json**; add cases for new failure modes
+
+Docs: `qa_logos/synthetic/README.md`. See also `improve-loops-training.mdc`.
+
+## Quality north star
+
+`swift_orange` and `swift_orange_solid` define near-perfect recomposition
+(sharp edges, clean matte, correct orange, print-ready). Other flat lockups
+should approach that class — not Swift-only special cases, not free-form redraws.
+
+## Prefer incremental, score-gated improvements
+
+- Prefer engine / pipeline tweaks proven by `composite` / `ink_iou` /
+  `palette_fidelity` / `alpha_clean` on synthetic pairs + golden cases.
+- Neural fine-tune only when the suite shows a clear plateau and deps make a
+  small experiment cheap.
+- Do **not** unwire fidelity gates.
+- Document honest limits (e.g. fully gray Arc) in training_lessons — do not invent brand color.
+
+## Commit policy (conflict resolution)
+
+- Default user preference in many sessions: do **not** commit unless asked.
+- Repo auto-commit rule: commit meaningful coherent slices unless the user said
+  not to commit.
+- Prefer: **commit meaningful improve-loop infrastructure** when completing a
+  coherent slice **UNLESS** the user said wait / not to commit in-session.
+- If the user deferred commit on a larger roadmap, leave files ready and do not
+  push until an explicit ask.
+
+## Quick start each session
+
+```powershell
+python scripts/logo_restore_improve_loop.py --engines baseline,vectorize --top 8
+```
+
+Then improve the printed top failures and re-run.

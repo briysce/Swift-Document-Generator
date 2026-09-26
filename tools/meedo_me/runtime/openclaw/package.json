@@ -1,0 +1,12 @@
+{
+  "name": "meedo-me-messaging-runtime",
+  "private": true,
+  "description": "Meedo-Me messaging runtime (upstream openclaw npm deps). Not a separate product.",
+  "engines": {
+    "node": ">=24.16.0 <25 || >=26.1.0"
+  },
+  "dependencies": {
+    "openclaw": "2026.9.6",
+    "@openclaw/whatsapp": "2026.9.6"
+  }
+}

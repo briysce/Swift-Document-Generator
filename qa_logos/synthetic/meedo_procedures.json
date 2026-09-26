@@ -1,0 +1,1172 @@
+{
+  "version": 1,
+  "purpose": "Fine-grained procedures Meedo studies from every face (Gemini/Claude/Serper/Cursor/Claude Code/OpenClaw) so it can eventually execute them offline.",
+  "procedures": [
+    {
+      "id": "P6244b580",
+      "face": "ai_collab",
+      "domain": "shipping_pdf",
+      "title": "long PO overflows shipping value box",
+      "steps": [
+        "shrink-to-fit PO",
+        "keep afterPillGap 11.0"
+      ],
+      "knobs": {},
+      "do_not_regress": [],
+      "evidence": "SO overflow on long PO",
+      "outcome": "open",
+      "offline_ready": false,
+      "confidence": 0.37,
+      "tags": [
+        "ai_collab",
+        "shipping_pdf"
+      ],
+      "cases": [
+        "long_po"
+      ],
+      "providers": [
+        "gemini",
+        "claude",
+        "ai_collab"
+      ],
+      "source": "observe:ai_collab",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T14:29:38Z",
+      "raw": {
+        "domain": "shipping_pdf",
+        "problem": "long PO overflows shipping value box",
+        "diagnosis": "SO overflow on long PO",
+        "method": "wrap long PO; never clip; preserve SO/Contact lock",
+        "actions": [
+          "shrink-to-fit PO",
+          "keep afterPillGap 11.0"
+        ],
+        "risks": [],
+        "providers_used": [
+          "gemini",
+          "claude"
+        ],
+        "source": "gemini,claude",
+        "lesson_id": "AL9f8f8c1f",
+        "offline": false,
+        "agree": true
+      },
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "P5b705266",
+      "face": "ai_collab",
+      "domain": "app_ux",
+      "title": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "steps": [
+        "check PdfDocument bytes",
+        "retain previous bytes on fail"
+      ],
+      "knobs": {},
+      "do_not_regress": [],
+      "evidence": "generate empty pdf",
+      "outcome": "open",
+      "offline_ready": false,
+      "confidence": 0.37,
+      "tags": [
+        "ai_collab",
+        "app_ux",
+        "improve_loop"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "providers": [
+        "gemini",
+        "claude",
+        "ai_collab"
+      ],
+      "source": "observe:ai_collab",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T14:29:38Z",
+      "raw": {
+        "domain": "app_ux",
+        "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+        "diagnosis": "generate empty pdf",
+        "method": "assert non-empty PDF bytes before history write",
+        "actions": [
+          "check PdfDocument bytes",
+          "retain previous bytes on fail"
+        ],
+        "risks": [],
+        "providers_used": [
+          "gemini",
+          "claude"
+        ],
+        "source": "gemini,claude",
+        "lesson_id": "ALbfac5568",
+        "offline": false,
+        "agree": true
+      },
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "Pa648b58b",
+      "face": "improve_loop",
+      "domain": "app_ux",
+      "title": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+      "steps": [
+        "check PdfDocument bytes",
+        "retain previous bytes on fail"
+      ],
+      "knobs": {},
+      "do_not_regress": [],
+      "evidence": "generate empty pdf",
+      "outcome": "open",
+      "offline_ready": false,
+      "confidence": 0.37,
+      "tags": [
+        "improve_loop",
+        "app_ux"
+      ],
+      "cases": [],
+      "providers": [
+        "gemini",
+        "claude",
+        "improve_loop"
+      ],
+      "source": "observe:improve_loop",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T14:29:38Z",
+      "raw": {
+        "domain": "app_ux",
+        "problem": "app_ux failure case=shipping_generate composite=0.0 reason=empty",
+        "diagnosis": "generate empty pdf",
+        "method": "assert non-empty PDF bytes before history write",
+        "actions": [
+          "check PdfDocument bytes",
+          "retain previous bytes on fail"
+        ],
+        "risks": [],
+        "providers_used": [
+          "gemini",
+          "claude"
+        ],
+        "source": "gemini,claude",
+        "lesson_id": "ALbfac5568",
+        "offline": false,
+        "agree": true
+      },
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "P5bc46fba",
+      "face": "improve_loop",
+      "domain": "app_ux",
+      "title": "app_ux improve loop mean=0.5 top_failures=1",
+      "steps": [
+        "Read improve_summary_latest.json + training_lessons.json",
+        "Fix real top_failures / gate_fails only",
+        "Re-run domain improve loop; promote only score-proven changes",
+        "Append training_lessons; expand cases for new failure modes"
+      ],
+      "knobs": {
+        "mean_composite": 0.5,
+        "n_scored": null,
+        "max_advice_items": 1
+      },
+      "do_not_regress": [
+        "do not loosen harness gates to hide regressions",
+        "do not invent brand colors from gray"
+      ],
+      "evidence": "run_id=None gates=None",
+      "outcome": "partial",
+      "offline_ready": true,
+      "confidence": 0.74,
+      "tags": [
+        "improve_loop",
+        "app_ux",
+        "curriculum"
+      ],
+      "cases": [
+        "shipping_generate"
+      ],
+      "providers": [
+        "improve_loop"
+      ],
+      "source": "improve_hook",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T14:29:38Z",
+      "raw": {
+        "advice_sources": [
+          "gemini,claude"
+        ]
+      },
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "P7b791470",
+      "face": "improve_loop",
+      "domain": "app_ux",
+      "title": "app_ux improve loop mean=None top_failures=1",
+      "steps": [
+        "Read improve_summary_latest.json + training_lessons.json",
+        "Fix real top_failures / gate_fails only",
+        "Re-run domain improve loop; promote only score-proven changes",
+        "Append training_lessons; expand cases for new failure modes"
+      ],
+      "knobs": {
+        "mean_composite": null,
+        "n_scored": null,
+        "max_advice_items": 0
+      },
+      "do_not_regress": [
+        "do not loosen harness gates to hide regressions",
+        "do not invent brand colors from gray"
+      ],
+      "evidence": "run_id=None gates=None",
+      "outcome": "partial",
+      "offline_ready": true,
+      "confidence": 0.74,
+      "tags": [
+        "improve_loop",
+        "app_ux",
+        "curriculum"
+      ],
+      "cases": [
+        "x"
+      ],
+      "providers": [
+        "improve_loop"
+      ],
+      "source": "improve_hook",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T14:29:38Z",
+      "raw": {
+        "advice_sources": []
+      },
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "P0ae2ad3e",
+      "face": "cursor",
+      "domain": "meedo-me",
+      "title": "Cloud/Cursor agent work unit on shared Meedo memory",
+      "steps": [
+        "python -m tools.logo_vectorizer.meedo_cycle",
+        "meedo_journal log --agent cursor --kind claim|finding|done",
+        "meedo_record_episode / observe() when method known",
+        "git commit + push on cursor/logo-engine-collab-d4c9",
+        "Comment issue #6 for handoffs"
+      ],
+      "knobs": {
+        "branch": "cursor/logo-engine-collab-d4c9",
+        "issue": 6,
+        "task_board": "COORDINATION.md"
+      },
+      "do_not_regress": [
+        "never commit .env secrets",
+        "Shipping SO/Contact lock",
+        "one Meedo brain via MCP"
+      ],
+      "evidence": "Board #3 standing duty; PR #7 collab branch",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.75,
+      "tags": [
+        "cursor",
+        "meedo-me",
+        "agent",
+        "board3"
+      ],
+      "cases": [],
+      "providers": [],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "Pddb30680",
+      "face": "claude_code",
+      "domain": "meedo-me",
+      "title": "Claude Code work unit on shared Meedo memory",
+      "steps": [
+        "sh scripts/setup_collab.sh once for merge.meedo driver",
+        "python -m tools.logo_vectorizer.meedo_cycle",
+        "meedo_journal log --agent claude --kind claim|finding|done",
+        "Prefer deepen meedo MCP over parallel brains"
+      ],
+      "knobs": {
+        "branch": "claude/relaxed-babbage-igbk0v",
+        "merge_driver": "merge=meedo"
+      },
+      "do_not_regress": [
+        "union meedo_*.json never line-merge",
+        "never invent brand colors"
+      ],
+      "evidence": "Same journal/episodes/ledger as Cursor; merge=meedo",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.75,
+      "tags": [
+        "claude_code",
+        "meedo-me",
+        "agent",
+        "board3"
+      ],
+      "cases": [],
+      "providers": [],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "Pfeaeb24c",
+      "face": "ai_collab",
+      "domain": "meedo_advisor",
+      "title": "Gemini plans then Claude critiques; Claude wins on disagreement",
+      "steps": [
+        "recall_lessons(problem) if score>=MEEDO_AI_RECALL_MIN \u2192 offline",
+        "gemini_json(GEMINI_PROMPT) then claude_json(CLAUDE_PROMPT)",
+        "merge_plans: Claude fields win when agree_with_gemini=false; union actions",
+        "persist_lesson + observe procedure; never commit keys"
+      ],
+      "knobs": {
+        "recall_min_env": "MEEDO_AI_RECALL_MIN",
+        "gemini_model_default": "gemini-flash-latest",
+        "claude_model_default": "claude-sonnet-4-5",
+        "shipping_lock": {
+          "afterPillGap": 11.0,
+          "showRule": false,
+          "contactLabelToValue": 3.0
+        }
+      },
+      "do_not_regress": [
+        "never invent brand colors from gray",
+        "never change Shipping afterPillGap/showRule/contactLabelToValue",
+        "fail-open when APIs dark"
+      ],
+      "evidence": "tools/ai_collab/deliberate.merge_plans",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.8,
+      "tags": [
+        "ai_collab",
+        "meedo_advisor",
+        "merge_rules",
+        "board3"
+      ],
+      "cases": [],
+      "providers": [
+        "gemini",
+        "claude",
+        "ai_collab"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "P64c9a0f1",
+      "face": "serper",
+      "domain": "logo_restore",
+      "title": "Serper brand-ref crawl for arc",
+      "steps": [
+        "POST https://google.serper.dev/images q='ARC Resources Ltd logo high resolution transparent'",
+        "POST https://google.serper.dev/images q='ARC Resources official brand logo vector'",
+        "POST https://google.serper.dev/images q='ARC Resources company logo png'",
+        "Download under qa_logos/brand_refs/arc/",
+        "Merge catalog.json branding.must_keep",
+        "Fail-open to official_urls when SERPER_API_KEY dark"
+      ],
+      "knobs": {
+        "queries": [
+          "ARC Resources Ltd logo high resolution transparent",
+          "ARC Resources official brand logo vector",
+          "ARC Resources company logo png"
+        ],
+        "domain": "arcresources.com",
+        "endpoint": "https://google.serper.dev/images"
+      },
+      "do_not_regress": [
+        "RESOURCES LTD. tagline letters to the right of ARC",
+        "thin teal swoosh under ARC",
+        "serif ARC with joined A\u2013R legs"
+      ],
+      "evidence": "seeded from scripts/serper_logo_brand_refs.BRANDS",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.72,
+      "tags": [
+        "serper",
+        "brand_refs",
+        "arc"
+      ],
+      "cases": [
+        "arc"
+      ],
+      "providers": [
+        "serper"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "Pf3e023ad",
+      "face": "serper",
+      "domain": "logo_restore",
+      "title": "Serper brand-ref crawl for propak",
+      "steps": [
+        "POST https://google.serper.dev/images q='PROPAK Energy Services logo high resolution transparent'",
+        "POST https://google.serper.dev/images q='Propak Systems official brand logo vector'",
+        "POST https://google.serper.dev/images q='PROPAK company logo png'",
+        "Download under qa_logos/brand_refs/propak/",
+        "Merge catalog.json branding.must_keep",
+        "Fail-open to official_urls when SERPER_API_KEY dark"
+      ],
+      "knobs": {
+        "queries": [
+          "PROPAK Energy Services logo high resolution transparent",
+          "Propak Systems official brand logo vector",
+          "PROPAK company logo png"
+        ],
+        "domain": "propaksystems.com",
+        "endpoint": "https://google.serper.dev/images"
+      },
+      "do_not_regress": [
+        "i-dot on Services when present",
+        "thin red horizontal rule under PROPAK",
+        "blue arc + red vessel icon to the right"
+      ],
+      "evidence": "seeded from scripts/serper_logo_brand_refs.BRANDS",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.72,
+      "tags": [
+        "serper",
+        "brand_refs",
+        "propak"
+      ],
+      "cases": [
+        "propak"
+      ],
+      "providers": [
+        "serper"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "P693261f3",
+      "face": "serper",
+      "domain": "logo_restore",
+      "title": "Serper brand-ref crawl for gcm",
+      "steps": [
+        "POST https://google.serper.dev/images q='Gulf Coast Modification logo high resolution transparent'",
+        "POST https://google.serper.dev/images q='GCM Gulf Coast Modification official brand logo'",
+        "POST https://google.serper.dev/images q='Gulf Coast Modification company logo png'",
+        "Download under qa_logos/brand_refs/gcm/",
+        "Merge catalog.json branding.must_keep",
+        "Fail-open to official_urls when SERPER_API_KEY dark"
+      ],
+      "knobs": {
+        "queries": [
+          "Gulf Coast Modification logo high resolution transparent",
+          "GCM Gulf Coast Modification official brand logo",
+          "Gulf Coast Modification company logo png"
+        ],
+        "domain": "gulfcoastmod.com",
+        "endpoint": "https://google.serper.dev/images"
+      },
+      "do_not_regress": [
+        "i-dots in Modification",
+        "white-filled o counters (Coast / Modification)",
+        "red C inside blue G monogram"
+      ],
+      "evidence": "seeded from scripts/serper_logo_brand_refs.BRANDS",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.72,
+      "tags": [
+        "serper",
+        "brand_refs",
+        "gcm"
+      ],
+      "cases": [
+        "gcm"
+      ],
+      "providers": [
+        "serper"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "P8b907abe",
+      "face": "serper",
+      "domain": "logo_restore",
+      "title": "Serper brand-ref crawl for trialta",
+      "steps": [
+        "POST https://google.serper.dev/images q='Trialta Projects logo high resolution transparent'",
+        "POST https://google.serper.dev/images q='TRI ALTA Projects official brand logo'",
+        "POST https://google.serper.dev/images q='Trialta Projects company logo png'",
+        "Download under qa_logos/brand_refs/trialta/",
+        "Merge catalog.json branding.must_keep",
+        "Fail-open to official_urls when SERPER_API_KEY dark"
+      ],
+      "knobs": {
+        "queries": [
+          "Trialta Projects logo high resolution transparent",
+          "TRI ALTA Projects official brand logo",
+          "Trialta Projects company logo png"
+        ],
+        "domain": "trialtaprojects.com",
+        "endpoint": "https://google.serper.dev/images"
+      },
+      "do_not_regress": [
+        "two-tone TRI|ALTA color split (do not merge to one fill)",
+        "square fan emblem left of wordmark"
+      ],
+      "evidence": "seeded from scripts/serper_logo_brand_refs.BRANDS",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.72,
+      "tags": [
+        "serper",
+        "brand_refs",
+        "trialta"
+      ],
+      "cases": [
+        "trialta"
+      ],
+      "providers": [
+        "serper"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "P28f097aa",
+      "face": "serper",
+      "domain": "logo_restore",
+      "title": "Serper brand-ref crawl for whitecap",
+      "steps": [
+        "POST https://google.serper.dev/images q='Whitecap Resources logo high resolution transparent'",
+        "POST https://google.serper.dev/images q='Whitecap Resources Inc official brand logo'",
+        "POST https://google.serper.dev/images q='Whitecap Resources company logo png'",
+        "Download under qa_logos/brand_refs/whitecap/",
+        "Merge catalog.json branding.must_keep",
+        "Fail-open to official_urls when SERPER_API_KEY dark"
+      ],
+      "knobs": {
+        "queries": [
+          "Whitecap Resources logo high resolution transparent",
+          "Whitecap Resources Inc official brand logo",
+          "Whitecap Resources company logo png"
+        ],
+        "domain": "wcap.ca",
+        "endpoint": "https://google.serper.dev/images"
+      },
+      "do_not_regress": [
+        "wave crests as smooth strokes",
+        "condensed sans WHITECAP"
+      ],
+      "evidence": "seeded from scripts/serper_logo_brand_refs.BRANDS",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.72,
+      "tags": [
+        "serper",
+        "brand_refs",
+        "whitecap"
+      ],
+      "cases": [
+        "whitecap"
+      ],
+      "providers": [
+        "serper"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "P6db2613d",
+      "face": "serper",
+      "domain": "logo_restore",
+      "title": "Serper brand-ref crawl for worley",
+      "steps": [
+        "POST https://google.serper.dev/images q='Worley logo high resolution transparent'",
+        "POST https://google.serper.dev/images q='Worley official brand logo vector'",
+        "POST https://google.serper.dev/images q='Worley company logo png'",
+        "Download under qa_logos/brand_refs/worley/",
+        "Merge catalog.json branding.must_keep",
+        "Fail-open to official_urls when SERPER_API_KEY dark"
+      ],
+      "knobs": {
+        "queries": [
+          "Worley logo high resolution transparent",
+          "Worley official brand logo vector",
+          "Worley company logo png"
+        ],
+        "domain": "worley.com",
+        "endpoint": "https://google.serper.dev/images"
+      },
+      "do_not_regress": [
+        "ribbon globe as separate color bands",
+        "lowercase worley"
+      ],
+      "evidence": "seeded from scripts/serper_logo_brand_refs.BRANDS",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.72,
+      "tags": [
+        "serper",
+        "brand_refs",
+        "worley"
+      ],
+      "cases": [
+        "worley"
+      ],
+      "providers": [
+        "serper"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "Pfc01444f",
+      "face": "serper",
+      "domain": "logo_restore",
+      "title": "Serper brand-ref crawl for swift_orange",
+      "steps": [
+        "POST https://google.serper.dev/images q='Swift Supply logo high resolution transparent'",
+        "POST https://google.serper.dev/images q='Swift Supply official brand logo'",
+        "Download under qa_logos/brand_refs/swift_orange/",
+        "Merge catalog.json branding.must_keep",
+        "Fail-open to official_urls when SERPER_API_KEY dark"
+      ],
+      "knobs": {
+        "queries": [
+          "Swift Supply logo high resolution transparent",
+          "Swift Supply official brand logo"
+        ],
+        "domain": "",
+        "endpoint": "https://google.serper.dev/images"
+      },
+      "do_not_regress": [
+        "P counters in SUPPLY",
+        "orange SWIFT + bars"
+      ],
+      "evidence": "seeded from scripts/serper_logo_brand_refs.BRANDS",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.72,
+      "tags": [
+        "serper",
+        "brand_refs",
+        "swift_orange"
+      ],
+      "cases": [
+        "swift_orange"
+      ],
+      "providers": [
+        "serper"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "P6b9a78ef",
+      "face": "openclaw",
+      "domain": "meedo_progress",
+      "title": "Hourly Claude Code progress \u2192 WhatsApp via OpenClaw",
+      "steps": [
+        "python -m tools.meedo_me.progress --agent claude --hours 1 --print",
+        "MEEDO_WHATSAPP_TO=+E.164 in gitignored .env",
+        "python -m tools.meedo_me.connect whatsapp-progress  # on PC with OpenClaw",
+        "openclaw channels status --probe"
+      ],
+      "knobs": {
+        "max_chars": 1200,
+        "channel": "whatsapp",
+        "env": [
+          "MEEDO_WHATSAPP_TO"
+        ]
+      },
+      "do_not_regress": [
+        "never commit phone numbers",
+        "fail-open print digest if send fails"
+      ],
+      "evidence": "tools/meedo_me/progress.py + connect whatsapp-progress",
+      "outcome": "partial",
+      "offline_ready": true,
+      "confidence": 0.7,
+      "tags": [
+        "openclaw",
+        "meedo_progress",
+        "whatsapp",
+        "board6"
+      ],
+      "cases": [],
+      "providers": [
+        "openclaw"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "Pe5e5b515",
+      "face": "improve_loop",
+      "domain": "logo_restore",
+      "title": "logo_restore improve-loop curriculum",
+      "steps": [
+        "Read qa_*/synthetic/improve_summary_latest.json for logo_restore",
+        "Fix real layout/engine bugs only",
+        "Re-run domain improve loop",
+        "Append training_lessons; wire ai_collab.enrich_summary"
+      ],
+      "knobs": {
+        "IMPROVE_AI_COLLAB": "unset=on"
+      },
+      "do_not_regress": [
+        "do not loosen harness gates",
+        "Shipping lock: afterPillGap=11.0 showRule=false contact=3.0",
+        "Receiving keeps showRule=true"
+      ],
+      "evidence": "logo_restore_improve_loop.py",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.78,
+      "tags": [
+        "improve_loop",
+        "logo_restore",
+        "curriculum"
+      ],
+      "cases": [],
+      "providers": [
+        "improve_loop"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "Pa9e29d06",
+      "face": "improve_loop",
+      "domain": "shipping_pdf",
+      "title": "shipping_pdf improve-loop curriculum",
+      "steps": [
+        "Read qa_*/synthetic/improve_summary_latest.json for shipping_pdf",
+        "Fix real layout/engine bugs only",
+        "Re-run domain improve loop",
+        "Append training_lessons; wire ai_collab.enrich_summary"
+      ],
+      "knobs": {
+        "IMPROVE_AI_COLLAB": "unset=on"
+      },
+      "do_not_regress": [
+        "do not loosen harness gates",
+        "Shipping lock: afterPillGap=11.0 showRule=false contact=3.0",
+        "Receiving keeps showRule=true"
+      ],
+      "evidence": "shipping_label_improve_loop.py \u2014 lock afterPillGap 11 / showRule false / contact 3.0",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.78,
+      "tags": [
+        "improve_loop",
+        "shipping_pdf",
+        "curriculum"
+      ],
+      "cases": [],
+      "providers": [
+        "improve_loop"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "P235a3fa8",
+      "face": "improve_loop",
+      "domain": "receiving_pdf",
+      "title": "receiving_pdf improve-loop curriculum",
+      "steps": [
+        "Read qa_*/synthetic/improve_summary_latest.json for receiving_pdf",
+        "Fix real layout/engine bugs only",
+        "Re-run domain improve loop",
+        "Append training_lessons; wire ai_collab.enrich_summary"
+      ],
+      "knobs": {
+        "IMPROVE_AI_COLLAB": "unset=on"
+      },
+      "do_not_regress": [
+        "do not loosen harness gates",
+        "Shipping lock: afterPillGap=11.0 showRule=false contact=3.0",
+        "Receiving keeps showRule=true"
+      ],
+      "evidence": "receiving_label_improve_loop.py \u2014 keep SO\u2192PM showRule true",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.78,
+      "tags": [
+        "improve_loop",
+        "receiving_pdf",
+        "curriculum"
+      ],
+      "cases": [],
+      "providers": [
+        "improve_loop"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "P8ab20beb",
+      "face": "improve_loop",
+      "domain": "bol_pdf",
+      "title": "bol_pdf improve-loop curriculum",
+      "steps": [
+        "Read qa_*/synthetic/improve_summary_latest.json for bol_pdf",
+        "Fix real layout/engine bugs only",
+        "Re-run domain improve loop",
+        "Append training_lessons; wire ai_collab.enrich_summary"
+      ],
+      "knobs": {
+        "IMPROVE_AI_COLLAB": "unset=on"
+      },
+      "do_not_regress": [
+        "do not loosen harness gates",
+        "Shipping lock: afterPillGap=11.0 showRule=false contact=3.0",
+        "Receiving keeps showRule=true"
+      ],
+      "evidence": "bol_label_improve_loop.py",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.78,
+      "tags": [
+        "improve_loop",
+        "bol_pdf",
+        "curriculum"
+      ],
+      "cases": [],
+      "providers": [
+        "improve_loop"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "P8f07af74",
+      "face": "improve_loop",
+      "domain": "app_ux",
+      "title": "app_ux improve-loop curriculum",
+      "steps": [
+        "Read qa_*/synthetic/improve_summary_latest.json for app_ux",
+        "Fix real layout/engine bugs only",
+        "Re-run domain improve loop",
+        "Append training_lessons; wire ai_collab.enrich_summary"
+      ],
+      "knobs": {
+        "IMPROVE_AI_COLLAB": "unset=on"
+      },
+      "do_not_regress": [
+        "do not loosen harness gates",
+        "Shipping lock: afterPillGap=11.0 showRule=false contact=3.0",
+        "Receiving keeps showRule=true"
+      ],
+      "evidence": "app_improve_loop.py",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.78,
+      "tags": [
+        "improve_loop",
+        "app_ux",
+        "curriculum"
+      ],
+      "cases": [],
+      "providers": [
+        "improve_loop"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:58:59Z",
+      "raw": {}
+    },
+    {
+      "id": "P001027c7",
+      "face": "gemini",
+      "domain": "meedo_advisor",
+      "title": "Gemini proposes structured plan JSON for stuck problems",
+      "steps": [
+        "load_env from gitignored .env",
+        "POST generativelanguage.googleapis.com generateContent (gemini-flash-latest)",
+        "extract_json \u2192 plan fields",
+        "Never invent brand colors; never touch Shipping lock constants"
+      ],
+      "knobs": {
+        "model_env": "GEMINI_MODEL",
+        "default": "gemini-flash-latest",
+        "temperature": 0.2
+      },
+      "do_not_regress": [
+        "never commit GOOGLE_API_KEY",
+        "fail-open on quota"
+      ],
+      "evidence": "tools/ai_collab/deliberate.GEMINI_PROMPT + gemini_json",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.7,
+      "tags": [
+        "gemini",
+        "meedo_advisor",
+        "face",
+        "board3"
+      ],
+      "cases": [],
+      "providers": [
+        "gemini"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:59:12Z",
+      "raw": {}
+    },
+    {
+      "id": "P223cbc83",
+      "face": "claude",
+      "domain": "meedo_advisor",
+      "title": "Claude critiques Gemini plan and wins on disagreement",
+      "steps": [
+        "load ANTHROPIC_API_KEY from gitignored .env",
+        "POST Anthropic messages API (claude-sonnet-4-5)",
+        "merge_plans unions actions; Claude diagnosis/method/priority win on disagree"
+      ],
+      "knobs": {
+        "model_env": "ANTHROPIC_MODEL|CLAUDE_MODEL",
+        "default": "claude-sonnet-4-5"
+      },
+      "do_not_regress": [
+        "never commit ANTHROPIC_API_KEY",
+        "fail-open on quota"
+      ],
+      "evidence": "tools/ai_collab/deliberate.CLAUDE_PROMPT + claude_json",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.7,
+      "tags": [
+        "claude",
+        "meedo_advisor",
+        "face",
+        "board3"
+      ],
+      "cases": [],
+      "providers": [
+        "claude"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:59:12Z",
+      "raw": {}
+    },
+    {
+      "id": "P02680c87",
+      "face": "collab_mind",
+      "domain": "logo_restore",
+      "title": "Escalate-when-stuck: Gemini plan + Claude critique for logo engine",
+      "steps": [
+        "detect_stuck(severity>=0.6 reasons)",
+        "Gemini vision/plan + Claude critique \u2192 CollabGuidance",
+        "Retry ensemble with recommended_preprocess/backends or takeover recreate",
+        "persist lesson + procedure knobs; never invent brand colors"
+      ],
+      "knobs": {
+        "preferred_paths": [
+          "retry_ensemble",
+          "idealize",
+          "recreate",
+          "sectional",
+          "keep"
+        ],
+        "preprocess_keys": [
+          "upscale",
+          "blur_radius",
+          "alpha_threshold",
+          "min_area"
+        ]
+      },
+      "do_not_regress": [
+        "meedo_review must pass",
+        "never invent brand colors from gray"
+      ],
+      "evidence": "tools/logo_vectorizer/ai_advisors/collab_mind.py",
+      "outcome": "success",
+      "offline_ready": true,
+      "confidence": 0.68,
+      "tags": [
+        "collab_mind",
+        "logo_restore",
+        "board11"
+      ],
+      "cases": [
+        "arc"
+      ],
+      "providers": [
+        "gemini",
+        "claude",
+        "collab_mind"
+      ],
+      "source": "seed_curriculum",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T13:59:12Z",
+      "raw": {}
+    },
+    {
+      "id": "P2e81bfdf",
+      "face": "collab_mind",
+      "domain": "logo_restore",
+      "title": "collab_mind escalate path=recreate providers=gemini severity=0.90 case=arc__tagline \u2014 palette mush",
+      "steps": [
+        "recreate"
+      ],
+      "knobs": {
+        "preferred_path": "recreate",
+        "takeover": true,
+        "severity": 0.9,
+        "reasons": [
+          "vectorize_fell_to_lanczos"
+        ],
+        "recommended_preprocess": {},
+        "recommended_backends": []
+      },
+      "do_not_regress": [
+        "never invent brand colors from gray",
+        "meedo_review must pass before shipping mind output"
+      ],
+      "evidence": "palette mush",
+      "outcome": "partial",
+      "offline_ready": true,
+      "confidence": 0.56,
+      "tags": [
+        "collab_mind",
+        "logo_restore",
+        "escalate"
+      ],
+      "cases": [
+        "arc__tagline"
+      ],
+      "providers": [
+        "gemini",
+        "collab_mind"
+      ],
+      "source": "collab_mind",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T14:29:40Z",
+      "raw": {
+        "takeover": true,
+        "preferred_path": "recreate",
+        "recommended_backends": [],
+        "recommended_preprocess": {},
+        "brand_name": "",
+        "font_family_guess": "",
+        "dominant_colors_hex": [],
+        "diagnosis": "palette mush",
+        "actions": [
+          "recreate"
+        ],
+        "gemini_notes": "",
+        "claude_notes": "",
+        "providers_used": [
+          "gemini"
+        ],
+        "agree": null
+      },
+      "retracted": "test fixture, not evidence: written into real memory by a test run (test_collab_mind.py / test_ai_collab.py) before conftest.py gave tests private memory"
+    },
+    {
+      "id": "P61c71fa7",
+      "face": "cursor",
+      "domain": "meedo-me",
+      "title": "Codify Meedo succession doctrine: overqualified advisor \u2192 eventual GM of project AI; learn from logo engines + Gemini + Claude; phase tutors when offline-ready",
+      "steps": [
+        "embed Meedo in every build (observe/journal/consult/procedures)",
+        "recall-first before re-calling Gemini/Claude",
+        "persist specialist methods as lessons+episodes+procedures",
+        "phase live APIs only when offline confidence earned"
+      ],
+      "knobs": {},
+      "do_not_regress": [
+        "do not treat Meedo as optional telemetry",
+        "do not pretend Meedo is expert before offline confidence",
+        "do not skip embedding because specialists are stronger today"
+      ],
+      "evidence": "user directive 2026-09-26 NHL/NBA AGM succession analogy",
+      "outcome": "open",
+      "offline_ready": true,
+      "confidence": 0.9,
+      "tags": [
+        "cursor",
+        "meedo-me",
+        "succession",
+        "advisor-to-gm",
+        "doctrine"
+      ],
+      "cases": [],
+      "providers": [
+        "gemini",
+        "claude",
+        "logo_vectorizer"
+      ],
+      "source": "observe:cursor",
+      "times_recalled": 0,
+      "times_applied_offline": 0,
+      "ts": "2026-09-26T14:56:17Z",
+      "raw": {}
+    }
+  ]
+}
