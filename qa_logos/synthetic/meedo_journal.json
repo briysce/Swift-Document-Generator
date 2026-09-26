@@ -706,6 +706,30 @@
         "episode": "n/a: merge; the method is in the commit and CLAUDE.md rule 9"
       },
       "source": "manual"
+    },
+    {
+      "id": "2026-09-26T14:28:15Z-claude",
+      "ts": "2026-09-26T14:28:15Z",
+      "agent": "claude",
+      "task": 3,
+      "kind": "finding",
+      "summary": "Tests were writing Meedo-Me's real memory: collab_mind tests added the same fake Arc escalation ('palette mush') as a new episode + lesson every run (7 episodes). conftest.py now isolates memory per test and fails the session on any real-memory write; the 8 entries are retracted (retraction wins merges)",
+      "evidence": {
+        "commit": "b974e8d"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "2026-09-26T14:28:15Z-claude-2",
+      "ts": "2026-09-26T14:28:15Z",
+      "agent": "claude",
+      "task": 12,
+      "kind": "finding",
+      "summary": "Minds take-over on swift solid import_combo: Claude SVG = generic italic, blocked; Gemini SVG none; Gemini repaint keeps letterforms, trace passes review at 0.915 anchored vs engine vector 0.968 \u2014 image model moves letters (IoU 0.86). Minds are better critics/judges than drawers (E0056)",
+      "evidence": {
+        "commit": "b974e8d"
+      },
+      "source": "manual"
     }
   ]
 }
