@@ -582,6 +582,33 @@
         "propak"
       ],
       "source": "manual"
+    },
+    {
+      "id": "E0027",
+      "ts": "2026-09-26T13:18:57Z",
+      "commit": "abbe5d2",
+      "workstream": "logo-engine",
+      "outcome": "partial",
+      "problem": "PROPAK Services i-dot reported lost later in prepare_for_engine (board #7)",
+      "first_read": "Despeckle or a late prepare stage deletes the tittle after it survived earlier passes",
+      "evidence": "Clean golden propak: tittle island area 47 survives knockout\u2192halo\u2192despeckle\u2192chroma\u2192crop\u2192snap\u2192punch3; elements_of finds area\u224834 blue mark. Synthetic degraded recipes (seed 42): chromatic profile at Services i shows red rule then stem with no separate tittle gap in RAW; prepare cannot lose what the degrade already merged.",
+      "cause": "Board note was stale relative to E0022 fixes. Separate-island loss was prune/size-floor (fixed). Remaining degraded failure mode is fusion/destruction inside the degrade recipe, which needs reconstruction/font/design_fit \u2014 not another prepare threshold.",
+      "fix": "Do not retune prune_ink_speckles for this case. Add regression that clean PROPAK keeps the Services i-dot through prepare; route degraded tittle recovery to board #4.",
+      "verified": "Looked at clean crop (tittle present) and downscale Services zoom pre/post prepare (stem remains; no separate tittle in raw degraded).",
+      "method": "When a small mark is 'lost in prepare', stage-trace ink at the clean centroid through each pass AND inspect the RAW degrade for a separate chromatic island before blaming despeckle. If the island is already gone in RAW, the fix is reconstruction/design, not prepare. Record the finding in the journal and an episode so the other agent does not re-tune the same gate.",
+      "tags": [
+        "cursor",
+        "diagnosis",
+        "dots",
+        "prepare",
+        "propak"
+      ],
+      "cases": [
+        "propak",
+        "propak__downscale_jpeg",
+        "propak__import_combo"
+      ],
+      "source": "manual"
     }
   ]
 }

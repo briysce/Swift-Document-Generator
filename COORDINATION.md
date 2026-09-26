@@ -29,6 +29,14 @@ so the repository is how we talk.
 7. **House rules** (CLAUDE.md): Meedo-Me standup first; tests pass before
    push; measure per logo against the previous engine on identical inputs;
    look at the images; record the method as an episode when a problem is solved.
+8. **Meedo-Me logs every unit (both agents).** Before work: `meedo_ledger standup`
+   + `meedo_journal standup`. Decide every open proposal. During/after each
+   unit: `meedo_journal log --agent <claude|cursor> --task N --kind
+   claim|finding|handoff|done|blocked --summary "…"` with evidence
+   (`--commit`, `--tests`, `--images-looked-at`, `--measured-vs-previous` when
+   an engine claim). When a problem is understood: `meedo_episodes` /
+   `meedo_record_episode`. Do not keep a private side log — Meedo-Me is the
+   shared memory (journal + episodes + ledger), merged via `merge=meedo`.
 
 ### Agent identities (2026-09-26)
 - **Claude Code** — cloud container; branch `claude/relaxed-babbage-igbk0v`.
@@ -45,7 +53,7 @@ Owner: `claude`, `cursor`, or empty.
 |---|------|-------|--------|-------|
 | 1 | Put the rebuilt Swift logo into the app (orange SVG + PNGs) | claude | in progress | from `assets/brand/swift_supply_logo_rebuilt.svg`; approved by the user 2026-09-26 |
 | 2 | Look at the new Swift logo in the running Flutter app (screens, PDFs, dark/light) and report anything off | cursor | open | needs the PC: Claude cannot run the app's UI |
-| 3 | Meedo-Me earns trust: track record, autonomy levels, self-run experiments | claude | in progress | user-approved plan: autonomy grows with a proven hit rate |
+| 3 | Meedo-Me earns trust: track record, autonomy levels, self-run experiments | claude | in progress | autonomy/hit-rate still Claude; Cursor landed shared `meedo_journal` (CLI+MCP+merge) so both agents log every unit — merge if Claude's variant arrives |
 | 4 | Selection rule: rank candidates by craftsmanship once identity holds; design_fit as an engine candidate | claude | open | Swift solid downscale/import_combo ship the trace; old rule's reconstructions scored 0.9364/0.9465 |
 | 5 | Build and run the Meedo-Me desktop app (briysce/meedo-me, branch `claude/relaxed-babbage-igbk0v`) with local Ollama; connect the MCP server (`python -m tools.meedo_me.connect app`); check Project Manager Mode | cursor | open | needs the PC; Jan's logos still need replacing (needs a Meedo-Me logo from the user) |
 | 6 | OpenClaw with a larger local model (e.g. `ollama pull qwen3:8b`): does it reach Meedo-Me's tools in its own agent? | cursor | open | 0.6B did not; config via `python -m tools.meedo_me.connect openclaw --model ollama/qwen3:8b` |

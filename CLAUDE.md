@@ -9,8 +9,11 @@ that is only consulted after the fact.
 
 ```
 python -m tools.logo_vectorizer.meedo_ledger standup
+python -m tools.logo_vectorizer.meedo_journal standup
 python -m tools.logo_vectorizer.meedo_ledger decide --by <you> <id> accept|reject "<reason>"
 python -m tools.logo_vectorizer.meedo_episodes recall "<problem>"
+python -m tools.logo_vectorizer.meedo_journal log --agent <claude|cursor> --task N \
+  --kind claim|finding|handoff|done|blocked --summary "…" --images-looked-at
 # …do the work, with meedo_review on logo outputs…
 python -m tools.logo_vectorizer.meedo_ledger observe   # usually automatic from the improve loop
 python -m tools.logo_vectorizer.meedo_ledger propose
@@ -22,12 +25,18 @@ you will act on now — accepted advice is judged by later runs, so accepting an
 then ignoring it scores Meedo-Me's advice as a failure it did not earn. Reject
 with a real reason; Meedo-Me learns from the pattern of what is rejected.
 
+Log **every** work unit into the journal (Claude Code and Cursor). A `done`
+without tests / images-looked-at / measured-vs-previous (for engine tasks) is
+flagged on the next journal standup. Episodes still hold the durable *method*;
+the journal holds who did what, when, and with what evidence.
+
 The same memory is served over MCP (`.mcp.json` registers it for Claude Code):
-`meedo_standup`, `meedo_recall`, `meedo_playbook`, `meedo_report`, `meedo_review`,
-and the writers `meedo_decide`, `meedo_record_episode`. Recall before diagnosing —
-past episodes say what the first guess got wrong. Record the method when a problem
-is solved. Any agent that reads untrusted input (email, chat, the web) gets the
-server with `--read-only`, never the writers.
+`meedo_standup`, `meedo_journal_standup`, `meedo_journal_recent`,
+`meedo_recall`, `meedo_playbook`, `meedo_report`, `meedo_review`, and the writers
+`meedo_decide`, `meedo_record_episode`, `meedo_journal_log`. Recall before
+diagnosing — past episodes say what the first guess got wrong. Record the method
+when a problem is solved. Any agent that reads untrusted input (email, chat, the
+web) gets the server with `--read-only`, never the writers.
 
 Its advice once sat unread for a whole session. Twenty-eight proposals, all
 ignored, were scored as failures and its hit rate read 0% — while its most

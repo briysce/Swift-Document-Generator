@@ -14,12 +14,17 @@ moment state changes. The next agent sees only what is committed.
 ### Collaboration (live)
 - Protocol: `COORDINATION.md` + Meedo merge driver (`scripts/setup_collab.sh`).
 - Talk: GitHub issue [#6](https://github.com/briysce/Swift-Document-Generator/issues/6).
+- **Meedo-Me is mandatory for both agents** (ledger + journal + episodes).
+  Journal: `tools/logo_vectorizer/meedo_journal.py` →
+  `qa_logos/synthetic/meedo_journal.json` (`merge=meedo`). MCP:
+  `meedo_journal_log` / `meedo_journal_standup` / `meedo_journal_recent`.
+  Cursor landed this to Claude's issue-#6 sketch so logging is live now; if
+  Claude pushes a variant, union via `merge=meedo` (do not fork a second log).
 - Claude branch: `claude/relaxed-babbage-igbk0v` — tasks **#1** (Swift app swap,
-  nearly done per issue comment), **#3** (Meedo trust / journal); **#4**
-  (craftsmanship gate) still open for Claude. Do not build a parallel journal —
-  Claude owns `meedo_journal.py`.
+  nearly done per issue comment), **#3** (Meedo trust / autonomy); **#4**
+  (craftsmanship gate) still open for Claude.
 - Cursor Cloud branch: `cursor/logo-engine-collab-d4c9` — **#7 done** (PROPAK
-  prepare-path i-dot retention locked). Next claim TBD among **#8/#9/#10**.
+  prepare-path locked; E0026/E0027). Next claim TBD among **#8/#9/#10**.
   PC-only **#2/#5/#6** remain open (noVNC ≠ Brice's PC).
 
 ### Board #7 closeout (Cursor, this unit)

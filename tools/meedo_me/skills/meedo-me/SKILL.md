@@ -16,6 +16,9 @@ the same memory. Answer from it, not from impressions.
 | Tool | Use it to |
 |---|---|
 | `meedo_standup` | Start a work session: proposals awaiting a decision, most pressing first, each with the method remembered from a similar problem. |
+| `meedo_journal_standup` | Work-journal assessment: recent units per agent, claims quiet ≥45 min, thin `done` entries missing evidence. |
+| `meedo_journal_log` | Log one agent work unit (`claim` / `finding` / `handoff` / `done` / `blocked`) with evidence. |
+| `meedo_journal_recent` | Recent journal units, filterable by agent or task. |
 | `meedo_recall` | Before diagnosing anything: past episodes most like the problem — what it first looked like, the evidence that turned it, the cause, the method. |
 | `meedo_playbook` | List every method learned, with how each was earned. |
 | `meedo_report` | Status: run trend, how the advice has fared, what the reviewer blocked, cases that never moved. |

@@ -42,3 +42,15 @@ def test_a_closed_episode_wins_over_its_open_copy(tmp_path):
     merge(ours, theirs)
     got = json.loads((tmp_path / "a").read_text())["episodes"]
     assert len(got) == 1 and got[0]["method"] == "do x"
+
+
+def test_both_agents_journal_entries_survive(tmp_path):
+    ours = _w(tmp_path / "a", {"version": 1, "entries": [
+        {"id": "Ja", "ts": "1", "agent": "claude", "kind": "claim", "summary": "swift"},
+    ]})
+    theirs = _w(tmp_path / "b", {"version": 1, "entries": [
+        {"id": "Jb", "ts": "2", "agent": "cursor", "kind": "finding", "summary": "propak"},
+    ]})
+    assert merge(ours, theirs)
+    ids = {e["id"] for e in json.loads((tmp_path / "a").read_text())["entries"]}
+    assert ids == {"Ja", "Jb"}

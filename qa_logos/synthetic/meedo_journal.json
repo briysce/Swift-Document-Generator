@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "Je36fc4ae",
+      "ts": "2026-09-26T13:18:57Z",
+      "agent": "cursor",
+      "task": 7,
+      "kind": "claim",
+      "summary": "Claim board #7 PROPAK Services i-dot on cursor/logo-engine-collab-d4c9; talk on issue #6",
+      "evidence": {
+        "commit": "11c1b58",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "J9c0b2076",
+      "ts": "2026-09-26T13:18:57Z",
+      "agent": "cursor",
+      "task": 7,
+      "kind": "finding",
+      "summary": "Stage-traced prepare_for_engine on clean + 5 synthetic degradations. Clean Services i-dot (47px 8x6) survives every stage; elements_of keeps it. On downscale_jpeg/import_combo/plate_halo/blur_crush/banding_jpeg the separate blue tittle is already absent/merged in the RAW degrade \u2014 not lost after despeckle. E0022/0673cf2/577dd87 already cover separate-island marks. Residual degraded tittle recovery belongs with craftsmanship/font path (board #4), not more prune tweaks.",
+      "evidence": {
+        "commit": "abbe5d2",
+        "tests": "manual stage-trace scripts (scipy label + prepare_for_engine)",
+        "images_looked_at": true,
+        "measured_vs_previous": "clean prep keeps island; degraded raw lacks separate tittle before prepare",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "J0894e134",
+      "ts": "2026-09-26T13:18:57Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "finding",
+      "summary": "Landed meedo_journal so both agents log every unit into Meedo-Me (claim/finding/handoff/done/blocked + evidence). merge=meedo unions journal JSON; MCP: meedo_journal_log / standup / recent. Aligns with Claude's #3 sketch on issue #6.",
+      "evidence": {
+        "commit": "abbe5d2",
+        "tests": "pytest tools/logo_vectorizer/tests/test_meedo_journal.py test_meedo_merge.py",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "Jcea24593",
+      "ts": "2026-09-26T13:19:30Z",
+      "agent": "cursor",
+      "task": 3,
+      "kind": "done",
+      "summary": "Meedo-Me work journal live for both agents (CLI+MCP+merge driver); Cursor #7 units + E0027 recorded",
+      "evidence": {
+        "commit": "abbe5d2",
+        "tests": "pytest tools/logo_vectorizer/tests/test_meedo_journal.py test_meedo_merge.py tools/meedo_me/tests/test_connect.py (15 passed)",
+        "images_looked_at": true,
+        "measured_vs_previous": "n/a (process/memory; no score change)",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "Je40f4afc",
+      "ts": "2026-09-26T13:19:30Z",
+      "agent": "cursor",
+      "task": 7,
+      "kind": "done",
+      "summary": "Board #7 prepare-path closed: regression test_prepare_idot_retention + E0026/E0027; residual degraded tittle \u2192 #4",
+      "evidence": {
+        "commit": "abbe5d2",
+        "tests": "pytest tools/logo_vectorizer/tests/test_prepare_idot_retention.py",
+        "images_looked_at": true,
+        "measured_vs_previous": "clean PROPAK/GCM islands retained through prepare; degraded RAW lacks separate tittle",
+        "branch": "cursor/logo-engine-collab-d4c9"
+      },
+      "source": "manual"
+    }
+  ]
+}

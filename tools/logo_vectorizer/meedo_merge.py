@@ -96,12 +96,37 @@ def merge_ledger(ours: dict, theirs: dict) -> dict:
     return out
 
 
+def merge_journal(ours: dict, theirs: dict) -> dict:
+    """Union work-journal entries by id; never drop either agent's units."""
+    mine = list(ours.get("entries", []))
+    ids = {e.get("id"): e for e in mine if e.get("id")}
+    for e in theirs.get("entries", []):
+        eid = e.get("id")
+        if not eid or eid not in ids:
+            mine.append(e)
+            if eid:
+                ids[eid] = e
+        elif ids[eid] != e:
+            # Same id, richer evidence wins (more evidence keys / longer summary).
+            have = ids[eid]
+            if len(e.get("evidence") or {}) > len(have.get("evidence") or {}) or (
+                len(e.get("summary") or "") > len(have.get("summary") or "")
+            ):
+                mine[mine.index(have)] = e
+                ids[eid] = e
+    mine.sort(key=lambda e: (e.get("ts", ""), e.get("id", "")))
+    return {**ours, "version": ours.get("version", 1), "entries": mine}
+
+
 def merge(ours_path: str, theirs_path: str) -> bool:
     ours, theirs = _load(ours_path), _load(theirs_path)
     if ours is None or theirs is None:
         return False
     if "episodes" in ours or "episodes" in theirs:
         result = merge_episodes(ours, theirs)
+    elif "entries" in ours or "entries" in theirs:
+        result = merge_journal(ours or {"version": 1, "entries": []},
+                               theirs or {"version": 1, "entries": []})
     else:
         result = merge_ledger(ours, theirs)
     Path(ours_path).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
