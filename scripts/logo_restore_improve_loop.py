@@ -217,6 +217,7 @@ def run_loop(
                 # Whether Gemini/Claude could escalate (collab_mind): a run
                 # where they could is not comparable to one where they could not.
                 "minds": _minds_on(),
+                "minds_rank": os.environ.get("LOGO_MINDS_RANK", "").strip(),
                 "anchor": bool(pair.get("anchor")),
                 "clean": pair["clean"],
                 "degraded": pair["degraded"],
@@ -305,6 +306,7 @@ def run_loop(
         "engines": list(engines),
         "idealize": _idealize_on(),
         "minds": _minds_on(),
+        "minds_rank": os.environ.get("LOGO_MINDS_RANK", "").strip(),
         "n_pairs": len(pairs),
         "n_rows": len(rows),
         "n_scored": len(scored),

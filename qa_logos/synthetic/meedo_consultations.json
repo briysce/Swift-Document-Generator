@@ -292,6 +292,358 @@
         "delta": -0.1345
       },
       "latency_s": 13.17
+    },
+    {
+      "id": "2026-09-26T14:32:19Z-claude-compare",
+      "ts": "2026-09-26T14:32:19Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "compare",
+      "source": "engine",
+      "case": "arc__downscale_jpeg",
+      "session": "rank-20260926T143206Z-arc__downscale_jpeg",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/19fb46f2687128b6.png",
+        "qa_logos/synthetic/minds/inputs/7ee9d304e3440342.png",
+        "qa_logos/synthetic/minds/inputs/5ed1f107c8170596.png"
+      ],
+      "answer": "{\"better\": \"A\", \"identity\": \"A keeps every element: the ARC wordmark, the swoosh, and the full 'RESOURCES LTD.' tagline. Its flaw is colour. The dark swoosh and tagline are wrongly recoloured red. B keeps the correct red/dark colour split, but it drops much of the tagline ('ES' and 'LT' are missing), leaving 'RESOURCF \u2026 D'. That changes the text of the logo. Missing letters is the more serious identity failure.\", \"craft\": \"Both are poorly drawn. A's tagline is fragmented and blocky, with stray pixels and staircase edges, and its ARC letters are patchy. B's ARC letters are more solid but have wobbly, eroded, blobby outlines. Its remaining tagline letters are irregular, and the swoosh is ragged. Neither has clean straight lines or fair curves. B is marginally more cohesive, but not clean.\", \"confidence\": 0.55}",
+      "parsed": {
+        "better": "A",
+        "identity": "A keeps every element: the ARC wordmark, the swoosh, and the full 'RESOURCES LTD.' tagline. Its flaw is colour. The dark swoosh and tagline are wrongly recoloured red. B keeps the correct red/dark colour split, but it drops much of the tagline ('ES' and 'LT' are missing), leaving 'RESOURCF \u2026 D'. That changes the text of the logo. Missing letters is the more serious identity failure.",
+        "craft": "Both are poorly drawn. A's tagline is fragmented and blocky, with stray pixels and staircase edges, and its ARC letters are patchy. B's ARC letters are more solid but have wobbly, eroded, blobby outlines. Its remaining tagline letters are irregular, and the swoosh is ragged. Neither has clean straight lines or fair curves. B is marginally more cohesive, but not clean.",
+        "confidence": 0.55
+      },
+      "outcome": {
+        "result": "helped",
+        "detail": "picked traced; clean master says traced",
+        "judged_at": "2026-09-26T14:32:30Z",
+        "by": "logo_minds_rank (auto)"
+      },
+      "latency_s": 9.5
+    },
+    {
+      "id": "2026-09-26T14:32:30Z-claude-compare",
+      "ts": "2026-09-26T14:32:30Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "compare",
+      "source": "engine",
+      "case": "arc__downscale_jpeg",
+      "session": "rank-20260926T143206Z-arc__downscale_jpeg",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/19fb46f2687128b6.png",
+        "qa_logos/synthetic/minds/inputs/5ed1f107c8170596.png",
+        "qa_logos/synthetic/minds/inputs/7ee9d304e3440342.png"
+      ],
+      "answer": "```json\n{\"better\": \"B\", \"identity\": \"Neither is faithful. A keeps the correct colour split: red ARC, a dark slate swoosh and dark 'RESOURCES LTD.' text. But it drops much of the tagline, reading 'RESOURCF \u2026 D' with 'ES LT' and the period missing. B keeps every element, including the full 'RESOURCES LTD.' line (though garbled) and the swoosh. However, it wrongly paints the swoosh and the tagline brand red instead of dark slate. Missing letters is judged the larger identity failure, so B keeps the logo slightly more completely.\", \"craft\": \"Both are poor. A has rough, eroded, blobby contours on every glyph and on the swoosh, like a traced blur. B's ARC has smoother, fairer curves, but it has overlapping patch artifacts. Its tagline is blocky and noisy, and stray fragments and dashes trail off the swoosh. B's main letterforms are marginally cleaner.\", \"confidence\": 0.55}\n```",
+      "parsed": {
+        "better": "B",
+        "identity": "Neither is faithful. A keeps the correct colour split: red ARC, a dark slate swoosh and dark 'RESOURCES LTD.' text. But it drops much of the tagline, reading 'RESOURCF \u2026 D' with 'ES LT' and the period missing. B keeps every element, including the full 'RESOURCES LTD.' line (though garbled) and the swoosh. However, it wrongly paints the swoosh and the tagline brand red instead of dark slate. Missing letters is judged the larger identity failure, so B keeps the logo slightly more completely.",
+        "craft": "Both are poor. A has rough, eroded, blobby contours on every glyph and on the swoosh, like a traced blur. B's ARC has smoother, fairer curves, but it has overlapping patch artifacts. Its tagline is blocky and noisy, and stray fragments and dashes trail off the swoosh. B's main letterforms are marginally cleaner.",
+        "confidence": 0.55
+      },
+      "outcome": {
+        "result": "helped",
+        "detail": "picked traced; clean master says traced",
+        "judged_at": "2026-09-26T14:32:30Z",
+        "by": "logo_minds_rank (auto)"
+      },
+      "latency_s": 11.03
+    },
+    {
+      "id": "2026-09-26T14:32:51Z-gemini-compare",
+      "ts": "2026-09-26T14:32:51Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "compare",
+      "source": "engine",
+      "case": "arc__downscale_jpeg",
+      "session": "rank-20260926T143206Z-arc__downscale_jpeg",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/19fb46f2687128b6.png",
+        "qa_logos/synthetic/minds/inputs/7ee9d304e3440342.png",
+        "qa_logos/synthetic/minds/inputs/5ed1f107c8170596.png"
+      ],
+      "answer": "{\n  \"better\": \"A\",\n  \"identity\": \"A retains the full text 'RESOURCES LTD.', whereas B is missing several letters and mangles the word 'RESOURCES'. A incorrectly colors the entire logo red, but B's omission of text is a more severe identity failure.\",\n  \"craft\": \"Both are poor, jagged auto-traces, but A manages to keep the smaller text legible, whereas B's smaller text breaks apart completely.\",\n  \"confidence\": 0.8\n}",
+      "parsed": {
+        "better": "A",
+        "identity": "A retains the full text 'RESOURCES LTD.', whereas B is missing several letters and mangles the word 'RESOURCES'. A incorrectly colors the entire logo red, but B's omission of text is a more severe identity failure.",
+        "craft": "Both are poor, jagged auto-traces, but A manages to keep the smaller text legible, whereas B's smaller text breaks apart completely.",
+        "confidence": 0.8
+      },
+      "outcome": {
+        "result": "helped",
+        "detail": "picked traced; clean master says traced",
+        "judged_at": "2026-09-26T14:33:14Z",
+        "by": "logo_minds_rank (auto)"
+      },
+      "latency_s": 20.49
+    },
+    {
+      "id": "2026-09-26T14:33:14Z-gemini-compare",
+      "ts": "2026-09-26T14:33:14Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "compare",
+      "source": "engine",
+      "case": "arc__downscale_jpeg",
+      "session": "rank-20260926T143206Z-arc__downscale_jpeg",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/19fb46f2687128b6.png",
+        "qa_logos/synthetic/minds/inputs/5ed1f107c8170596.png",
+        "qa_logos/synthetic/minds/inputs/7ee9d304e3440342.png"
+      ],
+      "answer": "{\n  \"better\": \"A\",\n  \"identity\": \"A preserves the two-color palette of the original (red and dark grey), whereas B incorrectly renders the entire logo in red. Both struggle significantly with the smaller text, but A's correct color assignment makes it slightly closer to the original brand identity.\",\n  \"craft\": \"Both restorations are extremely poor, exhibiting jagged edges, distorted shapes, and blobby artifacts typical of a low-quality auto-trace. Neither demonstrates good craftsmanship.\",\n  \"confidence\": 0.7\n}",
+      "parsed": {
+        "better": "A",
+        "identity": "A preserves the two-color palette of the original (red and dark grey), whereas B incorrectly renders the entire logo in red. Both struggle significantly with the smaller text, but A's correct color assignment makes it slightly closer to the original brand identity.",
+        "craft": "Both restorations are extremely poor, exhibiting jagged edges, distorted shapes, and blobby artifacts typical of a low-quality auto-trace. Neither demonstrates good craftsmanship.",
+        "confidence": 0.7
+      },
+      "outcome": {
+        "result": "wrong",
+        "detail": "picked ideal; clean master says traced",
+        "judged_at": "2026-09-26T14:33:14Z",
+        "by": "logo_minds_rank (auto)"
+      },
+      "latency_s": 23.19
+    },
+    {
+      "id": "2026-09-26T14:33:28Z-claude-compare",
+      "ts": "2026-09-26T14:33:28Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "compare",
+      "source": "engine",
+      "case": "arc__import_combo",
+      "session": "rank-20260926T143206Z-arc__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/a2e287ff8a084aea.png",
+        "qa_logos/synthetic/minds/inputs/763f060f05bd1043.png",
+        "qa_logos/synthetic/minds/inputs/f77e7bb432140451.png"
+      ],
+      "answer": "```json\n{\"better\": \"A\", \"identity\": \"A keeps more of the logo. Its 'RESOURCES LTD.' line is fragmented but still reads as nearly every letter, and the swoosh, ARC and full stop are all present. However, A recolours the swoosh and the tagline pink-red when they should be dark grey. B keeps the correct colours (red ARC, dark swoosh and text), but it drops whole letters in the tagline: the C, much of the E and S, and the L. It reads roughly 'RESOUR F> TD'. Missing letters is a more serious identity failure than a wrong colour on those elements.\", \"craft\": \"Neither would pass. A's ARC and text are built from jagged, patchy, overlapping polygons with stray fragments. B's shapes are more unified, but every edge is wobbly and eroded, the swoosh is a serrated blob, and the letterforms are distorted. B is slightly cleaner in the ARC, but neither has straight lines or fair curves.\", \"confidence\": 0.55}\n```",
+      "parsed": {
+        "better": "A",
+        "identity": "A keeps more of the logo. Its 'RESOURCES LTD.' line is fragmented but still reads as nearly every letter, and the swoosh, ARC and full stop are all present. However, A recolours the swoosh and the tagline pink-red when they should be dark grey. B keeps the correct colours (red ARC, dark swoosh and text), but it drops whole letters in the tagline: the C, much of the E and S, and the L. It reads roughly 'RESOUR F> TD'. Missing letters is a more serious identity failure than a wrong colour on those elements.",
+        "craft": "Neither would pass. A's ARC and text are built from jagged, patchy, overlapping polygons with stray fragments. B's shapes are more unified, but every edge is wobbly and eroded, the swoosh is a serrated blob, and the letterforms are distorted. B is slightly cleaner in the ARC, but neither has straight lines or fair curves.",
+        "confidence": 0.55
+      },
+      "outcome": {
+        "result": "wrong",
+        "detail": "picked traced; clean master says ideal",
+        "judged_at": "2026-09-26T14:33:38Z",
+        "by": "logo_minds_rank (auto)"
+      },
+      "latency_s": 10.48
+    },
+    {
+      "id": "2026-09-26T14:33:38Z-claude-compare",
+      "ts": "2026-09-26T14:33:38Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "compare",
+      "source": "engine",
+      "case": "arc__import_combo",
+      "session": "rank-20260926T143206Z-arc__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/a2e287ff8a084aea.png",
+        "qa_logos/synthetic/minds/inputs/f77e7bb432140451.png",
+        "qa_logos/synthetic/minds/inputs/763f060f05bd1043.png"
+      ],
+      "answer": "```json\n{\"better\": \"B\", \"identity\": \"Neither restoration is faithful. A keeps the correct colours: red ARC, dark swoosh and dark grey text. However, it drops letters from the tagline, so it reads roughly 'RESOUR F> TD', which changes the company name. B keeps every element, and all of 'RESOURCES LTD.' is still legible. But it wrongly recolours the swoosh and the tagline red/pink. Losing letters is the more serious identity failure, so B keeps the logo slightly more completely.\", \"craft\": \"Both are poorly drawn. A has blobby, eroded edges on every shape, though each shape is a single flat colour. B is fragmented, with glitchy patches, stray pixels and mottled pink/red fills. Its ARC letterforms are somewhat cleaner. Neither has straight lines or fair curves. A is marginally more coherent in its flat fills, while B is shattered.\", \"confidence\": 0.55}\n```",
+      "parsed": {
+        "better": "B",
+        "identity": "Neither restoration is faithful. A keeps the correct colours: red ARC, dark swoosh and dark grey text. However, it drops letters from the tagline, so it reads roughly 'RESOUR F> TD', which changes the company name. B keeps every element, and all of 'RESOURCES LTD.' is still legible. But it wrongly recolours the swoosh and the tagline red/pink. Losing letters is the more serious identity failure, so B keeps the logo slightly more completely.",
+        "craft": "Both are poorly drawn. A has blobby, eroded edges on every shape, though each shape is a single flat colour. B is fragmented, with glitchy patches, stray pixels and mottled pink/red fills. Its ARC letterforms are somewhat cleaner. Neither has straight lines or fair curves. A is marginally more coherent in its flat fills, while B is shattered.",
+        "confidence": 0.55
+      },
+      "outcome": {
+        "result": "wrong",
+        "detail": "picked traced; clean master says ideal",
+        "judged_at": "2026-09-26T14:33:38Z",
+        "by": "logo_minds_rank (auto)"
+      },
+      "latency_s": 10.58
+    },
+    {
+      "id": "2026-09-26T14:33:59Z-gemini-compare",
+      "ts": "2026-09-26T14:33:59Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "compare",
+      "source": "engine",
+      "case": "arc__import_combo",
+      "session": "rank-20260926T143206Z-arc__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/a2e287ff8a084aea.png",
+        "qa_logos/synthetic/minds/inputs/763f060f05bd1043.png",
+        "qa_logos/synthetic/minds/inputs/f77e7bb432140451.png"
+      ],
+      "answer": "{\n  \"better\": \"B\",\n  \"identity\": \"B maintains the original red and dark green/black color scheme, whereas A incorrectly renders all elements in shades of red and pink.\",\n  \"craft\": \"Both are poor auto-traces, but B avoids the jagged, polygonal distortion introduced in A.\",\n  \"confidence\": 0.8\n}",
+      "parsed": {
+        "better": "B",
+        "identity": "B maintains the original red and dark green/black color scheme, whereas A incorrectly renders all elements in shades of red and pink.",
+        "craft": "Both are poor auto-traces, but B avoids the jagged, polygonal distortion introduced in A.",
+        "confidence": 0.8
+      },
+      "outcome": {
+        "result": "helped",
+        "detail": "picked ideal; clean master says ideal",
+        "judged_at": "2026-09-26T14:34:10Z",
+        "by": "logo_minds_rank (auto)"
+      },
+      "latency_s": 19.98
+    },
+    {
+      "id": "2026-09-26T14:34:10Z-gemini-compare",
+      "ts": "2026-09-26T14:34:10Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "compare",
+      "source": "engine",
+      "case": "arc__import_combo",
+      "session": "rank-20260926T143206Z-arc__import_combo",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/a2e287ff8a084aea.png",
+        "qa_logos/synthetic/minds/inputs/f77e7bb432140451.png",
+        "qa_logos/synthetic/minds/inputs/763f060f05bd1043.png"
+      ],
+      "answer": "{\n  \"better\": \"A\",\n  \"identity\": \"A keeps the original two-color scheme, whereas B incorrectly colors all elements pink/red.\",\n  \"craft\": \"Both are poor automated traces with jagged, broken shapes, but A avoids B's strange polygonal artifacts.\",\n  \"confidence\": 0.9\n}",
+      "parsed": {
+        "better": "A",
+        "identity": "A keeps the original two-color scheme, whereas B incorrectly colors all elements pink/red.",
+        "craft": "Both are poor automated traces with jagged, broken shapes, but A avoids B's strange polygonal artifacts.",
+        "confidence": 0.9
+      },
+      "outcome": {
+        "result": "helped",
+        "detail": "picked ideal; clean master says ideal",
+        "judged_at": "2026-09-26T14:34:10Z",
+        "by": "logo_minds_rank (auto)"
+      },
+      "latency_s": 11.62
+    },
+    {
+      "id": "2026-09-26T14:34:21Z-claude-compare",
+      "ts": "2026-09-26T14:34:21Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "compare",
+      "source": "engine",
+      "case": "gcm__blur_crush",
+      "session": "rank-20260926T143206Z-gcm__blur_crush",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/583a937eb2feec6b.png",
+        "qa_logos/synthetic/minds/inputs/9646f576fecaab53.png",
+        "qa_logos/synthetic/minds/inputs/2a4d74beff624ff5.png"
+      ],
+      "answer": "{\"better\": \"A\", \"identity\": \"A keeps every element: the valve-shaped icon with its T handle, the navy body, the red C and the navy G bar, the registered dot, and the full text 'Gulf Coast Modification' with all letters legible, although the lettering is distorted ('Modihcauon'). B has the same icon and colours, but its text is badly degraded. Letters are broken into fragments, the 'C' of Coast is split, and 'Modification' loses the 'c' and parts of the 'i' and 'f', so the wordmark no longer reads correctly. A preserves the logo's identity more completely.\", \"craft\": \"Neither is professional. A is still blurry, with a light-blue halo and anti-aliasing fringe around every shape, so the page and blur have effectively been drawn. B has flat colours and no halo, but every edge is ragged and noisy, the bars are not straight, the curves are lumpy, and the text is disintegrated into blobs. A's shapes are smoother and its forms more intact, while B's fringed, corroded edges are worse craftsmanship.\", \"confidence\": 0.68}",
+      "parsed": {
+        "better": "A",
+        "identity": "A keeps every element: the valve-shaped icon with its T handle, the navy body, the red C and the navy G bar, the registered dot, and the full text 'Gulf Coast Modification' with all letters legible, although the lettering is distorted ('Modihcauon'). B has the same icon and colours, but its text is badly degraded. Letters are broken into fragments, the 'C' of Coast is split, and 'Modification' loses the 'c' and parts of the 'i' and 'f', so the wordmark no longer reads correctly. A preserves the logo's identity more completely.",
+        "craft": "Neither is professional. A is still blurry, with a light-blue halo and anti-aliasing fringe around every shape, so the page and blur have effectively been drawn. B has flat colours and no halo, but every edge is ragged and noisy, the bars are not straight, the curves are lumpy, and the text is disintegrated into blobs. A's shapes are smoother and its forms more intact, while B's fringed, corroded edges are worse craftsmanship.",
+        "confidence": 0.68
+      },
+      "outcome": {
+        "result": "wrong",
+        "detail": "picked traced; clean master says ideal",
+        "judged_at": "2026-09-26T14:34:28Z",
+        "by": "logo_minds_rank (auto)"
+      },
+      "latency_s": 8.75
+    },
+    {
+      "id": "2026-09-26T14:34:28Z-claude-compare",
+      "ts": "2026-09-26T14:34:28Z",
+      "mind": "claude",
+      "model": "claude-opus-5-5",
+      "role": "compare",
+      "source": "engine",
+      "case": "gcm__blur_crush",
+      "session": "rank-20260926T143206Z-gcm__blur_crush",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/583a937eb2feec6b.png",
+        "qa_logos/synthetic/minds/inputs/2a4d74beff624ff5.png",
+        "qa_logos/synthetic/minds/inputs/9646f576fecaab53.png"
+      ],
+      "answer": "{\"better\": \"B\", \"identity\": \"B keeps the logo more completely. Its text reads 'Gulf Coast Modification' legibly, though the 'fi' is somewhat fused. A's lettering is so eroded that 'Coast' reads as 'C0ast' and 'Modification' breaks apart, so the text barely reads as the right letters. Both keep the valve icon with the red C inside the blue G and the \u00ae mark. However, B adds cyan halo colours that are not brand colours.\", \"craft\": \"Neither is clean. A's icon has flat colours, but every edge is ragged and noisy, and the text is destroyed into blobs. B has blur, cyan fringe halos and JPEG texture throughout, so it is not a proper vector either. Still, B's letterforms keep their shapes and its icon geometry is closer to straight and round. A's ragged erosion damages the design more.\", \"confidence\": 0.62}",
+      "parsed": {
+        "better": "B",
+        "identity": "B keeps the logo more completely. Its text reads 'Gulf Coast Modification' legibly, though the 'fi' is somewhat fused. A's lettering is so eroded that 'Coast' reads as 'C0ast' and 'Modification' breaks apart, so the text barely reads as the right letters. Both keep the valve icon with the red C inside the blue G and the \u00ae mark. However, B adds cyan halo colours that are not brand colours.",
+        "craft": "Neither is clean. A's icon has flat colours, but every edge is ragged and noisy, and the text is destroyed into blobs. B has blur, cyan fringe halos and JPEG texture throughout, so it is not a proper vector either. Still, B's letterforms keep their shapes and its icon geometry is closer to straight and round. A's ragged erosion damages the design more.",
+        "confidence": 0.62
+      },
+      "outcome": {
+        "result": "wrong",
+        "detail": "picked traced; clean master says ideal",
+        "judged_at": "2026-09-26T14:34:28Z",
+        "by": "logo_minds_rank (auto)"
+      },
+      "latency_s": 7.76
+    },
+    {
+      "id": "2026-09-26T14:34:53Z-gemini-compare",
+      "ts": "2026-09-26T14:34:53Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "compare",
+      "source": "engine",
+      "case": "gcm__blur_crush",
+      "session": "rank-20260926T143206Z-gcm__blur_crush",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/583a937eb2feec6b.png",
+        "qa_logos/synthetic/minds/inputs/9646f576fecaab53.png",
+        "qa_logos/synthetic/minds/inputs/2a4d74beff624ff5.png"
+      ],
+      "answer": "{\n  \"better\": \"B\",\n  \"identity\": \"B retains the original colors without introducing the cyan halos seen in A, though both severely distort the text and trademark symbol.\",\n  \"craft\": \"Both are extremely poor. A is blurry and retains raster artifacts, while B is a jagged auto-trace lacking straight lines or smooth curves. B is marginally better for having sharp edges.\",\n  \"confidence\": 0.6\n}",
+      "parsed": {
+        "better": "B",
+        "identity": "B retains the original colors without introducing the cyan halos seen in A, though both severely distort the text and trademark symbol.",
+        "craft": "Both are extremely poor. A is blurry and retains raster artifacts, while B is a jagged auto-trace lacking straight lines or smooth curves. B is marginally better for having sharp edges.",
+        "confidence": 0.6
+      },
+      "outcome": null,
+      "latency_s": 24.79
+    },
+    {
+      "id": "2026-09-26T14:35:36Z-gemini-compare",
+      "ts": "2026-09-26T14:35:36Z",
+      "mind": "gemini",
+      "model": "gemini-pro-latest",
+      "role": "compare",
+      "source": "engine",
+      "case": "gcm__blur_crush",
+      "session": "rank-20260926T143206Z-gcm__blur_crush",
+      "question": "You are helping restore a company's logo. The raster you are shown is a\ndamaged sketch of the logo (blurred, downscaled, JPEG-crushed, or imported\nbadly), never the target. The target is the vector a professional designer\nwould draw over it: straight lines exactly straight, circles exactly round,\ncorners sharp where the design has corners, every element the sketch shows\npresent (letters, dots, bars, marks, taglines, outlines, shadows), the brand\ncolours flat and correct, and the page, the blur, the JPEG noise and the\nanti-aliasing NOT drawn. \"Closer to the raster\" is not \"better\": a blurry copy\nof a blurry sketch is wrong. Never invent elements, never change the letters or\nthe design, never substitute a different company's logo.\n\nIMAGE 1 is the damaged sketch. IMAGE 2 is restoration A. IMAGE 3 is restoration B.\n\nWhich is the better restoration of this logo \u2014 the one a designer would sign\noff? Judge identity first (every element present, the right letters, the right\ncolours, nothing invented, the page not drawn), then craftsmanship (straight\nlines straight, curves fair, corners sharp, no halos, staircases, blobs or\nblur). Return JSON only:\n{\"better\": \"A | B | same\", \"identity\": \"which keeps the logo more completely, and why\",\n  \"craft\": \"which is better drawn, and why\", \"confidence\": 0.0}",
+      "images": [
+        "qa_logos/synthetic/minds/inputs/583a937eb2feec6b.png",
+        "qa_logos/synthetic/minds/inputs/2a4d74beff624ff5.png",
+        "qa_logos/synthetic/minds/inputs/9646f576fecaab53.png"
+      ],
+      "answer": "[\n  {\n    \"better\": \"A\",\n    \"identity\": \"A maintains the correct flat brand colors, while B introduces incorrect cyan halos, though A severely distorts the text.\",\n    \"craft\": \"Both fail. A is a jagged auto-trace, while B remains a blurry, artifact-heavy image, failing the requirement for sharp vector shapes.\",\n    \"confidence\": 0.6\n  }\n]",
+      "parsed": [
+        {
+          "better": "A",
+          "identity": "A maintains the correct flat brand colors, while B introduces incorrect cyan halos, though A severely distorts the text.",
+          "craft": "Both fail. A is a jagged auto-trace, while B remains a blurry, artifact-heavy image, failing the requirement for sharp vector shapes.",
+          "confidence": 0.6
+        }
+      ],
+      "outcome": null,
+      "latency_s": 42.7
     }
   ]
 }

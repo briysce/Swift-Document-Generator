@@ -293,6 +293,37 @@ def _lost_no_more(a: Candidate, b: Candidate) -> bool:
         return False
 
 
+def _minds_pick(source: np.ndarray, traced: Candidate, ideal: Candidate, case: str) -> str | None:
+    """'traced' or 'ideal' when the minds named in LOGO_MINDS_RANK (e.g.
+    "claude", or "claude,gemini" = all must agree) pick the same candidate
+    in both orders; None otherwise, or when it is off or anything fails."""
+    names = [m.strip() for m in os.environ.get("LOGO_MINDS_RANK", "").split(",") if m.strip()]
+    if not names:
+        return None
+    if names in (["1"], ["true"], ["yes"]):
+        names = ["claude"]
+    try:
+        from PIL import Image as _Image
+
+        from tools.logo_vectorizer.ai_advisors import minds as M
+
+        picks = set()
+        for m in names:
+            if not M.available(m):
+                return None
+            r = M.compare_both_ways(m, _Image.fromarray(source, "RGBA"),
+                                    _Image.fromarray(traced.finished, "RGBA"),
+                                    _Image.fromarray(ideal.finished, "RGBA"),
+                                    case=case, session=f"convert-{case}")
+            picks.add({"first": "traced", "second": "ideal"}.get(r["pick"]))
+        pick = picks.pop() if len(picks) == 1 else None
+        print(f"minds rank ({','.join(names)}): {pick or 'no agreement'}", file=sys.stderr)
+        return pick
+    except Exception as exc:  # noqa: BLE001 — a mind is never required
+        print(f"minds rank skipped ({exc})", file=sys.stderr)
+        return None
+
+
 def _prefer_reconstruction(ideal: Candidate, traced: Candidate) -> bool:
     """Should the reconstruction ship instead of the trace?
 
@@ -643,6 +674,20 @@ def convert(
                 # Both blocked for the same loss (GCM: the i-dots are erased
                 # before either engine runs). The block cannot choose between
                 # them, so the derived rule does, as if neither were blocked.
+                winner = ideal
+        # Where the derived rule cannot rank (both are still the logo, and the
+        # trace has a vector), a mind may: opt-in, judged both ways round, and
+        # followed only when both orders agree. See scripts/logo_minds_rank.py
+        # for how well each mind picks, measured against the clean masters.
+        if (
+            ideal is not None
+            and winner is traced
+            and traced.passed_review
+            and ideal.passed_review
+            and traced.has_vector
+        ):
+            pick = _minds_pick(source, traced, ideal, src.stem)
+            if pick == "ideal":
                 winner = ideal
         if not winner.passed_review:
             print(

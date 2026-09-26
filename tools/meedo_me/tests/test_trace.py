@@ -40,3 +40,16 @@ def test_a_transcript_imports_once_with_failures_and_notes(tmp_path, monkeypatch
     row = json.loads((tmp_path / "traces" / "claude-2026-09-26.jsonl").read_text())
     assert row["cmd"] == "pytest -q" and row["failed"] and row["note"] == "Run the tests."
     assert "user words" not in (tmp_path / "traces" / "claude-2026-09-26.jsonl").read_text()
+
+
+def test_a_phone_number_is_redacted_in_pieces_too(tmp_path, monkeypatch):
+    """A search pattern once carried the last seven digits of the user's
+    number into the trace; the whole-number match did not see them."""
+    env = tmp_path / ".env.local"
+    env.write_text("MEEDO_WHATSAPP_TO=+15550009876\n")
+    monkeypatch.setattr(T, "ENV_FILES", (env,))
+    monkeypatch.setattr(T, "_SECRET_VALUES", None)
+    text = T.redact('grep -cE "sk-x|0009876|000-9876|000[- .]?9876" and 555-000-9876, 5550009876, +15550009876')
+    for leak in ("0009876", "000-9876", "9876", "5550009876"):
+        assert leak not in text, (leak, text)
+    monkeypatch.setattr(T, "_SECRET_VALUES", None)

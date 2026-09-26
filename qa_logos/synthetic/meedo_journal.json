@@ -792,6 +792,35 @@
         "commit": "b974e8d"
       },
       "source": "manual"
+    },
+    {
+      "id": "2026-09-26T14:32:54Z-claude",
+      "ts": "2026-09-26T14:32:54Z",
+      "agent": "claude",
+      "task": 3,
+      "kind": "finding",
+      "summary": "Second merge with Cursor (observe/procedures) + memory hygiene: 22 fake episodes and 6 fake procedures written by test runs (test_collab_mind / test_ai_collab fixtures) retracted; conftest guard now covers procedures; retractions win merges",
+      "evidence": {
+        "commit": "f756949"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "2026-09-26T14:32:54Z-claude-2",
+      "ts": "2026-09-26T14:32:54Z",
+      "agent": "claude",
+      "task": 3,
+      "kind": "done",
+      "summary": "Meedo-Me memory hygiene: tests get private memory (conftest guard, session fails on real writes); retraction for episodes, lessons, procedures honoured by recall/playbook/study/merge",
+      "evidence": {
+        "commit": "f756949",
+        "tests": "pytest 181 passed with the session guard",
+        "review": "n/a: no logo output",
+        "looked": "retracted entries matched to exact fixture strings in test files and clustered at test-run minutes",
+        "measured": "recall for the Arc tagline now returns only genuine episodes (E0025) and lessons",
+        "episode": "n/a: the method is in conftest.py's docstring and CLAUDE.md rule 9"
+      },
+      "source": "manual"
     }
   ]
 }

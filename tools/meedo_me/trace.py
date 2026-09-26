@@ -64,6 +64,15 @@ def _secret_values() -> list[str]:
                         vals.append(v)
             except OSError:
                 continue
+        # A phone number leaks in pieces too: a scan pattern once carried its
+        # last seven digits into the trace. Redact the fragments a person or a
+        # search pattern would type, not only the whole value.
+        for v in list(vals):
+            d = re.sub(r"\D", "", v)
+            if len(d) >= 10 and len(d) == len(v.lstrip("+").replace("-", "").replace(" ", "")):
+                ten = d[-10:]
+                vals += [ten, d[-7:], f"{ten[:3]}-{ten[3:6]}-{ten[6:]}", f"{ten[3:6]}-{ten[6:]}",
+                         f"{ten[3:6]} {ten[6:]}", f"{ten[3:6]}.{ten[6:]}", f"{ten[3:6]}[- .]?{ten[6:]}"]
         _SECRET_VALUES = sorted(set(vals), key=len, reverse=True)
     return _SECRET_VALUES
 
@@ -72,6 +81,9 @@ def redact(text: str) -> str:
     text = str(text)
     for v in _secret_values():
         text = text.replace(v, "«secret»")
+    # What remains of a phone number once its known fragments are gone: a
+    # dangling separator and the leftover digits of a search pattern.
+    text = re.sub(r"«secret»(?:[- .)\]?]*«secret»)+", "«secret»", text)
     for rx in _KEYLIKE:
         text = rx.sub(lambda m: (m.group(1) + "=«secret»") if m.lastindex else "«secret»", text)
     return _PHONE.sub("«phone»", text)

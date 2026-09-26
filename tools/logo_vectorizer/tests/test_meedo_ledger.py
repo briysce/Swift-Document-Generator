@@ -243,6 +243,7 @@ def test_runs_are_only_compared_with_runs_configured_the_same(tmp_path):
     led = tmp_path / "ledger.json"
     observe(runs, path=led)
     obs = load(led)["observations"][-1]
-    assert obs["config"] == {"min_height": 1200, "engines": ["vectorize"], "idealize": False, "minds": False}
+    assert obs["config"] == {"min_height": 1200, "engines": ["vectorize"], "idealize": False, "minds": False,
+                             "minds_rank": ""}
     assert obs["moved"] == {}
 

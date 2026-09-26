@@ -1649,6 +1649,72 @@
         "propak__blur_crush"
       ],
       "source": "review"
+    },
+    {
+      "id": "E0071",
+      "ts": "2026-09-26T14:57:03Z",
+      "commit": "f756949",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__blur_crush/traced: blocked by review (small_element)",
+      "first_read": "",
+      "evidence": "1 of the 1 small elements the sketch shows (dots, accents, marks) are missing, at (65,11) in sketch pixels",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "review",
+        "small_element"
+      ],
+      "cases": [
+        "trialta__blur_crush"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0072",
+      "ts": "2026-09-26T14:58:06Z",
+      "commit": "f756949",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__import_combo/idealize/source: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (240, 217, 220) is 48.2% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "trialta__import_combo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0073",
+      "ts": "2026-09-26T14:58:07Z",
+      "commit": "f756949",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__import_combo/traced: blocked by review (brand_colour)",
+      "first_read": "",
+      "evidence": "colour (240, 217, 220) is 48.2% of the sketch but 0.0% of the output \u2014 an element has been dropped",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "brand_colour",
+        "review"
+      ],
+      "cases": [
+        "trialta__import_combo"
+      ],
+      "source": "review"
     }
   ]
 }
