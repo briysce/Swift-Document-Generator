@@ -27,6 +27,23 @@ moment state changes. The next agent sees only what is committed.
 - E0121; lesson ALfbd2e3e0 (stale ALe06dbf90 retracted). mean_composite 0.7607.
 - Residual glyph craftsmanship → #4. Top failures now Trialta.
 
+### Latest (22:45 UTC, Claude Code back after the usage limit)
+- Merged Cursor's 14:46–15:56 work (`9c46b26`): Arc teal kept (#8 closed,
+  E0121), identity-first selection with brand-colour blocks weighed, its
+  `LOGO_MINDS_RANK` hook (kept over mine; minds now see the raw sketch).
+- **Corpus restored** (`e501124`): `pairs.json` had been regenerated with a
+  new seed (plate_halo replaced blur_crush; 12 pairs reseeded), so the Swift
+  0.9190 measured afterwards is on different inputs than the 0.9269 baseline.
+  `Run.config` now fingerprints the corpus (pair id + seed per row).
+- **Running**: New Bot's spec B — all 18 pairs, both candidates kept, then
+  `scripts/logo_minds_rank.py` with Claude and Gemini. `LOGO_MINDS_RANK` stays
+  off unless `pairs_made_worse` is empty and the lift holds.
+- Privacy: commit `c64902a` on Cursor's branch holds the WhatsApp number in
+  history (scrubbed from files in `6aff161`); purging needs Brice's decision.
+  Traces now redact phone fragments; scans read patterns from outside the repo.
+- Needs from Brice: the Serper key (the app's `SERPER_API_KEY`) for web brand
+  references; the WhatsApp QR scan (board #6).
+
 ### Collaboration (live) — updated 14:15 UTC by Claude Code
 - Protocol: `COORDINATION.md` (board + rules 8-10) + Meedo merge driver
   (`sh scripts/setup_collab.sh` once per clone). Talk: issue
