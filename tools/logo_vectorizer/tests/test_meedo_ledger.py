@@ -243,6 +243,7 @@ def test_runs_are_only_compared_with_runs_configured_the_same(tmp_path):
     led = tmp_path / "ledger.json"
     observe(runs, path=led)
     obs = load(led)["observations"][-1]
+    corpus = obs["config"].pop("corpus")
     assert obs["config"] == {
         "min_height": 1200,
         "engines": ["vectorize"],
@@ -250,7 +251,23 @@ def test_runs_are_only_compared_with_runs_configured_the_same(tmp_path):
         "minds": False,
         "minds_rank": False,
     }
+    assert isinstance(corpus, str) and len(corpus) == 10
     assert obs["moved"] == {}
+
+
+def test_runs_on_different_inputs_are_never_compared():
+    """Regenerating pairs.json with another seed swapped six pairs and
+    reseeded twelve; a Swift mean on the new inputs was read against the
+    old baseline. Same settings, different inputs: not comparable."""
+    from tools.logo_vectorizer.meedo_advisor import Run, comparable_previous
+
+    def run(rid, seed):
+        return Run(rid, [{"run_id": rid, "pair_id": "swift_orange__import_combo", "seed": seed,
+                          "engine": "vectorize", "ok": True, "composite": 0.9,
+                          "min_height": 1200, "engines": ["vectorize"], "idealize": False}])
+
+    assert comparable_previous([run("r0", 103), run("r1", 69)]) is None
+    assert comparable_previous([run("r0", 103), run("r1", 103)]).run_id == "r0"
 
 
 def test_minds_rank_splits_run_comparability():

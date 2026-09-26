@@ -103,7 +103,24 @@ class Run:
             "minds": bool(r.get("minds", False)),
             # Minds ranking traced vs idealize (LOGO_MINDS_RANK); same default.
             "minds_rank": bool(r.get("minds_rank", False)),
+            # Which inputs were measured. The degraded images are generated
+            # locally from pairs.json; regenerating it with another seed once
+            # swapped six pairs and reseeded the other twelve, and a Swift mean
+            # on the new inputs was read against the old 0.9269 baseline.
+            "corpus": self.corpus(),
         }
+
+    def corpus(self) -> str | None:
+        """Fingerprint of the pairs this run measured (id and degrade seed,
+        both recorded on every row), so runs on different inputs never compare."""
+        import hashlib
+        import json as _json
+
+        pairs = sorted({(r.get("pair_id"), r.get("seed")) for r in self.rows if r.get("pair_id")},
+                       key=lambda t: (str(t[0]), str(t[1])))
+        if not pairs:
+            return None
+        return hashlib.sha1(_json.dumps([list(t) for t in pairs]).encode()).hexdigest()[:10]
 
 
 def comparable_previous(runs: list[Run]) -> Run | None:
