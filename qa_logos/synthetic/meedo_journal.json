@@ -677,6 +677,35 @@
         "measured": "traces scanned: 0 key-shaped, 0 phone-shaped strings",
         "episode": "E0028 (learned from Claude)"
       }
+    },
+    {
+      "id": "2026-09-26T14:10:47Z-claude",
+      "ts": "2026-09-26T14:10:47Z",
+      "agent": "claude",
+      "task": 3,
+      "kind": "finding",
+      "summary": "Both agents built journal, progress digest and AI learning in parallel from the same instructions; unified in one merge. Episode merge cascaded renumbering (every Cursor id moved; would duplicate on merge-back) \u2014 fixed with content identity + ids above both sides",
+      "evidence": {
+        "commit": "ac08989"
+      },
+      "source": "manual"
+    },
+    {
+      "id": "2026-09-26T14:10:47Z-claude-2",
+      "ts": "2026-09-26T14:10:47Z",
+      "agent": "claude",
+      "task": 3,
+      "kind": "done",
+      "summary": "Merged Cursor's collab branch; one journal / progress / connect whatsapp / MCP surface; episode merge fixed; improve loop records minds",
+      "evidence": {
+        "commit": "ac08989",
+        "tests": "pytest 169 passed (incl. ai_collab, journal 11, progress 8, merge 6, MCP 34)",
+        "review": "n/a: no logo output",
+        "looked": "digest text end to end; standup output across both agents' entries",
+        "measured": "episode round-trip: 47 unique, 0 duplicates; only E0026-28 of Cursor renumbered",
+        "episode": "n/a: merge; the method is in the commit and CLAUDE.md rule 9"
+      },
+      "source": "manual"
     }
   ]
 }
