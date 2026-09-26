@@ -89,6 +89,33 @@ class Run:
         a = [r for r in self.scored() if r.get("anchor")]
         return mean(r["composite"] for r in a) if a else 0.0
 
+    def config(self) -> dict:
+        """The settings that change the numbers. Two runs are comparable only
+        when these match; a missing setting is unknown, not a default."""
+        r = self.rows[0] if self.rows else {}
+        engines = r.get("engines")
+        return {
+            "min_height": r.get("min_height"),
+            "engines": sorted(engines) if isinstance(engines, list) else None,
+            "idealize": r.get("idealize"),
+        }
+
+
+def comparable_previous(runs: list[Run]) -> Run | None:
+    """The latest run before the last one with the same configuration.
+
+    Comparing across configurations reports settings as regressions: a re-run
+    at --min-height 3000 once read as a regression against 1200, and a
+    reconstruction run was once read as the shipping path.
+    """
+    if len(runs) < 2:
+        return None
+    want = runs[-1].config()
+    for r in reversed(runs[:-1]):
+        if r.config() == want:
+            return r
+    return None
+
 
 def load_runs(limit: int = 12, log: Path | None = None) -> list[Run]:
     """Most recent runs, oldest first. Missing or corrupt log yields []."""
@@ -298,7 +325,7 @@ def analyse(runs: list[Run] | None = None, lessons: list[dict] | None = None) ->
         return {"runs": 0, "note": "no run history"}
 
     current = runs[-1]
-    previous = runs[-2] if len(runs) > 1 else None
+    previous = comparable_previous(runs)
     regressions, improvements = (
         diff_runs(previous, current) if previous else ([], [])
     )

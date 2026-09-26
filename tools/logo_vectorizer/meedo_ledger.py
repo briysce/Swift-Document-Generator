@@ -52,6 +52,7 @@ from .meedo_advisor import (
     NOISE_FLOOR,
     Run,
     Suggestion,
+    comparable_previous,
     diff_runs,
     load_runs,
 )
@@ -206,7 +207,7 @@ def observe(
         return {"recorded": False, "reason": "no runs"}
 
     current = runs[-1]
-    previous = runs[-2] if len(runs) > 1 else None
+    previous = comparable_previous(runs)
     regressions, improvements = (
         diff_runs(previous, current) if previous else ([], [])
     )
@@ -215,6 +216,7 @@ def observe(
     entry = {
         "run_id": current.run_id,
         "ts": _now(),
+        "config": current.config(),
         "git_sha": _git_sha(),
         "git_subject": _git_subject(),
         "note": note,
@@ -652,6 +654,7 @@ def _runs_from_ledger(path: Path | None = None) -> list[Run]:
                     "anchor": slug.startswith("swift_orange"),
                     "ok": True,
                     "composite": float(comp),
+                    **(o.get("config") or {}),
                 }
             )
         if rows:

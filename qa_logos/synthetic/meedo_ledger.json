@@ -66,7 +66,13 @@
         "trialta__import_combo::baseline": 0.5016,
         "trialta__import_combo::vectorize": 0.5045,
         "trialta__import_combo::esrgan": 0.5228
-      }
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "certain: the shipping path could not reach reconstruction before 1bbdf49"
     },
     {
       "run_id": "20260919T225928Z",
@@ -133,7 +139,13 @@
         "trialta__import_combo::baseline": 0.5016,
         "trialta__import_combo::vectorize": 0.5045,
         "trialta__import_combo::esrgan": 0.5228
-      }
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "certain: before 1bbdf49"
     },
     {
       "run_id": "20260919T233324Z",
@@ -200,7 +212,13 @@
         "trialta__import_combo::baseline": 0.5016,
         "trialta__import_combo::vectorize": 0.5045,
         "trialta__import_combo::esrgan": 0.5228
-      }
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "certain: before 1bbdf49"
     },
     {
       "run_id": "20260920T004154Z",
@@ -267,7 +285,13 @@
         "trialta__import_combo::baseline": 0.5016,
         "trialta__import_combo::vectorize": 0.5045,
         "trialta__import_combo::esrgan": 0.5228
-      }
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "certain: before 1bbdf49"
     },
     {
       "run_id": "20260920T044325Z",
@@ -334,7 +358,13 @@
         "trialta__import_combo::baseline": 0.5016,
         "trialta__import_combo::vectorize": 0.5045,
         "trialta__import_combo::esrgan": 0.5228
-      }
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "certain: before 1bbdf49"
     },
     {
       "run_id": "20260920T114909Z",
@@ -388,7 +418,13 @@
         "trialta__blur_crush::vectorize": 0.402,
         "trialta__import_combo::baseline": 0.5017,
         "trialta__import_combo::vectorize": 0.5047
-      }
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": true
+      },
+      "config_source": "inferred: Swift scores differ from every shipping-path run"
     },
     {
       "run_id": "20260920T123110Z",
@@ -442,7 +478,13 @@
         "trialta__blur_crush::vectorize": 0.4021,
         "trialta__import_combo::baseline": 0.5016,
         "trialta__import_combo::vectorize": 0.5045
-      }
+      },
+      "config": {
+        "min_height": null,
+        "engines": null,
+        "idealize": false
+      },
+      "config_source": "inferred: every score equals the shipping path"
     },
     {
       "run_id": "20260920T142001Z",
@@ -478,7 +520,15 @@
         "trialta__downscale_jpeg::vectorize": 0.5373,
         "trialta__blur_crush::vectorize": 0.4021,
         "trialta__import_combo::vectorize": 0.5045
-      }
+      },
+      "config": {
+        "min_height": 1200,
+        "engines": [
+          "vectorize"
+        ],
+        "idealize": true
+      },
+      "config_source": "inferred: differs from the shipping path only on 4 Swift cases, where the old gate chose reconstruction"
     },
     {
       "run_id": "20260920T174511Z",
@@ -519,7 +569,15 @@
         "trialta__downscale_jpeg::vectorize": 0.5937,
         "trialta__blur_crush::vectorize": 0.4021,
         "trialta__import_combo::vectorize": 0.5045
-      }
+      },
+      "config": {
+        "min_height": 1200,
+        "engines": [
+          "vectorize"
+        ],
+        "idealize": true
+      },
+      "config_source": "certain: the derived-gate measurement run (LOGO_IDEALIZE=1)"
     }
   ],
   "proposals": [
@@ -711,12 +769,12 @@
       "case": "swift_orange_solid__import_combo::vectorize",
       "kind": "Bisect the regression on",
       "rationale": "Dropped 0.0173 (0.9465 -> 0.9292). It passed before, so the change that broke it is in recent history.",
-      "status": "accepted",
+      "status": "rejected",
       "raised": 1,
       "last_raised": "20260920T174511Z",
-      "decision_reason": "Next cycle: bisect swift_orange_solid__import_combo::vectorize drop vs prior 0.9465 while holding Swift mean lock 0.9269.",
-      "decided_by": "cursor-agent",
-      "decided_at": "2026-09-25T04:46:52Z",
+      "decision_reason": "False premise: nothing to bisect. 142001Z was a reconstruction run (old gate) recorded as if it were the shipping path; the shipping path still scores 0.9292 exactly as on 09-19. The drop is real only inside the reconstruction path: the derived gate (195782e) keeps the trace when one exists and gave up 0.9465 here. Fixed by ranking candidates on craftsmanship (task #7 / Swift rebuild), not by bisecting. Runs now record LOGO_IDEALIZE and are compared only like with like.",
+      "decided_by": "claude",
+      "decided_at": "2026-09-26T02:18:46Z",
       "accepted_run": "20260920T174511Z"
     },
     {

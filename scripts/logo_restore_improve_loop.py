@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -140,6 +141,11 @@ def _meedo_review_final(out: Path, degraded: Path, *, case: str, engine: str, ru
         return {"passed": None, "findings": [], "error": repr(e)[:160]}
 
 
+def _idealize_on() -> bool:
+    """Read the flag exactly as logo_vectorize.py does."""
+    return os.environ.get("LOGO_IDEALIZE", "").strip() in {"1", "true", "yes"}
+
+
 def run_loop(
     engines: list[str],
     min_h: int = 1200,
@@ -192,6 +198,10 @@ def run_loop(
                 # produced it.
                 "min_height": int(min_h),
                 "engines": list(engines),
+                # Whether the reconstruction engine was on. A run of the old
+                # reconstruction gate was once read as the shipping path, and
+                # its Swift scores became a "regression" to bisect.
+                "idealize": _idealize_on(),
                 "anchor": bool(pair.get("anchor")),
                 "clean": pair["clean"],
                 "degraded": pair["degraded"],
@@ -278,6 +288,7 @@ def run_loop(
         # match.
         "min_height": int(min_h),
         "engines": list(engines),
+        "idealize": _idealize_on(),
         "n_pairs": len(pairs),
         "n_rows": len(rows),
         "n_scored": len(scored),

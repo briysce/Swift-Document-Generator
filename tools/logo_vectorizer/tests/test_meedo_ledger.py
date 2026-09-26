@@ -226,3 +226,23 @@ def test_runs_can_be_rebuilt_from_the_ledger_when_the_log_is_gone(tmp_path):
     rebuilt = _runs_from_ledger(led)
     assert [r.run_id for r in rebuilt] == ["r0", "r1"]
     assert abs(rebuilt[-1].mean_composite() - 0.60) < 1e-9
+
+
+def test_runs_are_only_compared_with_runs_configured_the_same(tmp_path):
+    """A reconstruction run read as the shipping path became a "regression" to
+    bisect: Swift solid import_combo 0.9465 (reconstruction) vs 0.9292."""
+    from tools.logo_vectorizer.meedo_advisor import analyse
+
+    def run(rid, v, idealize):
+        return Run(rid, [{"run_id": rid, "pair_id": "swift_orange_solid__import_combo",
+                          "engine": "vectorize", "ok": True, "composite": v,
+                          "min_height": 1200, "engines": ["vectorize"], "idealize": idealize}])
+
+    runs = [run("r0", 0.9292, False), run("r1", 0.9465, True), run("r2", 0.9292, False)]
+    assert analyse(runs, lessons=[])["regressions"] == []
+    led = tmp_path / "ledger.json"
+    observe(runs, path=led)
+    obs = load(led)["observations"][-1]
+    assert obs["config"] == {"min_height": 1200, "engines": ["vectorize"], "idealize": False}
+    assert obs["moved"] == {}
+
