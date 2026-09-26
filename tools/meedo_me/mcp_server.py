@@ -111,6 +111,16 @@ WRITE_TOOLS = {
 }
 
 
+# MCP tool annotations: clients such as OpenClaw use them to decide which calls
+# need a person's approval. Everything here acts only on Meedo-Me's own memory
+# (closed world); the writers add decisions and episodes but delete nothing.
+for _name, _spec in READ_TOOLS.items():
+    _spec["annotations"] = {"readOnlyHint": True, "openWorldHint": False}
+for _name, _spec in WRITE_TOOLS.items():
+    _spec["annotations"] = {"readOnlyHint": False, "destructiveHint": False,
+                            "idempotentHint": False, "openWorldHint": False}
+
+
 def _allowed(path: str) -> Path:
     p = Path(path).expanduser()
     p = (p if p.is_absolute() else ROOT / p).resolve()  # relative to the repo, not the client's cwd
@@ -121,6 +131,24 @@ def _allowed(path: str) -> Path:
     if not p.is_file():
         raise FileNotFoundError(path)
     return p
+
+
+def _clean(schema: dict, args: dict) -> dict:
+    """Keep only declared arguments, and fix the shapes small local models get
+    wrong: a bare string where a list belongs, a number sent as text. Seen in
+    practice: a 0.6B model called meedo_standup with keys it had invented."""
+    props = schema.get("properties", {})
+    out = {}
+    for k, v in (args if isinstance(args, dict) else {}).items():
+        kind = props.get(k, {}).get("type")
+        if kind is None:
+            continue
+        if kind == "array" and isinstance(v, str):
+            v = [v]
+        elif kind == "integer" and isinstance(v, str) and v.strip().isdigit():
+            v = int(v)
+        out[k] = v
+    return out
 
 
 def _call(name: str, args: dict, read_only: bool) -> object:
@@ -199,7 +227,8 @@ def handle(msg: dict, read_only: bool) -> dict | None:
         if name not in {**READ_TOOLS, **WRITE_TOOLS}:
             return _error(id_, -32602, f"unknown tool {name}")
         try:
-            out = _call(name, params.get("arguments") or {}, read_only)
+            spec = {**READ_TOOLS, **WRITE_TOOLS}[name]["inputSchema"]
+            out = _call(name, _clean(spec, params.get("arguments") or {}), read_only)
             return _result(id_, {"content": [{"type": "text",
                                               "text": json.dumps(out, indent=2, default=str)}],
                                  "isError": False})

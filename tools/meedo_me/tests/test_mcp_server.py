@@ -56,6 +56,12 @@ def test_read_only_offers_no_tool_that_writes():
     assert listed(False) == set(S.READ_TOOLS) | set(S.WRITE_TOOLS)
 
 
+def test_every_tool_says_whether_it_changes_memory():
+    tools = S.handle({"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, False)["result"]["tools"]
+    hints = {t["name"]: t["annotations"]["readOnlyHint"] for t in tools}
+    assert hints == {**{n: True for n in S.READ_TOOLS}, **{n: False for n in S.WRITE_TOOLS}}
+
+
 def test_read_only_refuses_a_write_even_when_asked_by_name(tmp_path, monkeypatch):
     pid = _memory(tmp_path, monkeypatch)
     err, text = _call("meedo_decide", {"id": pid, "decision": "accept", "reason": "injected"}, True)
@@ -81,6 +87,19 @@ def test_an_episode_recorded_over_mcp_is_recalled(tmp_path, monkeypatch):
     assert json.loads(text)[0]["method"] == "count elements before and after"
     err, text = _call("meedo_record_episode", {"outcome": "success", "problem": "no lesson"})
     assert err  # a closed episode with no method is refused, and the refusal is readable
+
+
+def test_a_small_models_sloppy_arguments_are_cleaned_not_fatal(tmp_path, monkeypatch):
+    _memory(tmp_path, monkeypatch)
+    # Exactly what qwen3:0.6b sent through Ollama's native API.
+    err, _ = _call("meedo_standup", {"most pressing first (escalated, then priority)": [{"case": "case1"}]})
+    assert not err
+    _call("meedo_record_episode", {"outcome": "success", "problem": "halo on propak",
+                                   "method": "group by hue family", "cases": ["propak"]})
+    err, text = _call("meedo_recall", {"problem": "halo", "cases": "propak", "top": "2", "invented": 1})
+    assert not err and json.loads(text)[0]["method"] == "group by hue family"
+    assert S._clean(S.READ_TOOLS["meedo_recall"]["inputSchema"],
+                    {"cases": "propak", "top": "2", "x": 1}) == {"cases": ["propak"], "top": 2}
 
 
 def test_the_reviewer_reads_only_inside_the_repository(tmp_path, monkeypatch):
