@@ -96,3 +96,82 @@ Meedo-Me MCP server.
 The fork needs a durable home before any Jan code is written. Recommended: fork
 `menloresearch/jan` to `briysce/meedo-me` on GitHub. Creating a repository under the
 user's account is theirs to approve.
+
+
+---
+
+## 2026-09-25 — Cursor pickup after Claude Code
+
+Session left off at `a333184` (Meedo-Me MCP) on `claude/relaxed-babbage-igbk0v`
+([Claude session](https://claude.ai/code/session_01D7eJEVF3QVi48DE5eKDtgr)).
+No local Claude Code transcript on this VM; branch tip + `.claude/thought_trace.md`
++ commit messages were the handoff.
+
+### Done this cycle
+
+1. Meedo standup: accepted `80ac95cb` (trialta__import_combo stuck at 0.5045).
+2. **Anomaly #2 shipped:** `meedo_review._check_element_count` — connected-component
+   count catches same-colour piece drops (i-dots) that brand-colour share misses.
+   Tests: drop blocked, fringe-merge still passes. MCP relative-path test no longer
+   depends on gitignored `clean/gcm.png` (synthesises under `qa_logos/`).
+3. Seeded local `qa_logos/synthetic/clean/` from golden/customer for diagnostics
+   (gitignored; not committed).
+4. Trialta clean has 18 ink components; font corpus present (349 faces) — anomaly #1
+   (letterform→blob under heavy degrade) still open for a font-match experiment.
+
+### Still blocked on the user
+
+Fork `menloresearch/jan` → `briysce/meedo-me` before any Jan app code. MCP server
+is ready for that client.
+
+### Next experiments (unchanged rank, #2 done)
+
+1. Letterforms → blobs on heavy degrade (TRIALTA) — font-match first.
+3. Outlines lumpy / wrong corners (GCM) — ideality-driven primitives.
+4. Trace wins over better reconstruction on PROPAK — selection signal.
+5. Oracle headroom — within-pair ranking when trace already produced a vector.
+
+
+---
+
+## 2026-09-25 — Anomaly #1 (Trialta letterforms)
+
+### Observation
+`match_glyphs` returned {} on clean Trialta despite Oswald matching TRI and ALTA
+perfectly in isolation. One baseline run mixed gray TRI + green ALTA + icon scrap;
+mean 0.807 < 0.86 floor.
+
+### Deduction
+Colour is the designer's partition of a wordmark. Runs must be colour-family
+segregated before font agreement. Contiguous subsequences recover a correct
+triple when an icon shares the baseline.
+
+### Experiment
+- `_colour_run_families` + hairline filter + `_best_run_match` subsequences.
+- Clean Trialta now names **TRIALTA** (7 glyphs). Idealize SVG emits `data-glyph`.
+- `LOGO_IDEALIZE=1` on `trialta__plate_halo`: composite **0.536 → 0.630**, palette
+  **0.370 → 0.906**. import_combo still keeps the trace (ideal agreement 0.229
+  below collapse floor; traced has a vector). downscale: ideal agrees more
+  (0.849 vs 0.829) but `_prefer_reconstruction` correctly keeps the vectorized
+  trace per the corpus-derived rule — within-pair ranking remains anomaly #5.
+
+### Element-count refinement
+Satellite check now ignores fragmented sketches (>4 compact crumbs) so JPEG
+noise cannot block a reconstruction Meedo-Me should prefer.
+
+
+---
+
+## 2026-09-25 — Meedo-Me as standing PM
+
+User: keep Meedo-Me heavily involved so it can learn, grow, adapt, adjust, and
+experiment as project manager / assistant.
+
+### Changes
+- `.cursor/rules/meedo-me-pm.mdc` (alwaysApply): standup→decide→recall→review→propose
+- `CLAUDE.md` cycle expanded; no undecided open proposals at cycle end
+- Improve loop auto-`propose` after `observe`
+- `propose` falls back to ledger observations when `improve_log.jsonl` is missing
+- Episode E0020 records the process rule
+- Standup cleared: accepted Swift solid import_combo bisect (e7f95947) as next;
+  rejected noise/deferred Arc/PROPAK with reasons so Meedo-Me learns

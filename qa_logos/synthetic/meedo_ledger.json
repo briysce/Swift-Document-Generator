@@ -614,8 +614,8 @@
       "status": "accepted",
       "id": "785527b3",
       "kind": "has not moved and sits at #",
-      "raised": 2,
-      "last_raised": "20260920T004154Z",
+      "raised": 3,
+      "last_raised": "20260920T174511Z",
       "decision_reason": "Acting now, as part of the same colour recovery. This sketch's red is washed to (248,117,167) and its teal nearly gone; the new palette reading keeps both, so the reconstruction may now recover what the trace drops. Judge it honestly on the next run.",
       "decided_by": "claude",
       "decided_at": "2026-09-25T03:17:35Z",
@@ -663,8 +663,8 @@
       "status": "rejected",
       "id": "ff3b0ccd",
       "kind": "has not moved and sits at #",
-      "raised": 2,
-      "last_raised": "20260920T004154Z",
+      "raised": 3,
+      "last_raised": "20260920T174511Z",
       "decision_reason": "Same case and same cause as 6f103481, which is accepted. Judging both would count one piece of work twice.",
       "decided_by": "claude",
       "decided_at": "2026-09-25T03:17:36Z"
@@ -692,11 +692,96 @@
       "headline": "trialta__import_combo::vectorize has not moved and sits at 0.5045",
       "case": "trialta__import_combo::vectorize",
       "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
-      "status": "open",
+      "status": "accepted",
       "id": "80ac95cb",
       "kind": "has not moved and sits at #",
-      "raised": 2,
-      "last_raised": "20260920T004154Z"
+      "raised": 3,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "Acting now: diagnose TRIALTA letterform collapse with font matching (thought_trace anomaly #1), then reviewer element-count for dropped i-dots (#2).",
+      "decided_by": "",
+      "decided_at": "2026-09-25T04:17:49Z",
+      "accepted_run": "20260920T174511Z"
+    },
+    {
+      "id": "e7f95947",
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-25T04:46:36Z",
+      "priority": 1,
+      "headline": "Bisect the regression on swift_orange_solid__import_combo::vectorize",
+      "case": "swift_orange_solid__import_combo::vectorize",
+      "kind": "Bisect the regression on",
+      "rationale": "Dropped 0.0173 (0.9465 -> 0.9292). It passed before, so the change that broke it is in recent history.",
+      "status": "accepted",
+      "raised": 1,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "Next cycle: bisect swift_orange_solid__import_combo::vectorize drop vs prior 0.9465 while holding Swift mean lock 0.9269.",
+      "decided_by": "cursor-agent",
+      "decided_at": "2026-09-25T04:46:52Z",
+      "accepted_run": "20260920T174511Z"
+    },
+    {
+      "id": "9ed610d6",
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-25T04:46:36Z",
+      "priority": 1,
+      "headline": "Bisect the regression on swift_orange_solid__downscale_jpeg::vectorize",
+      "case": "swift_orange_solid__downscale_jpeg::vectorize",
+      "kind": "Bisect the regression on",
+      "rationale": "Dropped 0.0051 (0.9364 -> 0.9313). It passed before, so the change that broke it is in recent history.",
+      "status": "rejected",
+      "raised": 1,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "0.0051 drop is inside noise floor for cross-run compare; not spending a bisect until larger than NOISE_FLOOR*2 after matched min_height.",
+      "decided_by": "cursor-agent",
+      "decided_at": "2026-09-25T04:46:53Z"
+    },
+    {
+      "id": "9936714e",
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-25T04:46:36Z",
+      "priority": 2,
+      "headline": "arc__downscale_jpeg::vectorize has not moved and sits at 0.7170",
+      "case": "arc__downscale_jpeg::vectorize",
+      "kind": "has not moved and sits at #",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "raised": 1,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "Not acting this cycle \u2014 Trialta colour-run/font work is in flight; Arc thin-stroke needs its own experiment after Swift P1.",
+      "decided_by": "cursor-agent",
+      "decided_at": "2026-09-25T04:46:53Z"
+    },
+    {
+      "id": "63f5eef5",
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-25T04:46:36Z",
+      "priority": 2,
+      "headline": "arc__import_combo::vectorize has not moved and sits at 0.6913",
+      "case": "arc__import_combo::vectorize",
+      "kind": "has not moved and sits at #",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "raised": 1,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "Same as Arc downscale \u2014 deferred; different approach needed but not this cycle.",
+      "decided_by": "cursor-agent",
+      "decided_at": "2026-09-25T04:46:53Z"
+    },
+    {
+      "id": "eb128323",
+      "run_id": "20260920T174511Z",
+      "ts": "2026-09-25T04:46:36Z",
+      "priority": 2,
+      "headline": "propak__import_combo::vectorize has not moved and sits at 0.7460",
+      "case": "propak__import_combo::vectorize",
+      "kind": "has not moved and sits at #",
+      "rationale": "Unchanged across recent runs, so nothing tried lately touched it. Needs a different approach, not more tuning.",
+      "status": "rejected",
+      "raised": 1,
+      "last_raised": "20260920T174511Z",
+      "decision_reason": "PROPAK selection signal is thought_trace anomaly #4; deferred until after Swift P1 bisect.",
+      "decided_by": "cursor-agent",
+      "decided_at": "2026-09-25T04:46:53Z"
     }
   ],
   "reviews": [
@@ -726,6 +811,260 @@
       "context": "convert",
       "passed": true,
       "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:22:39Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:23:50Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 32 ink elements, output has 8 (24 dropped) \u2014 small same-colour pieces are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:25:02Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 28 ink elements, output has 7 (21 dropped) \u2014 small same-colour pieces are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:26:32Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:34Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:34Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:37Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 4 small ink satellites, output has 1 (3 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:38:37Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:41Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:38:41Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 4 small ink satellites, output has 0 (4 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:40:56Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 6 small ink satellites, output has 1 (5 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:40:56Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 6 small ink satellites, output has 2 (4 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:40:59Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 14 small ink satellites, output has 2 (12 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:40:59Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": false,
+      "findings": [
+        {
+          "check": "element_count",
+          "severity": "block",
+          "detail": "sketch has 14 small ink satellites, output has 4 (10 dropped) \u2014 dots/accents are missing"
+        }
+      ]
+    },
+    {
+      "ts": "2026-09-25T04:41:02Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:41:02Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:33Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:33Z",
+      "run_id": "",
+      "case": "trialta__downscale_jpeg",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:36Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "idealize/prepared",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:36Z",
+      "run_id": "",
+      "case": "trialta__plate_halo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:39Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "idealize/source",
+      "context": "convert",
+      "passed": true,
+      "findings": []
+    },
+    {
+      "ts": "2026-09-25T04:42:39Z",
+      "run_id": "",
+      "case": "trialta__import_combo",
+      "candidate": "traced",
+      "context": "convert",
+      "passed": true,
+      "findings": []
     }
-  ]
+  ],
+  "withheld_last": {
+    "run_id": "20260920T174511Z",
+    "count": 0,
+    "engines": [
+      "baseline",
+      "esrgan"
+    ]
+  }
 }

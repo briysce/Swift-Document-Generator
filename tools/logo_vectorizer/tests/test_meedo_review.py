@@ -108,6 +108,58 @@ def test_a_second_sketch_can_supply_what_the_first_lost():
     assert not review(no_blue, damaged, raw).passed
 
 
+def test_dropped_same_colour_pieces_are_blocked():
+    """GCM "Modification" i-dots: same navy as the word, separate blobs.
+
+    Colour share barely moves; element count does.
+    """
+    navy = (20, 40, 90)
+    # Word body + two i-dots (and a third mark so n_s >= 3).
+    sketch = _logo(
+        [
+            ((10, 30, 100, 55), navy),
+            ((40, 18, 46, 24), navy),
+            ((70, 18, 76, 24), navy),
+            ((120, 30, 150, 55), navy),
+        ],
+        size=(160, 80),
+    )
+    # Same colour share, dots gone.
+    no_dots = _logo(
+        [((10, 30, 100, 55), navy), ((120, 30, 150, 55), navy)],
+        size=(160, 80),
+    )
+    assert review(sketch, sketch).passed
+    rv = review(no_dots, sketch)
+    assert not rv.passed
+    assert any(f.check == "element_count" for f in rv.findings)
+    # Brand colour alone would still pass — that is why this check exists.
+    assert not any(f.check == "brand_colour" for f in rv.findings)
+
+
+def test_merging_aa_fringe_into_fewer_blobs_is_not_deletion():
+    """Losing one speck while keeping most pieces is restoration, not a drop."""
+    navy = (20, 40, 90)
+    sketch = _logo(
+        [
+            ((10, 30, 50, 55), navy),
+            ((55, 30, 95, 55), navy),
+            ((100, 30, 140, 55), navy),
+            ((20, 10, 24, 14), navy),  # one tiny fringe speck
+        ],
+        size=(160, 80),
+    )
+    merged = _logo(
+        [
+            ((10, 30, 50, 55), navy),
+            ((55, 30, 95, 55), navy),
+            ((100, 30, 140, 55), navy),
+        ],
+        size=(160, 80),
+    )
+    assert review(merged, sketch).passed
+
+
 def test_verdicts_are_remembered(tmp_path):
     ledger = tmp_path / "ledger.json"
     record(review(SKETCH, SKETCH), case="c1", candidate="traced", path=ledger)

@@ -293,6 +293,158 @@
       ],
       "cases": [],
       "source": "session"
+    },
+    {
+      "id": "E0014",
+      "ts": "2026-09-25T04:20:08Z",
+      "commit": "a333184",
+      "workstream": "logo",
+      "outcome": "success",
+      "problem": "small same-colour elements dropped (GCM Modification i-dots); reviewer colour-only missed them",
+      "first_read": "brand_colour share barely moved while separate blobs vanished",
+      "evidence": "synthetic navy word+dots: colour check passed, element_count blocked after drop of 2+ components below 70% keep",
+      "cause": "reviewer measured ink share by hue family, not connected components",
+      "fix": "",
+      "verified": "",
+      "method": "count connected ink components (area>=8) on sketch vs output; block when drop>=2 and keep<70%",
+      "tags": [
+        "element_count",
+        "gcm",
+        "reviewer"
+      ],
+      "cases": [],
+      "source": "manual"
+    },
+    {
+      "id": "E0015",
+      "ts": "2026-09-25T04:23:50Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__downscale_jpeg/traced: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 32 ink elements, output has 8 (24 dropped) \u2014 small same-colour pieces are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0016",
+      "ts": "2026-09-25T04:25:02Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__plate_halo/traced: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 28 ink elements, output has 7 (21 dropped) \u2014 small same-colour pieces are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0017",
+      "ts": "2026-09-25T04:38:37Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__downscale_jpeg/idealize/prepared: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 4 small ink satellites, output has 1 (3 dropped) \u2014 dots/accents are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__downscale_jpeg"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0018",
+      "ts": "2026-09-25T04:40:59Z",
+      "commit": "bb2359c",
+      "workstream": "logo-engine",
+      "outcome": "open",
+      "problem": "trialta__plate_halo/idealize/prepared: blocked by review (element_count)",
+      "first_read": "",
+      "evidence": "sketch has 14 small ink satellites, output has 2 (12 dropped) \u2014 dots/accents are missing",
+      "cause": "",
+      "fix": "",
+      "verified": "",
+      "method": "",
+      "tags": [
+        "element_count",
+        "review"
+      ],
+      "cases": [
+        "trialta__plate_halo"
+      ],
+      "source": "review"
+    },
+    {
+      "id": "E0019",
+      "ts": "2026-09-25T04:44:28Z",
+      "commit": "bb2359c",
+      "workstream": "logo",
+      "outcome": "success",
+      "problem": "Trialta letterforms collapse to blobs; font match named nothing on clean TRIALTA",
+      "first_read": "glyph matching broken or fonts missing",
+      "evidence": "mixed-colour run gray TRI+green ALTA scored 0.807 < MIN_RUN_SCORE 0.86; colour-segregated runs scored 0.87\u20130.95 Oswald; icon fragments diluted gray TRI until contiguous subsequences recovered T,R,I",
+      "cause": "group_runs ignored fill colour, so two designed words were scored as one typesetting pass; baseline-sharing icon scrap diluted TRI",
+      "fix": "",
+      "verified": "",
+      "method": "Segregate glyph runs by colour family; filter hairlines; on failed runs try contiguous subsequences. Keep element_count on compact satellites only and skip when sketch has >4 (JPEG crumbs).",
+      "tags": [
+        "colour-run",
+        "font",
+        "glyph",
+        "trialta"
+      ],
+      "cases": [],
+      "source": "manual"
+    },
+    {
+      "id": "E0020",
+      "ts": "2026-09-25T04:46:24Z",
+      "commit": "5d42fb4",
+      "workstream": "process",
+      "outcome": "success",
+      "problem": "Agents treated Meedo-Me as optional post-hoc critic; advice sat unread",
+      "first_read": "Meedo-Me is just another tool to call when convenient",
+      "evidence": "User directive 2026-09-25: keep Meedo-Me heavily involved so it can learn, grow, adapt, adjust, and experiment as project manager/assistant. Historical 28 ignored proposals scored hit-rate 0% while correct.",
+      "cause": "No standing rule forced standup\u2192decide\u2192recall\u2192review\u2192propose every cycle; improve loop observed but did not propose",
+      "fix": "",
+      "verified": "",
+      "method": "Always-apply cursor rule meedo-me-pm.mdc; CLAUDE.md cycle; improve loop auto-propose after observe; never leave open proposals undecided; accept only what will be acted on now.",
+      "tags": [
+        "meedo",
+        "pm",
+        "process"
+      ],
+      "cases": [],
+      "source": "manual"
     }
   ]
 }

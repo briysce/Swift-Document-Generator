@@ -2,12 +2,19 @@
 
 ## Start every work cycle with Meedo-Me
 
-Meedo-Me is this project's manager: its memory, its reviewer, and its advisor.
-Its advice is only worth anything if someone reads it and decides.
+Meedo-Me is this project's **manager and assistant**: its memory, its reviewer,
+its advisor, and the place experiments are judged. Keep it heavily involved so
+it can learn, grow, adapt, adjust, and experiment with us — not as a sidecar
+that is only consulted after the fact.
 
 ```
 python -m tools.logo_vectorizer.meedo_ledger standup
 python -m tools.logo_vectorizer.meedo_ledger decide --by <you> <id> accept|reject "<reason>"
+python -m tools.logo_vectorizer.meedo_episodes recall "<problem>"
+# …do the work, with meedo_review on logo outputs…
+python -m tools.logo_vectorizer.meedo_ledger observe   # usually automatic from the improve loop
+python -m tools.logo_vectorizer.meedo_ledger propose
+python -m tools.logo_vectorizer.meedo_ledger report
 ```
 
 Decide every proposal in the standup before starting new work. Accept only what
@@ -24,7 +31,8 @@ server with `--read-only`, never the writers.
 
 Its advice once sat unread for a whole session. Twenty-eight proposals, all
 ignored, were scored as failures and its hit rate read 0% — while its most
-repeated one was a correct diagnosis of the next problem to fix.
+repeated one was a correct diagnosis of the next problem to fix. That must not
+happen again: **no open proposals left undecided at the end of a cycle.**
 
 ## The logo engine's goal
 

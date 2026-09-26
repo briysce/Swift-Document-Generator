@@ -71,6 +71,22 @@ LIGHTNESS_MATCH = 70.0     # 0-255, for neutrals
 # that prompted this kept 0.2% to 2%.
 MIN_INK_RATIO = 0.10
 
+# Same-colour elements the brand colour share cannot see (GCM "Modification"
+# i-dots: same navy as the word, separate blobs). Count *small satellite*
+# components — dots and accents — not every letter. Total component count
+# false-alarms on wordmarks: Trialta's sketch can read 28–32 blobs while a
+# correct reconstruction keeps ~8 letter paths, and Meedo-Me then blocked the
+# better candidate.
+MIN_ELEMENT_AREA = 8
+# Satellites are small relative to the median letter. Absolute cap keeps a
+# whole small logo from treating every letter as a "dot".
+MAX_SATELLITE_AREA = 80
+MAX_SATELLITE_FRAC = 0.20  # of median component area
+# Absolute drop of this many satellites (or more) is a deletion once the
+# relative keep falls below MIN_ELEMENT_KEEP.
+MIN_ELEMENT_DROP = 2
+MIN_ELEMENT_KEEP = 0.50
+
 
 @dataclass
 class Finding:
@@ -200,6 +216,98 @@ def _matches(want, have) -> bool:
 # --------------------------------------------------------------------------
 
 
+def _ink_components(arr: np.ndarray) -> int:
+    """Deprecated alias — prefer `_satellite_count` for review decisions."""
+    return _satellite_count(arr)
+
+
+def _component_stats(arr: np.ndarray) -> list[tuple[int, int, int]]:
+    """[(area, width, height), ...] for ink components above MIN_ELEMENT_AREA."""
+    import cv2
+
+    alpha = arr[:, :, 3] if arr.shape[2] == 4 else np.full(arr.shape[:2], 255, np.uint8)
+    mask = (alpha > 32).astype(np.uint8) * 255
+    kernel = np.ones((2, 2), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    n, _labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    out: list[tuple[int, int, int]] = []
+    for i in range(1, n):
+        a = int(stats[i, cv2.CC_STAT_AREA])
+        if a < MIN_ELEMENT_AREA:
+            continue
+        w = int(stats[i, cv2.CC_STAT_WIDTH])
+        h = int(stats[i, cv2.CC_STAT_HEIGHT])
+        out.append((a, w, h))
+    return out
+
+
+def _satellite_count(arr: np.ndarray) -> int:
+    """How many small satellite ink blobs (i-dots, accents) are present.
+
+    Letters and bars are the bulk of a wordmark; satellites are the pieces
+    colour-share cannot see. Size threshold comes from the median *large*
+    component (letters), not from the dots themselves. Compact aspect rejects
+    JPEG streaks that otherwise invent false satellites on degraded sketches.
+    """
+    comps = _component_stats(arr)
+    if not comps:
+        return 0
+    # Letters/bars: wider or taller than a dot. Use them for the size scale.
+    letter_areas = [a for a, w, h in comps if max(w, h) >= 12 and a >= 40]
+    if not letter_areas:
+        letter_areas = [a for a, _w, _h in comps]
+    letter_areas.sort()
+    median = float(letter_areas[len(letter_areas) // 2])
+    cap = min(MAX_SATELLITE_AREA, max(MIN_ELEMENT_AREA, median * MAX_SATELLITE_FRAC))
+    n = 0
+    for a, w, h in comps:
+        if a > cap:
+            continue
+        if w <= 0 or h <= 0:
+            continue
+        aspect = w / float(h)
+        if aspect < 0.45 or aspect > 2.2:
+            continue
+        n += 1
+    return n
+
+
+def _check_element_count(sketch: np.ndarray, output: np.ndarray) -> list[Finding]:
+    """Block when small same-colour satellites vanish while their colour stays.
+
+    Colour share alone missed GCM dropping the i-dots on "Modification": navy
+    ink share barely moved, but two small components were gone. Counts only
+    satellites so a correct letter reconstruction is not blocked for having
+    fewer path groups than a noisy sketch.
+
+    Skips when the sketch itself looks fragmented (many "satellites") — that is
+    JPEG crumb noise, not intentional dots, and it was blocking Trialta
+    reconstructions that Meedo-Me should have preferred.
+    """
+    n_s = _satellite_count(sketch)
+    n_o = _satellite_count(output)
+    if n_s < 2:
+        # No dots to protect — letter-only marks.
+        return []
+    if n_s > 4:
+        # Degraded sketches invent a dozen compact crumbs; that is not a
+        # constellation of i-dots. Do not block on noise.
+        return []
+    dropped = n_s - n_o
+    if dropped < MIN_ELEMENT_DROP:
+        return []
+    if n_o / float(n_s) >= MIN_ELEMENT_KEEP:
+        return []
+    return [
+        Finding(
+            "element_count",
+            "block",
+            f"sketch has {n_s} small ink satellites, output has {n_o} "
+            f"({dropped} dropped) — dots/accents are missing",
+        )
+    ]
+
+
 def _check_brand_colours(sketch_pal, output_pal) -> list[Finding]:
     """Every colour the sketch shows must still be in the drawing.
 
@@ -265,6 +373,7 @@ def _review_one(o_full: np.ndarray, sketch) -> Review:
     rv = Review(sketch_palette=sp, output_palette=op)
     rv.findings += _check_collapse(s, o, sp, op)
     rv.findings += _check_brand_colours(sp, op)
+    rv.findings += _check_element_count(s, o)
     return rv
 
 
