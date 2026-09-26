@@ -104,8 +104,8 @@ latter, so Arc falls back to the trace as on 09-20.
    (Swift solid downscale/import_combo ship the trace; the old gate's
    reconstructions scored 0.9364/0.9465). Bring design_fit into the engine as
    a candidate. *(Claude — board #4)*
-2. Cursor next: claim **#8** (Arc tagline), **#9** (centre-line thin strokes),
-   or **#10** (Swift rebuild refinements) — non-conflicting with Claude.
+2. Cursor **#9** in progress (centre-line thin strokes). Leave **#8/#10** open;
+   do not touch Claude-only slices of **#1/#4**.
 3. Meedo-Me growth + continuous product refine *(board #3, both agents)*:
    autonomy is earned from hit rate/reviewer record; also fix journal/MCP/
    recall/review friction in-session whenever it shows up.
