@@ -139,6 +139,46 @@ def is_thin_stroke_mark(arr: np.ndarray, mask: np.ndarray | None = None) -> bool
     return foreground_bbox_density(fg) < 0.18
 
 
+def elongated_thin_components(arr: np.ndarray) -> np.ndarray | None:
+    """Ink belonging to rule-like islands (high aspect, small thickness).
+
+    Whole-logo density gates correctly keep Propak/Trialta *fills* off the
+    thin-wordmark path (lessons: do not re-open density<=0.30). Those lockups
+    still carry thin rules — PROPAK's red bar under Services — that need a
+    medial-axis protect/stamp without treating the letter fills as thin.
+    """
+    try:
+        from scipy import ndimage
+    except ImportError:
+        return None
+    ink = raw_contrast_mask(arr, core=True)
+    if int(ink.sum()) < 40:
+        ink = raw_contrast_mask(arr)
+    if int(ink.sum()) < 40:
+        return None
+    lab, n = ndimage.label(ink)
+    if n == 0:
+        return None
+    keep = np.zeros_like(ink, dtype=bool)
+    for i in range(1, n + 1):
+        ys, xs = np.where(lab == i)
+        area = int(len(ys))
+        if area < 20:
+            continue
+        h = int(ys.max() - ys.min()) + 1
+        w = int(xs.max() - xs.min()) + 1
+        thick, long = min(h, w), max(h, w)
+        if thick > 8 or long < 24:
+            continue
+        if long / float(thick) < 6.0:
+            continue
+        # Solid rules, not speckled JPEG bands.
+        if area / float(h * w) < 0.35:
+            continue
+        keep[lab == i] = True
+    return keep if keep.any() else None
+
+
 def _skeletonize_cv2(mask: np.ndarray) -> np.ndarray:
     """Fast morphological skeleton via OpenCV erode/open (no ximgproc)."""
     import cv2
@@ -195,13 +235,30 @@ def structural_centerline(mask: np.ndarray) -> np.ndarray:
 
 
 def centerline_protect_mask(arr: np.ndarray) -> np.ndarray | None:
-    """Skeleton of the raw contrast mask — only when bbox density < 0.18."""
+    """Skeleton protect for thin wordmarks *and* rule-like islands in fills.
+
+    Thin-wordmark path (density < 0.18) keeps Arc-class marks intact through
+    knockout/halo. Dense lockups (PROPAK) still need their thin red rule's
+    medial axis protected — without skeletonizing the letter fills.
+    """
+    parts: list[np.ndarray] = []
     contrast = raw_contrast_mask(arr)
-    if not is_thin_stroke_mark(arr, contrast):
+    if is_thin_stroke_mark(arr, contrast):
+        core = raw_contrast_mask(arr, core=True)
+        skel = structural_centerline(core if int(core.sum()) >= 40 else contrast)
+        if skel.any():
+            parts.append(skel)
+    rules = elongated_thin_components(arr)
+    if rules is not None:
+        skel = structural_centerline(rules)
+        if skel.any():
+            parts.append(skel)
+    if not parts:
         return None
-    core = raw_contrast_mask(arr, core=True)
-    skel = structural_centerline(core if int(core.sum()) >= 40 else contrast)
-    return skel if skel.any() else None
+    out = parts[0].copy()
+    for p in parts[1:]:
+        out |= p
+    return out
 
 
 def knockout_border_plate(
@@ -1114,14 +1171,23 @@ def stamp_centerline(restored: np.ndarray, prepared: np.ndarray) -> np.ndarray:
     """Re-ink the structural centerline from a prepared raster into a result.
 
     Used after SVG rasterize so spline smoothing cannot drop thin terminators.
+    Thin wordmarks stamp the full medial axis; dense lockups stamp only
+    elongated thin-rule components (PROPAK red bar) so letter fills are left
+    alone.
     """
     h, w = restored.shape[:2]
     src = np.asarray(
         Image.fromarray(prepared, "RGBA").resize((w, h), Image.Resampling.NEAREST)
     )
-    core = raw_contrast_mask(prepared, core=True)
-    contrast = raw_contrast_mask(prepared)
-    skel = structural_centerline(core if int(core.sum()) >= 40 else contrast)
+    if is_thin_stroke_mark(prepared):
+        core = raw_contrast_mask(prepared, core=True)
+        contrast = raw_contrast_mask(prepared)
+        skel = structural_centerline(core if int(core.sum()) >= 40 else contrast)
+    else:
+        rules = elongated_thin_components(prepared)
+        if rules is None:
+            return restored
+        skel = structural_centerline(rules)
     if not skel.any():
         return restored
     protect = (

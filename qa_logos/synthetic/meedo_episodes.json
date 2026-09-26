@@ -632,6 +632,30 @@
       ],
       "cases": [],
       "source": "manual"
+    },
+    {
+      "id": "E0029",
+      "ts": "2026-09-26T13:27:12Z",
+      "commit": "f91b029",
+      "workstream": "logo-engine",
+      "outcome": "success",
+      "problem": "Board #9: thin strokes (PROPAK red rule, 1px borders) need centre-line tracing without treating dense lockups as thin wordmarks",
+      "first_read": "Widen is_thin_stroke_mark density gate so Propak enters the thin path",
+      "evidence": "Propak density ~0.39; lessons already forbade density<=0.30 (Trialta fills broke). Propak red rule is a separate 5\u20136px\u00d7457 island; protect was None because centerline_protect_mask required whole-logo thin.",
+      "cause": "Thin-path gating is whole-logo; thin *components* inside dense lockups were invisible to protect/stamp/shape naming",
+      "fix": "elongated_thin_components + OR into centerline_protect_mask; stamp_centerline stamps rule skeletons on dense logos; fit_centerline_stroke for 1\u20133px/sub-40px rules; idealize emits stroke with stroke=colour. 6px Propak bar still names as rect.",
+      "verified": "pytest test_centerline_thin_rules.py + test_shapes + test_prepare_idot_retention + test_meedo_review (36 passed with skimage)",
+      "method": "When a thin feature lives inside a dense lockup, detect the component (aspect/thickness/density) rather than reopening the whole-logo thin gate. Prefer filled rect when it fits; centre-line stroke only for 1\u20133px rules and fragments below the 40px floor.",
+      "tags": [
+        "board-9",
+        "centerline",
+        "propak",
+        "thin-stroke"
+      ],
+      "cases": [
+        "propak"
+      ],
+      "source": "manual"
     }
   ]
 }

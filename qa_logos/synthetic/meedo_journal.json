@@ -101,6 +101,20 @@
         "branch": "cursor/logo-engine-collab-d4c9"
       },
       "source": "manual"
+    },
+    {
+      "id": "J21f98187",
+      "ts": "2026-09-26T13:27:23Z",
+      "agent": "cursor",
+      "task": 9,
+      "kind": "done",
+      "summary": "Centre-line thin-rule protect/stamp + stroke primitive; Propak density gate stays closed",
+      "evidence": {
+        "commit": "f91b029",
+        "tests": "test_centerline_thin_rules.py+shapes+idot+meedo_review",
+        "images_looked_at": true
+      },
+      "source": "cli"
     }
   ]
 }

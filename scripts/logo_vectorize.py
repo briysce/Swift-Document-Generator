@@ -26,6 +26,7 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from logo_raster_finish import (  # noqa: E402
     edge_energy,
+    elongated_thin_components,
     finalize_restore,
     ink_mask_iou,
     is_thin_stroke_mark,
@@ -674,12 +675,16 @@ def _build_traced(
         if not _rasterize_svg(svg, tmp_png, min_height):
             raise RuntimeError("SVG rasterize failed (install cairosvg)")
         restored = load_rgba(tmp_png)
+        # Stamp dropped medial-axis ink: full skeleton for thin wordmarks,
+        # elongated thin-rule components only for dense lockups (PROPAK).
         if thin:
             # Keep stroke bounds / sharp terminators the spline may have rounded.
             a = restored[:, :, 3]
             restored[:, :, 3] = np.where(
                 a >= 64, 255, np.where(a < 24, 0, a)
             ).astype(np.uint8)
+            restored = stamp_centerline(restored, prepared)
+        elif elongated_thin_components(prepared) is not None:
             restored = stamp_centerline(restored, prepared)
         # Palette lock + plate cleanup; reject collapsed redraws → Lanczos prep.
         # Thin Arc wordmarks: require ink geometry vs prepared source (vectorize

@@ -1056,10 +1056,17 @@ def _compose(
             except Exception:
                 fit = None
             if fit is not None:
-                groups.append(
-                    f'<g id="{eid}" data-shape="{fit.kind}" '
-                    f'fill="{hexc}" stroke="none">{fit.markup}</g>'
-                )
+                if fit.kind == "stroke":
+                    # Markup already carries fill="none" and stroke-width.
+                    groups.append(
+                        f'<g id="{eid}" data-shape="stroke" '
+                        f'fill="none" stroke="{hexc}">{fit.markup}</g>'
+                    )
+                else:
+                    groups.append(
+                        f'<g id="{eid}" data-shape="{fit.kind}" '
+                        f'fill="{hexc}" stroke="none">{fit.markup}</g>'
+                    )
                 continue
 
         # 3. Neither named. Fit designed-looking geometry to the boundary.

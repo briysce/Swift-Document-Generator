@@ -503,6 +503,22 @@
         "board-7",
         "honest-limit"
       ]
+    },
+    {
+      "id": "20260926T132712Z",
+      "ts": "2026-09-26T13:27:12Z",
+      "title": "Centre-line thin rules inside dense lockups (board #9)",
+      "lesson": "Do not reopen whole-logo density<=0.30 for Propak/Trialta. Instead elongated_thin_components (aspect>=6, thick<=8, dens>=0.35) feeds centerline_protect_mask and stamp_centerline. fit_centerline_stroke names 1\u20133px / sub-40px solid rules as stroked centre-lines; thicker Propak red bar remains rect. Locked by test_centerline_thin_rules.py.",
+      "do_not_regress": "Propak fills not treated as thin wordmark; Propak red rule protect/stamp; Swift bars still rect",
+      "case_ids": [
+        "propak"
+      ],
+      "tags": [
+        "centerline",
+        "thin-stroke",
+        "propak",
+        "board-9"
+      ]
     }
   ],
   "run_snapshots": [
@@ -2199,6 +2215,6 @@
       }
     }
   ],
-  "updated_at": "2026-09-26T13:18:01Z",
+  "updated_at": "2026-09-26T13:27:12Z",
   "entries": []
 }
