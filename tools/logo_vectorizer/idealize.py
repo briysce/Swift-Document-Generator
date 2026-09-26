@@ -529,16 +529,52 @@ class Element:
 
 
 def _components(mask: np.ndarray, min_px: int = MIN_COMPONENT_PX) -> list[np.ndarray]:
-    """Disconnected elements of a layer — one per letter, bar, shadow."""
+    """Disconnected elements of a layer — one per letter, bar, shadow.
+
+    Below `min_px` an element is noise, unless it is a mark: an i-dot at
+    sketch scale is 10-25 px, and a size floor alone erased every one of them
+    before reconstruction began (PROPAK's "Services", GCM's "Modification").
+    """
     from scipy import ndimage
 
     lab, n = ndimage.label(mask, structure=np.ones((3, 3), dtype=int))
+    sizes = np.bincount(lab.ravel())
+    big = np.isin(lab, np.flatnonzero(sizes >= min_px)[1:] if sizes[0] >= min_px else np.flatnonzero(sizes >= min_px))
+    big &= lab > 0
+    dt = ndimage.distance_transform_edt(big) if big.any() else None
+    big_lab, _ = ndimage.label(big, structure=np.ones((3, 3), dtype=int))
+    # Letters with their counters filled: a fleck inside an A's counter is
+    # noise, whatever its shape; a dot sits outside its letter.
+    solid = ndimage.binary_fill_holes(big) if big.any() else big
     out: list[np.ndarray] = []
     for i in range(1, n + 1):
         m = lab == i
-        if int(m.sum()) >= min_px:
+        if int(sizes[i]) >= min_px or (dt is not None and not (solid & m).any() and _is_mark(m, big_lab, dt)):
             out.append(m)
     return out
+
+
+def _is_mark(m: np.ndarray, big_lab: np.ndarray, dt: np.ndarray) -> bool:
+    """A dot, accent or period beside the letters: compact, at least 3 px each
+    way, within two of its own sizes of a letter, and sized like that letter's
+    strokes (0.6-2.5x their width). Noise is ragged, a sliver, adrift, or tiny
+    beside the stroke it broke from."""
+    ys, xs = np.nonzero(m)
+    area = len(xs)
+    w, h = int(xs.max() - xs.min()) + 1, int(ys.max() - ys.min()) + 1
+    if area < 9 or min(w, h) < 3 or area / float(w * h) < 0.6 or max(w, h) > 1.6 * min(w, h):
+        return False                     # a dot is round-ish; slivers are broken serifs
+    if xs.min() == 0 or ys.min() == 0 or xs.max() == m.shape[1] - 1 or ys.max() == m.shape[0] - 1:
+        return False                     # nothing drawn on purpose sits on the canvas edge
+    g = 2 * max(w, h) + 2
+    y0, y1 = max(0, int(ys.min()) - g), min(m.shape[0], int(ys.max()) + g + 1)
+    x0, x1 = max(0, int(xs.min()) - g), min(m.shape[1], int(xs.max()) + g + 1)
+    near = np.unique(big_lab[y0:y1, x0:x1])
+    for k in near[near > 0]:
+        stroke = 2.0 * float(np.percentile(dt[big_lab == k], 90))
+        if 0.6 * stroke <= min(w, h) and max(w, h) <= 2.5 * stroke:
+            return True
+    return False
 
 
 def elements_of(arr: np.ndarray, *, max_layers: int = 6) -> list[Element]:

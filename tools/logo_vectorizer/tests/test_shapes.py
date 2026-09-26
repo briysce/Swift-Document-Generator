@@ -122,3 +122,20 @@ def test_a_perfect_constrained_fit_is_never_unseated():
         ]
     )
     assert won.kind == "circle"
+
+
+def test_reconstruction_keeps_an_i_dot_and_drops_crumbs():
+    """A size floor alone erased every i-dot before reconstruction began."""
+    import numpy as np
+
+    from tools.logo_vectorizer.idealize import _components
+
+    m = np.zeros((60, 80), bool)
+    m[20:50, 10:15] = True          # an i stem, 5 px wide
+    m[12:17, 10:15] = True          # its dot, 5x5, 3 px above
+    m[20:50, 40:45] = True          # another stem
+    m[20:23, 46:53] = True          # a 7x3 sliver broken off a serif
+    m[0:4, 70:74] = True            # a crumb on the canvas edge
+    got = sorted(int(c.sum()) for c in _components(m))
+    assert 25 in got                # the dot survives
+    assert 21 not in got and 16 not in got
