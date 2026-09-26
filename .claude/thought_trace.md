@@ -54,14 +54,30 @@ import_combo 0.9465 and downscale 0.9364 (task: rank on craftsmanship).
 - `design_fit.py`: designed geometry over a sketch — coverage edges, corners,
   lines/fair cubics, restored corners, shared slant and heights (52b5f81).
 
+### Swift rebuild (4c3c38a) — awaiting the user's sign-off before the app uses it
+`scripts/rebuild_swift_logo.py` -> `assets/brand/swift_supply_logo_rebuilt.svg`:
+830 points, 10 KB; at 743x230 it explains the source better than every
+existing version (|RGB err| 4.60 vs 11.02 traced; orange IoU 0.9931, dark
+0.8987). Outline 2.2 px, shadow extrusion (7.75, 4.5), bar border 1.4 px.
+Refinements left: the bars' faint grey under-edge; anchor trimming on small
+serif runs.
+
+### Reviewer (cad7206)
+Every letter-sized element is checked for presence (skeleton), dots by
+correspondence; registration is stretch-and-shift from several starts.
+100 outputs: all flags confirmed by eye, no false alarms.
+
+### Reconstruction path, gate run on 577dd87 (mean 0.7632 vs 0.7567 on 09-20)
+Better by eye on GCM (red kept), PROPAK (red rule, dot), Swift solid
+blur_crush (no halos). Arc: both paths flawed (trace draws the tagline red;
+reconstruction drops tagline letters) — the element check now blocks the
+latter, so Arc falls back to the trace as on 09-20.
+
 ### Next
-1. Swift rebuild on `design_fit`: letters as fair shapes; the dark outline as
-   one stroke width around them; the shadow as an extrusion of the outlined
-   letters (offset down-right), fitted against the source's dark ink;
-   bars as rectangles with border and shadow; SUPPLY from its typeface
-   (ScienceGothic 0.95). Judge by rendering at 743x230 against the source and
-   by eye at 4x; no seams, no wobble.
-2. Reconstruction gate: rank candidates by craftsmanship once identity holds.
+1. Reconstruction gate: rank candidates by craftsmanship once identity holds
+   (Swift solid downscale/import_combo ship the trace; the old gate's
+   reconstructions scored 0.9364/0.9465). Bring design_fit into the engine as
+   a candidate.
 3. PROPAK's "Services" dot survives despeckle but is lost later in preparation.
 4. Meedo-Me growth: autonomy is earned — see its hit rate and reviewer record
    before widening what it may do unasked.

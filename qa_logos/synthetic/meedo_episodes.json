@@ -536,6 +536,27 @@
       ],
       "cases": [],
       "source": "mcp"
+    },
+    {
+      "id": "E0025",
+      "ts": "2026-09-26T12:51:06Z",
+      "commit": "cad7206",
+      "workstream": "meedo-me",
+      "outcome": "success",
+      "problem": "Correspondence checks (dots, letters) called present elements missing on some outputs",
+      "first_read": "The outputs really lost those elements",
+      "evidence": "Outputs are cropped to their ink, so naive resizing misplaced dots by 1-2 px (PROPAK's surviving dot called missing). Moments alone read ESRGAN's fragmented letters as x-scale 0.51 against a true 1.04, and ECC then converged to a sheared transform; OpenCV also rewrote the start matrix in place when ECC failed.",
+      "cause": "Registration assumed one good starting point and allowed transforms the pipeline cannot produce",
+      "fix": "Stretch-and-shift only; several starts (ink extents, bulk moments, identity) each refined by a small correlation search; presence judged along each element's skeleton, not its area (cad7206)",
+      "verified": "100 outputs: every flag confirmed by eye, no false alarms; Arc's missing tagline letters now caught",
+      "method": "Before judging correspondence, register with only the transforms the pipeline can produce, from several starts; check each verdict by eye on the native output, never on a stretched copy.",
+      "tags": [
+        "false-alarms",
+        "registration",
+        "reviewer"
+      ],
+      "cases": [],
+      "source": "mcp"
     }
   ]
 }
